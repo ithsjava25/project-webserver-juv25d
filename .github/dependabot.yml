@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
+
+  # Maintain dependencies for Maven
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      maven-deps:
+        patterns:
+          - "*"

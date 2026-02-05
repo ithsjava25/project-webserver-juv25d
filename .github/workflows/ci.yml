@@ -24,4 +24,4 @@ jobs:
         run: ./mvnw -B test
 
       - name: Run spotless checks
-        run: ./mvnw -B spotless:checks
+        run: ./mvnw -B spotless:check

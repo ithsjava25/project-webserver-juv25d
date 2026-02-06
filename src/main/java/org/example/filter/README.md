@@ -32,7 +32,7 @@ Example: LoggingFilter
 ## Register your filter (src/org.example/App.java)
 
 Register your filter using:
-```java
+```
     Pipeline pipeline = new Pipeline();
     pipeline.addFilter(new LoggingFilter());
 ```

@@ -11,7 +11,11 @@ public class HelloPlugin implements Plugin{
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
 
         // Does not work since Http response has not been initialized (TODO)
+
+        /*
         res.setStatus(200);
         res.setBody("Hello from plugin!");
+         */
+
     }
 }

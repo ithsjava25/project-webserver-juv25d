@@ -22,7 +22,8 @@ public class SocketServer {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                Thread.ofVirtual().start(() -> handleClient(socket));
+                Pipeline pipeline = new Pipeline();
+                Thread.ofVirtual().start(() -> handleClient(socket, pipeline));
             }
 
         } catch (IOException e) {
@@ -44,7 +45,7 @@ public class SocketServer {
             chain.doFilter(req, res);
 
             // Create a toBytes method in HttpResponse?
-            out.write(res.toBytes());
+            // out.write(res.toBytes());
             out.flush();
 
             System.out.println("Method: " + req.method());

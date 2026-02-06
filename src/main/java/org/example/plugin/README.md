@@ -46,7 +46,7 @@ public class RouterPlugin implements Plugin {
 ```
 
 ## Register your plugin (src/org.example/App.java)
-```java
+```
 Pipeline pipeline = new Pipeline();
 pipeline.setPlugin(new HelloPlugin);
 ```

@@ -49,7 +49,15 @@ public class HttpParser {
         // 3. Body
         byte[] body = new byte[0];
         if (headers.containsKey("content-length")) {
-            int length = Integer.parseInt(headers.get("content-length"));
+            int length;
+            try {
+                length = Integer.parseInt(headers.get("content-length"));
+            } catch (NumberFormatException e) {
+                throw new IOException("Invalid Content-Length: " + headers.get("content-length"), e);
+            }
+            if (length < 0) {
+                throw new IOException("Negative Content-Length: " + length);
+            }
             body = in.readNBytes(length);
         }
 

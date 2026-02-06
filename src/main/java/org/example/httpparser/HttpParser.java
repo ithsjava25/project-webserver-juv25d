@@ -14,7 +14,10 @@ public class HttpParser {
             throw new IOException("The request is empty");
         }
 
-        String[] parts = requestLine.split(" ");
+        String[] parts = requestLine.split("\\s+");
+        if (parts.length < 3) {
+            throw new IOException("Malformed request line: " + requestLine);
+        }
         String method = parts[0];
         String fullPath = parts[1];
         String version = parts[2];
@@ -35,15 +38,18 @@ public class HttpParser {
         String line;
         while (!(line = readLine(in)).isEmpty()) {
             int colon = line.indexOf(':');
-            String key = line.substring(0, colon).trim();
+            if (colon < 0) {
+                throw new IOException("Malformed header line: " + line);
+            }
+            String key = line.substring(0, colon).trim().toLowerCase();
             String value = line.substring(colon + 1).trim();
             headers.put(key, value);
         }
 
         // 3. Body
         byte[] body = new byte[0];
-        if (headers.containsKey("Content-Length")) {
-            int length = Integer.parseInt(headers.get("Content-Length"));
+        if (headers.containsKey("content-length")) {
+            int length = Integer.parseInt(headers.get("content-length"));
             body = in.readNBytes(length);
         }
 
@@ -54,12 +60,22 @@ public class HttpParser {
     private String readLine(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
         int c;
+        boolean foundCr = false;
         while ((c = in.read()) != -1) {
             if (c == '\r') {
-                in.read();
+                in.mark(1);
+                int next = in.read();
+                if (next != '\n') {
+                    in.reset();
+                }
+                foundCr = true;
                 break;
             }
             sb.append((char) c);
+        }
+
+        if (c == -1 && sb.isEmpty()) {
+            return null;
         }
         return sb.toString();
     }

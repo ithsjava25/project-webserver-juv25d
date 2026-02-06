@@ -36,7 +36,7 @@ public class HttpParser {
         // 2. Headers
         Map<String, String> headers = new HashMap<>();
         String line;
-        while (!(line = readLine(in)).isEmpty()) {
+        while ((line = readLine(in)) != null && !line.isEmpty()) {
             int colon = line.indexOf(':');
             if (colon < 0) {
                 throw new IOException("Malformed header line: " + line);
@@ -59,22 +59,17 @@ public class HttpParser {
 
     private String readLine(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
-        int c;
-        boolean foundCr = false;
-        while ((c = in.read()) != -1) {
-            if (c == '\r') {
-                in.mark(1);
-                int next = in.read();
-                if (next != '\n') {
-                    in.reset();
-                }
-                foundCr = true;
+        int b;
+        while ((b = in.read()) != -1) {
+            if (b == '\n') {
                 break;
             }
-            sb.append((char) c);
+            if (b != '\r') {
+                sb.append((char) b);
+            }
         }
 
-        if (c == -1 && sb.isEmpty()) {
+        if (b == -1 && sb.isEmpty()) {
             return null;
         }
         return sb.toString();

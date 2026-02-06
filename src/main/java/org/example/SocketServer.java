@@ -1,10 +1,13 @@
 package org.example;
 
-import org.example.httpparser.HttpParser;
-import org.example.httpparser.HttpRequest;
+import org.example.filter.FilterChain;
+import org.example.http.HttpParser;
+import org.example.http.HttpRequest;
+import org.example.http.HttpResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -27,15 +30,25 @@ public class SocketServer {
         }
     }
 
-    static void handleClient(Socket socket) {
+    static void handleClient(Socket socket, Pipeline pipeline) {
         try (socket) {
             InputStream in = socket.getInputStream();
+            OutputStream out = socket.getOutputStream();
 
             HttpParser parser = new HttpParser();
-            HttpRequest request = parser.parse(in);
+            HttpRequest req = parser.parse(in);
+            HttpResponse res = new HttpResponse();
 
-            System.out.println("Method: " + request.method());
-            System.out.println("Path: " + request.path());
+            // Run filter/plugin
+            FilterChain chain = pipeline.createChain();
+            chain.doFilter(req, res);
+
+            // Create a toBytes method in HttpResponse?
+            out.write(res.toBytes());
+            out.flush();
+
+            System.out.println("Method: " + req.method());
+            System.out.println("Path: " + req.path());
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,4 +1,4 @@
-package org.example;
+package org.juv25d;
 
 import org.example.httpparser.HttpParser;
 import org.example.httpparser.HttpRequest;

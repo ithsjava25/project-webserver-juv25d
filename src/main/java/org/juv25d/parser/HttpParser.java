@@ -1,4 +1,6 @@
-package org.juv25d;
+package org.juv25d.parser;
+
+import org.juv25d.HttpRequest;
 
 import java.io.IOException;
 import java.io.InputStream;

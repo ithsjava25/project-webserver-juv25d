@@ -1,4 +1,4 @@
-package org.example.httpparser;
+package org.juv25d;
 
 import java.util.Map;
 

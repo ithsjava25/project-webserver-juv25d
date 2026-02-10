@@ -1,11 +1,14 @@
 package org.juv25d;
 
 import org.juv25d.parser.HttpParser;
+import org.juv25d.logging.ServerLogging;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class SocketServer {
 
@@ -15,20 +18,24 @@ public class SocketServer {
         this.httpParser = httpParser;
     }
 
+    private static final Logger logger = ServerLogging.getLogger();
+
     static void createSocket() {
         int port = 3000;
 
         try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
 
-            System.out.println("Server started at port: " + serverSocket.getLocalPort());
+            logger.info("Server started at port: " + serverSocket.getLocalPort());
 
             while (true) {
                 Socket socket = serverSocket.accept();
+                logger.info("Client connected from: " + socket.getInetAddress().getHostAddress());
+
                 Thread.ofVirtual().start(() -> handleClient(socket));
             }
 
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.log(Level.SEVERE, "Server socket error: " + e);
         }
     }
 
@@ -39,11 +46,11 @@ public class SocketServer {
             HttpParser parser = new HttpParser();
             HttpRequest request = parser.parse(in);
 
-            System.out.println("Method: " + request.method());
-            System.out.println("Path: " + request.path());
+            logger.info("Method: " + request.method());
+            logger.info("Path: " + request.path());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Error handling client ",e);
         }
     }
 }

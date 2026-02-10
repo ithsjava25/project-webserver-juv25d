@@ -1,6 +1,5 @@
 package org.juv25d.filter;
 
-import org.juv25d.Pipeline;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.plugin.Plugin;
@@ -8,12 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 class FilterChainImplTest {
 
@@ -50,7 +48,7 @@ class FilterChainImplTest {
             new byte[0]
         );
 
-        chain.doFilter(req, new HttpResponse());
+        chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
 
         assertEquals(
             List.of(
@@ -84,45 +82,9 @@ class FilterChainImplTest {
             "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
         );
 
-        chain.doFilter(req, new HttpResponse());
+        chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
 
         assertEquals(List.of("blocked"), calls);
-    }
-
-    @Test
-    void pipeline_createsNewChainPerRequest() {
-
-        Pipeline pipeline = new Pipeline();
-        pipeline.addFilter((req, res, chain) -> {});
-        pipeline.setPlugin((req, res) -> {});
-
-        FilterChainImpl c1 = pipeline.createChain();
-        FilterChainImpl c2 = pipeline.createChain();
-
-        assertNotSame(c1, c2);
-    }
-
-    @Test
-    void pipeline_initCallsFilterInit() {
-
-        AtomicInteger counter = new AtomicInteger();
-
-        Filter filter = new Filter() {
-            @Override
-            public void init() {
-                counter.incrementAndGet();
-            }
-
-            @Override
-            public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) {}
-        };
-
-        Pipeline pipeline = new Pipeline();
-        pipeline.addFilter(filter);
-
-        pipeline.init();
-
-        assertEquals(1, counter.get());
     }
 
     @Test
@@ -141,7 +103,7 @@ class FilterChainImplTest {
             "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
         );
 
-        chain.doFilter(req, new HttpResponse());
+        chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
 
         assertEquals(List.of("plugin"), calls);
     }

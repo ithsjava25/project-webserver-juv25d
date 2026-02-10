@@ -19,10 +19,6 @@ public class HttpResponse {
         this.body = body.clone();
     }
 
-    public HttpResponse() {
-        this(200, "OK", new HashMap<>(), new byte[0]);
-    }
-
     public int statusCode(){
         return statusCode;
     }

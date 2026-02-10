@@ -1,7 +1,5 @@
 package org.juv25d.logging;
 
-import org.juv25d.SocketServer;
-import org.juv25d.parser.HttpParser;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -9,7 +7,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 public class ServerLogging {
-    private static final Logger logger = Logger.getLogger(SocketServer.class.getName());
+    private static final Logger logger = Logger.getLogger(ServerLogging.class.getName());
 
     static {
         // Configure logger for simple output

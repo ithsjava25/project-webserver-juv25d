@@ -14,7 +14,7 @@
         <junit.jupiter.version>6.0.2</junit.jupiter.version>
         <assertj.core.version>3.27.7</assertj.core.version>
         <mockito.version>5.21.0</mockito.version>
-        <argLine></argLine>
+        <argLine/>
     </properties>
     <dependencies>
         <dependency>
@@ -80,7 +80,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
-                    <argLine>${argLine} -Xshare:off</argLine>
+                    <argLine>@{argLine} -Xshare:off</argLine>
                 </configuration>
             </plugin>
             <plugin>

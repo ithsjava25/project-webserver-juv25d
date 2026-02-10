@@ -22,4 +22,10 @@ public class Pipeline {
     public FilterChain createChain() {
         return new FilterChain(filters, plugin);
     }
+
+    public void init() {filters.forEach(Filter::init);}
+
+    public void destroy() {
+        filters.forEach(Filter::destroy);}
 }
+

@@ -1,4 +1,6 @@
-package org.example.http;
+package org.juv25d.parser;
+
+import org.juv25d.HttpRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,6 +60,7 @@ public class HttpParser {
             body = in.readNBytes(length);
         }
         return new HttpRequest(method, path, query, version, headers, body);
+
     }
 
     private String readLine(InputStream in) throws IOException {

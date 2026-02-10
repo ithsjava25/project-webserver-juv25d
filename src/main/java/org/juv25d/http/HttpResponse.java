@@ -1,4 +1,4 @@
-package org.example.http;
+package org.juv25d.http;
 /**
  * HTTP response container.
  * Will hold status code, headers, body,

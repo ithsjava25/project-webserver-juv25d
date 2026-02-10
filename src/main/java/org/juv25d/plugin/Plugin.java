@@ -1,7 +1,7 @@
-package org.example.plugin;
+package org.juv25d.plugin;
 
-import org.example.http.HttpRequest;
-import org.example.http.HttpResponse;
+import org.juv25d.http.HttpRequest;
+import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
 

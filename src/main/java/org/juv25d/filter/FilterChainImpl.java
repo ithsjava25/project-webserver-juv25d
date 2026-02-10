@@ -1,8 +1,8 @@
-package org.example.filter;
+package org.juv25d.filter;
 
-import org.example.http.HttpRequest;
-import org.example.http.HttpResponse;
-import org.example.plugin.Plugin;
+import org.juv25d.http.HttpRequest;
+import org.juv25d.http.HttpResponse;
+import org.juv25d.plugin.Plugin;
 
 import java.io.IOException;
 import java.util.List;

@@ -1,13 +1,14 @@
-package org.example;
+package org.juv25d;
 
-import org.example.filter.Filter;
-import org.example.filter.FilterChainImpl;
-import org.example.plugin.Plugin;
+import org.juv25d.filter.Filter;
+import org.juv25d.filter.FilterChainImpl;
+import org.juv25d.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Pipeline {
+
     private final List<Filter> filters = new ArrayList<>();
     private Plugin plugin;
 
@@ -23,8 +24,11 @@ public class Pipeline {
         return new FilterChainImpl(List.copyOf(filters), plugin);
     }
 
-    public void init() {filters.forEach(Filter::init);}
+    public void init() {
+        filters.forEach(Filter::init);
+    }
 
     public void destroy() {
-        filters.forEach(Filter::destroy);}
+        filters.forEach(Filter::destroy);
+    }
 }

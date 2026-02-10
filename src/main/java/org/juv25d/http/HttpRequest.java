@@ -1,4 +1,4 @@
-package org.example.http;
+package org.juv25d.http;
 
 import java.util.Map;
 

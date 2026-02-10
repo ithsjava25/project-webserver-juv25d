@@ -15,10 +15,9 @@ public class Server {
     }
 
 
-    public static void createSocket() {
+    public void start() {
         int port = 3000;
 
-        HttpParser parser = new HttpParser();
 
         try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
             System.out.println("Server started at port: " + serverSocket.getLocalPort());
@@ -26,7 +25,7 @@ public class Server {
             while (true) {
                 Socket socket = serverSocket.accept();
 
-                ConnectionHandler handler = new ConnectionHandler(socket, parser);
+                ConnectionHandler handler = new ConnectionHandler(socket, this.httpParser);
                 Thread.ofVirtual().start(handler);
             }
 

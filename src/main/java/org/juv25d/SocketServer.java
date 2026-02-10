@@ -40,7 +40,12 @@ public class SocketServer {
             OutputStream out = socket.getOutputStream();
 
             HttpRequest req = new HttpParser().parse(in);
-            HttpResponse res = new HttpResponse();
+            HttpResponse res = new HttpResponse(
+                200,
+                "OK",
+                java.util.Map.of(),
+                new byte[0]
+            );
 
             FilterChainImpl chain = pipeline.createChain();
             chain.doFilter(req, res);

@@ -1,6 +1,5 @@
 package org.juv25d.logging;
 
-
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,10 +11,21 @@ public class ServerLogging {
     static {
         // Configure logger for simple output
         logger.setUseParentHandlers(false); // Prevent logging to parent handlers
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setFormatter(new SimpleFormatter());
-        logger.addHandler(handler);
-        logger.setLevel(Level.INFO); // Set default logging level
+
+        if (logger.getHandlers().length == 0) {
+            ConsoleHandler handler = new ConsoleHandler();
+            handler.setFormatter(new SimpleFormatter());
+            logger.addHandler(handler);
+          }
+
+        String levelName = System.getProperty(
+            "log.level",
+            System.getenv().getOrDefault("LOG_LEVEL", "INFO")
+            );
+
+        Level level = Level.parse(levelName.toUpperCase());
+
+        logger.setLevel(level); // Set default logging level
     }
 
     private ServerLogging() {

@@ -3,11 +3,14 @@ package org.juv25d;
 import org.juv25d.parser.HttpParser;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ConnectionHandler implements Runnable {
     private final Socket socket;
     private final HttpParser httpParser;
 
+    private static Logger logger = Logger.getLogger(ConnectionHandler.class.getName());
 
     public ConnectionHandler(Socket socket, HttpParser httpParser) {
         this.socket = socket;
@@ -19,11 +22,10 @@ public class ConnectionHandler implements Runnable {
         try (socket) {
             HttpRequest request = httpParser.parse(socket.getInputStream());
 
-            System.out.println("Method: " + request.method());
-            System.out.println("Path: " + request.path());
+            logger.info("Handling reuest: " + request.method() + " " + request.path());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Error while handling request", e);
         }
     }
 }

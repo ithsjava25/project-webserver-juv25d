@@ -11,6 +11,20 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+/**
+ * Temporary server implementation.
+ *
+ * This class currently mixes transport concerns (TCP sockets, threading)
+ * with HTTP-specific logic (request parsing and pipeline execution).
+ *
+ * TODO (#20):
+ * Refactor into:
+ *  - Server: handles socket lifecycle and connection acceptance
+ *  - ConnectionHandler(or other name): handles HTTP parsing and request processing
+ *
+ * This separation will improve architecture and support filters,
+ * routing, and plugins more cleanly.
+ */
 public class SocketServer {
 
     static void createSocket(Pipeline pipeline) {

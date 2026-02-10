@@ -8,7 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class SocketServer {
-
     private final HttpParser httpParser;
 
     public SocketServer(HttpParser httpParser) {

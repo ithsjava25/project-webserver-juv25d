@@ -5,13 +5,14 @@ import org.example.plugin.HelloPlugin;
 
 public class App {
     public static void main(String[] args) {
-        SocketServer.createSocket();
 
         Pipeline pipeline = new Pipeline();
 
         pipeline.addFilter(new LoggingFilter());
         pipeline.setPlugin(new HelloPlugin());
 
-        // startServer(pipeline);
+        pipeline.init();
+
+        SocketServer.createSocket(pipeline);
     }
 }

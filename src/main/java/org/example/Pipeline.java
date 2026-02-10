@@ -1,7 +1,7 @@
 package org.example;
 
 import org.example.filter.Filter;
-import org.example.filter.FilterChain;
+import org.example.filter.FilterChainImpl;
 import org.example.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -19,8 +19,8 @@ public class Pipeline {
         this.plugin = plugin;
     }
 
-    public FilterChain createChain() {
-        return new FilterChain(filters, plugin);
+    public FilterChainImpl createChain() {
+        return new FilterChainImpl(List.copyOf(filters), plugin);
     }
 
     public void init() {filters.forEach(Filter::init);}
@@ -28,4 +28,3 @@ public class Pipeline {
     public void destroy() {
         filters.forEach(Filter::destroy);}
 }
-

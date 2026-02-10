@@ -1,5 +1,9 @@
 package org.example.http;
-
+/**
+ * HTTP response container.
+ * Will hold status code, headers, body,
+ * and serialize the response to bytes.
+ */
 public class HttpResponse {
-    // TODO:
+    // Implemented in later issues
 }

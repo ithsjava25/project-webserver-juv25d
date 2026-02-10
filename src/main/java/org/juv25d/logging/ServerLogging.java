@@ -11,13 +11,17 @@ import java.util.logging.SimpleFormatter;
 public class ServerLogging {
     private static final Logger logger = Logger.getLogger(SocketServer.class.getName());
 
-    public ServerLogging(HttpParser httpParser) {
+    static {
         // Configure logger for simple output
         logger.setUseParentHandlers(false); // Prevent logging to parent handlers
         ConsoleHandler handler = new ConsoleHandler();
         handler.setFormatter(new SimpleFormatter());
         logger.addHandler(handler);
         logger.setLevel(Level.INFO); // Set default logging level
+    }
+
+    private ServerLogging() {
+        // Utility class - prevent instantiation
     }
 
     public static Logger getLogger() {

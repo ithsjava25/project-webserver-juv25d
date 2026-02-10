@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SocketServer {
@@ -34,7 +35,7 @@ public class SocketServer {
             }
 
         } catch (IOException e) {
-            logger.severe( "Server socket error: " + e.getMessage());
+            logger.log(Level.SEVERE, "Server socket error: " + e);
         }
     }
 
@@ -49,7 +50,7 @@ public class SocketServer {
             logger.info("Path: " + request.path());
 
         } catch (IOException e) {
-            logger.warning("Error handling client: " + e.getMessage());
+            logger.log(Level.WARNING, "Error handling client ",e);
         }
     }
 }

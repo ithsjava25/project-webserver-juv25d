@@ -29,13 +29,13 @@ public class SocketServer {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                logger.log(Level.INFO, "Client connected from: {0}", socket.getInetAddress().getHostAddress());
+                logger.info("Client connected from: " + socket.getInetAddress().getHostAddress());
 
                 Thread.ofVirtual().start(() -> handleClient(socket));
             }
 
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Server socket error: {0}", e.getMessage());
+            logger.severe( "Server socket error: " + e.getMessage());
         }
     }
 

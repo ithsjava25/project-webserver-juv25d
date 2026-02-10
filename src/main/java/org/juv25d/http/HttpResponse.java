@@ -1,9 +1,6 @@
 package org.juv25d.http;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class HttpResponse {
 
@@ -20,6 +17,10 @@ public class HttpResponse {
         this.statusText = statusText;
         this.headers = Collections.unmodifiableMap(new LinkedHashMap<>(headers));
         this.body = body.clone();
+    }
+
+    public HttpResponse() {
+        this(200, "OK", new HashMap<>(), new byte[0]);
     }
 
     public int statusCode(){

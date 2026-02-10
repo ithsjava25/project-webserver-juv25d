@@ -22,7 +22,7 @@ public class ConnectionHandler implements Runnable {
         try (socket) {
             HttpRequest request = httpParser.parse(socket.getInputStream());
 
-            logger.info("Handling reuest: " + request.method() + " " + request.path());
+            logger.info("Handling request: " + request.method() + " " + request.path());
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error while handling request", e);

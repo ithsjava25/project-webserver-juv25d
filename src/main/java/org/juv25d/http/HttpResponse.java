@@ -4,10 +4,10 @@ import java.util.*;
 
 public class HttpResponse {
 
-    private final int statusCode;
-    private final String statusText;
-    private final Map<String, String> headers;
-    private final byte[] body;
+    private int statusCode;
+    private String statusText;
+    private Map<String, String> headers;
+    private byte[] body;
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         Objects.requireNonNull(statusText, "statusText must not be null");
@@ -33,6 +33,23 @@ public class HttpResponse {
 
     public byte[] body(){
         return body.clone();
+    }
+
+    // Setters for Pipeline plugin integration
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public void setStatusText(String statusText) {
+        this.statusText = statusText;
+    }
+
+    public void setHeaders(java.util.Map<String, String> headers) {
+        this.headers = new java.util.LinkedHashMap<>(headers);
+    }
+
+    public void setBody(byte[] body) {
+        this.body = body.clone();
     }
 
 }

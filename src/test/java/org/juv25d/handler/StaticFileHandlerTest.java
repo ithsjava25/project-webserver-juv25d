@@ -1,6 +1,6 @@
 package org.juv25d.handler;
 
-import org.juv25d.HttpRequest;
+import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 

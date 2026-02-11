@@ -40,7 +40,7 @@ class HttpParserTest {
     }
 
     @Test
-    void parseEmptyRequest_ThrowsException() {
+    void parseEmptyRequest_throwsException() {
         // Arrange
         String request = "";
 
@@ -61,6 +61,18 @@ class HttpParserTest {
             .hasMessageContaining("Malformed request line");
     }
 
+    @Test
+    void parseValidQueryString() throws IOException {
+        // Arrange
+        String request = "GET /search?q=java HTTP/1.1\r\n";
+
+        // Act
+        HttpRequest result = parser.parse(createInputStream(request));
+
+        // Assert
+        assertThat(result.path()).isEqualTo("/search");
+        assertThat(result.queryString()).isEqualTo("q=java");
+    }
 
     private InputStream createInputStream(String request) {
         return new ByteArrayInputStream(request.getBytes());

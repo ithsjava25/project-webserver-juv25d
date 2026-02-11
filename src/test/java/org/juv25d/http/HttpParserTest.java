@@ -114,6 +114,36 @@ class HttpParserTest {
         assertThat(result.body()).isEqualTo(body.getBytes());
     }
 
+    @Test
+    void parseInvalidContentLength_throwsException() {
+        // Arrange
+        String request = "POST /users HTTP/1.1\r\n" +
+            "Host: localhost:8080\r\n" +
+            "Content-Type: text/html\r\n" +
+            "Content-Length: abc\r\n" +
+            "\r\n";
+
+        // Act + Assert
+        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Invalid Content-Length: abc");
+    }
+
+    @Test
+    void parseNegativeContentLength_throwsException() {
+        // Arrange
+        String request = "POST /users HTTP/1.1\r\n" +
+            "Host: localhost:8080\r\n" +
+            "Content-Type: text/html\r\n" +
+            "Content-Length: -10\r\n" +
+            "\r\n";
+
+        // Act + Assert
+        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Negative Content-Length: -10");
+    }
+
     private InputStream createInputStream(String request) {
         return new ByteArrayInputStream(request.getBytes());
     }

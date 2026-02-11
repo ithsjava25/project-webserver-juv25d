@@ -39,7 +39,7 @@ public class ConnectionHandler implements Runnable {
                 new byte[0]
             );
 
-            var chain = pipeline.createChain();
+            var chain = pipeline.createChain(request);
             chain.doFilter(request, response);
 
             HttpResponseWriter.write(out, response);

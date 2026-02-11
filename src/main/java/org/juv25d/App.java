@@ -13,9 +13,9 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
-        pipeline.addFilter(new LoggingFilter());
+      //  pipeline.addFilter(new LoggingFilter());
         pipeline.setPlugin(new HelloPlugin());
-        pipeline.init();
+      //  pipeline.init();
 
         DefaultConnectionHandlerFactory handlerFactory =
             new DefaultConnectionHandlerFactory(httpParser, logger);

@@ -41,6 +41,7 @@ public class HttpResponse {
     }
 
     public void setStatusText(String statusText) {
+        Objects.requireNonNull(statusText, "statusText must not be null");
         this.statusText = statusText;
     }
 

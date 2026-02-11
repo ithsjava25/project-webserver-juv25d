@@ -1,6 +1,4 @@
-package org.juv25d.parser;
-
-import org.juv25d.HttpRequest;
+package org.juv25d.http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,7 +8,6 @@ import java.util.Map;
 public class HttpParser {
     public HttpRequest parse(InputStream in) throws IOException {
 
-        // 1. Request Line
         String requestLine = readLine(in);
         if (requestLine == null || requestLine.isEmpty()) {
             throw new IOException("The request is empty");
@@ -35,7 +32,6 @@ public class HttpParser {
             path = fullPath;
         }
 
-        // 2. Headers
         Map<String, String> headers = new HashMap<>();
         String line;
         while ((line = readLine(in)) != null && !line.isEmpty()) {
@@ -48,7 +44,6 @@ public class HttpParser {
             headers.put(key, value);
         }
 
-        // 3. Body
         byte[] body = new byte[0];
         if (headers.containsKey("content-length")) {
             int length;
@@ -62,9 +57,7 @@ public class HttpParser {
             }
             body = in.readNBytes(length);
         }
-
         return new HttpRequest(method, path, query, version, headers, body);
-
     }
 
     private String readLine(InputStream in) throws IOException {
@@ -78,7 +71,6 @@ public class HttpParser {
                 sb.append((char) b);
             }
         }
-
         if (b == -1 && sb.isEmpty()) {
             return null;
         }

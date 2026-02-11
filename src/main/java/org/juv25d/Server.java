@@ -9,10 +9,12 @@ public class Server {
     private static final int PORT = 3000;
     private final Logger logger;
     private final ConnectionHandlerFactory handlerFactory;
+    private final Pipeline pipeline;
 
-    public Server(Logger logger, ConnectionHandlerFactory handlerFactory) {
+    public Server(Logger logger, ConnectionHandlerFactory handlerFactory, Pipeline pipeline) {
         this.logger = logger;
         this.handlerFactory = handlerFactory;
+        this.pipeline = pipeline;
     }
 
     public void start() {
@@ -21,7 +23,7 @@ public class Server {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                Runnable handler = handlerFactory.create(socket);
+                Runnable handler = handlerFactory.create(socket, pipeline);
                 Thread.ofVirtual().start(handler);
             }
 

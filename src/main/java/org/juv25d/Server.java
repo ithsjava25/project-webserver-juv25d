@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 public class Server {
     private static final int PORT = 3000;
     private final Logger logger;
-    private final DefaultConnectionHandlerFactory handlerFactory;
+    private final ConnectionHandlerFactory handlerFactory;
 
     public Server(Logger logger, DefaultConnectionHandlerFactory connectionHandlerFactory) {
         this.logger = logger;

@@ -27,8 +27,13 @@ public class ServerLogging {
             System.getenv().getOrDefault("LOG_LEVEL", "INFO")
         );
 
+        try {
         Level level = Level.parse(levelName.toUpperCase());
         logger.setLevel(level);
+        } catch (IllegalArgumentException e) {
+            logger.setLevel(Level.INFO);
+            logger.warning("Invalid log level: '" + levelName + "', defaulting to INFO");
+        }
     }
 
     private ServerLogging() {}

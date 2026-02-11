@@ -2,8 +2,8 @@ package org.juv25d.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class HttpParser {
     public HttpRequest parse(InputStream in) throws IOException {
@@ -32,7 +32,7 @@ public class HttpParser {
             path = fullPath;
         }
 
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         String line;
         while ((line = readLine(in)) != null && !line.isEmpty()) {
             int colon = line.indexOf(':');

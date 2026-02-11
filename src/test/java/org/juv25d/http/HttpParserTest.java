@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -41,7 +42,8 @@ class HttpParserTest {
         // Arrange
         String request = "GET /index.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
-            "Connection: close\r\n";
+            "Connection: close\r\n" +
+            "\r\n";
 
         // Act
         HttpRequest result = parser.parse(createInputStream(request));
@@ -57,17 +59,17 @@ class HttpParserTest {
     }
 
     /**
-     * Rejects empty requests (null or only CRLF) with an informative IOException.
+     * Rejects empty requests (empty or only CRLF) with an informative IOException.
      */
     @DisplayName("Empty request → IOException with 'The request is empty'")
     @Test
-    void parseNullOrEmptyRequest_throwsException() {
+    void parseEmptyRequest_throwsException() {
         // Arrange
-        String nullRequest = "";
+        String emptyStringRequest = "";
         String emptyRequest = "\r\n";
 
         // Act + Assert
-        assertThatThrownBy(() -> parser.parse(createInputStream(nullRequest)))
+        assertThatThrownBy(() -> parser.parse(createInputStream(emptyStringRequest)))
             .isInstanceOf(IOException.class)
             .hasMessage("The request is empty");
         assertThatThrownBy(() -> parser.parse(createInputStream(emptyRequest)))
@@ -135,7 +137,7 @@ class HttpParserTest {
         String request = "POST /users HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
             "Content-Type: text/html\r\n" +
-            "Content-Length: " + body.length() + "\r\n" +
+            "Content-Length: " + body.getBytes(StandardCharsets.UTF_8).length + "\r\n" +
             "\r\n" +
             body;
 
@@ -193,6 +195,6 @@ class HttpParserTest {
      * Utility to wrap a request string into an {@link InputStream}.
      */
     private InputStream createInputStream(String request) {
-        return new ByteArrayInputStream(request.getBytes());
+        return new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
     }
 }

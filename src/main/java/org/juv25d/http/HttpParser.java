@@ -39,7 +39,7 @@ public class HttpParser {
             if (colon < 0) {
                 throw new IOException("Malformed header line: " + line);
             }
-            String key = line.substring(0, colon).trim().toLowerCase();
+            String key = line.substring(0, colon).trim();
             String value = line.substring(colon + 1).trim();
             headers.put(key, value);
         }

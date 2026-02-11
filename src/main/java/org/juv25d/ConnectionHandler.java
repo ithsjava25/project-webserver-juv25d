@@ -9,12 +9,12 @@ import java.util.logging.Logger;
 public class ConnectionHandler implements Runnable {
     private final Socket socket;
     private final HttpParser httpParser;
+    private final Logger logger;
 
-    private static Logger logger = Logger.getLogger(ConnectionHandler.class.getName());
-
-    public ConnectionHandler(Socket socket, HttpParser httpParser) {
+    public ConnectionHandler(Socket socket, HttpParser httpParser, Logger logger) {
         this.socket = socket;
         this.httpParser = httpParser;
+        this.logger = logger;
     }
 
     @Override

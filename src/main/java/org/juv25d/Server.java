@@ -1,31 +1,27 @@
 package org.juv25d;
 
-import org.juv25d.parser.HttpParser;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class Server {
+    private static final int PORT = 3000;
+    private final Logger logger;
+    private final DefaultConnectionHandlerFactory handlerFactory;
 
-
-    private final HttpParser httpParser;
-
-    public Server(HttpParser httpParser) {
-        this.httpParser = httpParser;
+    public Server(Logger logger, DefaultConnectionHandlerFactory connectionHandlerFactory) {
+        this.logger = logger;
+        this.handlerFactory = connectionHandlerFactory;
     }
 
-
     public void start() {
-        int port = 3000;
-
-
-        try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
-            System.out.println("Server started at port: " + serverSocket.getLocalPort());
+        try (ServerSocket serverSocket = new ServerSocket(PORT, 64)) {
+            logger.info("Server started at port: " + serverSocket.getLocalPort());
 
             while (true) {
                 Socket socket = serverSocket.accept();
-
-                ConnectionHandler handler = new ConnectionHandler(socket, this.httpParser);
+                Runnable handler = handlerFactory.create(socket);
                 Thread.ofVirtual().start(handler);
             }
 

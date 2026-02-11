@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class HttpParser {
+
+    private static final String CONTENT_LENGTH = "Content-Length";
+
     public HttpRequest parse(InputStream in) throws IOException {
 
         String requestLine = readLine(in);
@@ -45,12 +48,12 @@ public class HttpParser {
         }
 
         byte[] body = new byte[0];
-        if (headers.containsKey("Content-Length")) {
+        if (headers.containsKey(CONTENT_LENGTH)) {
             int length;
             try {
-                length = Integer.parseInt(headers.get("Content-Length"));
+                length = Integer.parseInt(headers.get(CONTENT_LENGTH));
             } catch (NumberFormatException e) {
-                throw new IOException("Invalid Content-Length: " + headers.get("Content-Length"), e);
+                throw new IOException("Invalid Content-Length: " + headers.get(CONTENT_LENGTH), e);
             }
             if (length < 0) {
                 throw new IOException("Negative Content-Length: " + length);

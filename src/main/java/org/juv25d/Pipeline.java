@@ -7,15 +7,19 @@ import org.juv25d.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class Pipeline {
 
-    private final List<FilterRegistration> globalFilters = new ArrayList<>();
-    private final List<FilterRegistration> routeFilters = new ArrayList<>();
+    private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
+    private final List<FilterRegistration> routeFilters = new CopyOnWriteArrayList<>();
+    private List<Filter> sortedGlobalFilters = null;
     private Plugin plugin;
 
     public void addGlobalFilter(Filter filter, int order) {
         globalFilters.add(new FilterRegistration(filter, order, null));
+        sortedGlobalFilters = null;
     }
 
     public void addRouteFilter(Filter filter, int order, String pattern) {
@@ -28,20 +32,21 @@ public class Pipeline {
 
     public FilterChainImpl createChain(HttpRequest request) {
         List<Filter> filters = new ArrayList<>();
-
-        globalFilters.stream()
+        List<FilterRegistration> allFilters = new ArrayList<>();
+        allFilters.addAll(globalFilters);
+        allFilters.addAll(
+            routeFilters.stream()
+                .filter(fr -> matches(request.path(), fr.pattern()))
+                .collect(Collectors.toList())
+        );
+        allFilters.stream()
             .sorted()
             .forEach(fr -> filters.add(fr.filter()));
-
-        routeFilters.stream()
-            .filter(fr -> matches(request.path(), fr.pattern()))
-            .sorted()
-            .forEach(fr -> filters.add(fr.filter()));
-
         return new FilterChainImpl(filters, plugin);
     }
 
     private boolean matches(String path, String pattern) {
+        if (path == null) return false;
         if (pattern == null) return false;
         if (pattern.endsWith("*")) {
             return path.startsWith(pattern.substring(0, pattern.length() - 1));

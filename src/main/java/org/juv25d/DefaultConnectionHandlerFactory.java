@@ -8,10 +8,12 @@ import java.util.logging.Logger;
 public class DefaultConnectionHandlerFactory implements ConnectionHandlerFactory{
     private final HttpParser httpParser;
     private final Logger logger;
+    private final Pipeline pipeline;
 
-    public DefaultConnectionHandlerFactory(HttpParser httpParser, Logger logger) {
+    public DefaultConnectionHandlerFactory(HttpParser httpParser, Logger logger, Pipeline pipeline) {
         this.httpParser = httpParser;
         this.logger = logger;
+        this.pipeline = pipeline;
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.juv25d;
 
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterChainImpl;
+import org.juv25d.plugin.NotFoundPlugin;
 import org.juv25d.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -10,13 +11,16 @@ import java.util.List;
 public class Pipeline {
 
     private final List<Filter> filters = new ArrayList<>();
-    private Plugin plugin;
+    private Plugin plugin = new NotFoundPlugin();
 
     public void addFilter(Filter filter) {
         filters.add(filter);
     }
 
     public void setPlugin(Plugin plugin) {
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin cannot be null");
+        }
         this.plugin = plugin;
     }
 

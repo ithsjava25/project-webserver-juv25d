@@ -30,6 +30,7 @@ public class RouteFilterTests {
     @Test
     void routeFilter_shouldMatchExactPath() throws Exception {
         Pipeline pipeline = new Pipeline();
+        pipeline.setPlugin(new NoOpPlugin());
         RecordingFilter exact = new RecordingFilter("exact");
         pipeline.addRouteFilter(exact, 1, "/admin");
         execute(pipeline, "/admin");
@@ -61,13 +62,8 @@ public class RouteFilterTests {
             chain.doFilter(req, res);
         }
 
-        boolean wasExecuted() {
-            return executed;
-        }
-
-        void reset() {
-            executed = false;
-        }
+        boolean wasExecuted() {return executed;}
+        void reset() {executed = false;}
     }
 
     static class NoOpPlugin implements Plugin {

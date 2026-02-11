@@ -6,10 +6,9 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class HttpParserTest {
 
@@ -25,7 +24,7 @@ class HttpParserTest {
         // Arrange
         String request = "GET /index.html HTTP/1.1\r\n" +
             "Host: localhost:8080\r\n" +
-            "Connection: close\r\n" + "\r\n";
+            "Connection: close\r\n";
 
         // Act
         HttpRequest result = parser.parse(createInputStream(request));
@@ -33,14 +32,26 @@ class HttpParserTest {
         // Assert
         assertThat(result.method()).isEqualTo("GET");
         assertThat(result.path()).isEqualTo("/index.html");
+        assertThat(result.httpVersion()).isEqualTo("HTTP/1.1");
         assertThat(result.headers().get("Host")).isEqualTo("localhost:8080");
         assertThat(result.headers().get("Connection")).isEqualTo("close");
-
+        assertThat(result.body()).isEmpty();
+        assertThat(result.queryString()).isNull();
     }
-    private InputStream createInputStream (String request) {
+
+    @Test
+    void emptyRequest_ThrowsException() {
+        // Arrange
+        String request = "";
+
+        // Act + Assert
+        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+            .isInstanceOf(IOException.class)
+            .hasMessage("The request is empty");
+    }
+
+
+    private InputStream createInputStream(String request) {
         return new ByteArrayInputStream(request.getBytes());
-
-        //return new ByteArrayInputStream(request.getBytes(StandardCharsets.UTF_8));
     }
-
 }

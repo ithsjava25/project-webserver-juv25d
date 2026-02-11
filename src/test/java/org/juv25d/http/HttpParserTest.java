@@ -91,6 +91,29 @@ class HttpParserTest {
         assertThat(result.queryString()).isEqualTo("q=java");
     }
 
+    @Test
+    void parseValidPostRequest() throws IOException {
+        // Arrange
+        String body = "body";
+        String request = "POST /users HTTP/1.1\r\n" +
+            "Host: localhost:8080\r\n" +
+            "Content-Type: text/html\r\n" +
+            "Content-Length: " + body.length() + "\r\n" +
+            "\r\n" +
+            body;
+
+        // Act
+        HttpRequest result = parser.parse(createInputStream(request));
+
+        // Assert
+        assertThat(result.method()).isEqualTo("POST");
+        assertThat(result.path()).isEqualTo("/users");
+        assertThat(result.httpVersion()).isEqualTo("HTTP/1.1");
+        assertThat(result.headers().get("Host")).isEqualTo("localhost:8080");
+        assertThat(result.headers().get("Content-Type")).isEqualTo("text/html");
+        assertThat(result.body()).isEqualTo(body.getBytes());
+    }
+
     private InputStream createInputStream(String request) {
         return new ByteArrayInputStream(request.getBytes());
     }

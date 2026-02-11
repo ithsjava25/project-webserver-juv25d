@@ -40,12 +40,16 @@ class HttpParserTest {
     }
 
     @Test
-    void parseEmptyRequest_throwsException() {
+    void parseNullOrEmptyRequest_throwsException() {
         // Arrange
-        String request = "";
+        String nullRequest = "";
+        String emptyRequest = "\r\n";
 
         // Act + Assert
-        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+        assertThatThrownBy(() -> parser.parse(createInputStream(nullRequest)))
+            .isInstanceOf(IOException.class)
+            .hasMessage("The request is empty");
+        assertThatThrownBy(() -> parser.parse(createInputStream(emptyRequest)))
             .isInstanceOf(IOException.class)
             .hasMessage("The request is empty");
     }

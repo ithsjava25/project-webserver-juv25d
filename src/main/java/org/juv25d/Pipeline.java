@@ -11,7 +11,7 @@ import java.util.List;
 public class Pipeline {
 
     private final List<Filter> filters = new ArrayList<>();
-    private Plugin plugin = new NotFoundPlugin();
+    private Plugin plugin;
 
     public void addFilter(Filter filter) {
         filters.add(filter);

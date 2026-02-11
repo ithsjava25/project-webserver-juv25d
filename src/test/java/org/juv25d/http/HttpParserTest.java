@@ -40,7 +40,7 @@ class HttpParserTest {
     }
 
     @Test
-    void emptyRequest_ThrowsException() {
+    void parseEmptyRequest_ThrowsException() {
         // Arrange
         String request = "";
 
@@ -48,6 +48,17 @@ class HttpParserTest {
         assertThatThrownBy(() -> parser.parse(createInputStream(request)))
             .isInstanceOf(IOException.class)
             .hasMessage("The request is empty");
+    }
+
+    @Test
+    void parseMalformedRequest_throwsException() {
+        // Arrange
+        String request = "GET /index.html\r\n";
+
+        // Act + Assert
+        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+            .isInstanceOf(IOException.class)
+            .hasMessageContaining("Malformed request line");
     }
 
 

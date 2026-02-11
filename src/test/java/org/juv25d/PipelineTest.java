@@ -1,9 +1,7 @@
 package org.juv25d;
 
-import org.juv25d.filter.FilterChain;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
-import org.juv25d.plugin.Plugin;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

@@ -4,7 +4,7 @@ import java.util.*;
 
 /**
  * Represents an HTTP Response.
- * Changed to be mutable to allow Filters and Plugins in the Pipeline 
+ * Changed to be mutable to allow Filters and Plugins in the Pipeline
  * to modify status, headers, and body during processing.
  */
 public class HttpResponse {

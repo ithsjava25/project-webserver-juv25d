@@ -64,13 +64,20 @@ class ServerLoggingTest {
     void logger_shouldNotAddDuplicateHandlers() {
         Logger logger = ServerLogging.getLogger();
 
-        int handlerCountAfterFirstInit = logger.getHandlers().length;
+        // Clean slate
+        for (Handler handler : logger.getHandlers()) {
+            logger.removeHandler(handler);
+        }
 
-        // Simulate someone accessing logger again
-        Logger loggerAgain = ServerLogging.getLogger();
-        int handlerCountAfterSecondInit = loggerAgain.getHandlers().length;
+        ServerLogging.configure(logger);
+        int handlerCountAfterFirst = logger.getHandlers().length;
 
-        assertEquals(handlerCountAfterFirstInit, handlerCountAfterSecondInit);
+        ServerLogging.configure(logger);
+        int handlerCountAfterSecond = logger.getHandlers().length;
+
+        assertEquals(1, handlerCountAfterFirst);
+        assertEquals(handlerCountAfterFirst, handlerCountAfterSecond,
+            "configure() should not add duplicate handlers");
     }
 
     @Test

@@ -11,8 +11,10 @@ public class HttpResponse {
 
     private int statusCode;
     private String statusText;
-    private final Map<String, String> headers;
+    private Map<String, String> headers;
     private byte[] body;
+
+    public HttpResponse(){}
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         this.statusCode = statusCode;

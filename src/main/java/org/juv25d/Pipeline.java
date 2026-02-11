@@ -2,7 +2,6 @@ package org.juv25d;
 
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterChainImpl;
-import org.juv25d.plugin.NotFoundPlugin;
 import org.juv25d.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -34,5 +33,13 @@ public class Pipeline {
 
     public void destroy() {
         filters.forEach(Filter::destroy);
+    }
+
+    public List<Filter> getFilters() {
+        return filters;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 }

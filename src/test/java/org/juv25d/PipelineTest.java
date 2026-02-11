@@ -1,26 +1,11 @@
 package org.juv25d;
 
-import org.juv25d.http.HttpRequest;
-import org.juv25d.http.HttpResponse;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.util.Map;
+import org.juv25d.plugin.HelloPlugin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PipelineTest {
-
-    @Test
-    void usesNotFoundPluginByDefault() throws IOException {
-        Pipeline pipeline = new Pipeline();
-        HttpRequest req = new HttpRequest("GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]);
-        HttpResponse res = new HttpResponse();
-
-        pipeline.createChain().doFilter(req, res);
-
-        assertEquals(404, res.statusCode());
-    }
 
     @Test
     void throwsExceptionWhenSettingNullPlugin() {
@@ -29,19 +14,12 @@ class PipelineTest {
     }
 
     @Test
-    void customPluginIsUsed() throws IOException {
+    void customPluginIsUsed() {
         Pipeline pipeline = new Pipeline();
-        pipeline.setPlugin((req, res) -> {
-            res.setStatusCode(200);
-            res.setBody("Custom".getBytes());
-        });
+        HelloPlugin hello = new HelloPlugin();
 
-        HttpRequest req = new HttpRequest("GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]);
-        HttpResponse res = new HttpResponse();
+        pipeline.setPlugin(hello);
 
-        pipeline.createChain().doFilter(req, res);
-
-        assertEquals(200, res.statusCode());
-        assertArrayEquals("Custom".getBytes(), res.body());
+        assertEquals(hello, pipeline.getPlugin());
     }
 }

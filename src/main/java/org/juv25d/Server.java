@@ -10,9 +10,9 @@ public class Server {
     private final Logger logger;
     private final ConnectionHandlerFactory handlerFactory;
 
-    public Server(Logger logger, DefaultConnectionHandlerFactory connectionHandlerFactory) {
+    public Server(Logger logger, ConnectionHandlerFactory handlerFactory) {
         this.logger = logger;
-        this.handlerFactory = connectionHandlerFactory;
+        this.handlerFactory = handlerFactory;
     }
 
     public void start() {

@@ -61,6 +61,13 @@ public class StaticFileHandler {
             byte[] fileContent = loadResource(resourcePath);
             String mimeType = MimeTypeResolver.getMimeType(resourcePath);
 
+            // Add charset for text-based content types
+            if (mimeType.startsWith("text/") ||
+                mimeType.contains("javascript") ||
+                mimeType.contains("json")) {
+                mimeType += "; charset=utf-8";
+            }
+
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", mimeType);
 

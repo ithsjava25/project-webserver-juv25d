@@ -66,6 +66,19 @@ class HttpParserTest {
     }
 
     @Test
+    void parseMalformedHeader_throwsException() {
+        // Arrange
+        String request = "GET /index.html HTTP/1.1\r\n" +
+            ":Host localhost:8080\r\n" +
+            "Connection: close\r\n";
+
+        // Act + Assert
+        assertThatThrownBy(() -> parser.parse(createInputStream(request)))
+            .isInstanceOf(IOException.class)
+            .hasMessageContaining("Malformed header line");
+    }
+
+    @Test
     void parseValidQueryString() throws IOException {
         // Arrange
         String request = "GET /search?q=java HTTP/1.1\r\n";

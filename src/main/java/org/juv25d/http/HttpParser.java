@@ -36,7 +36,7 @@ public class HttpParser {
         String line;
         while ((line = readLine(in)) != null && !line.isEmpty()) {
             int colon = line.indexOf(':');
-            if (colon < 0) {
+            if (colon <= 0) {
                 throw new IOException("Malformed header line: " + line);
             }
             String key = line.substring(0, colon).trim();

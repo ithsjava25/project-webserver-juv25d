@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class LoggingFilterTest {
@@ -42,7 +43,7 @@ class LoggingFilterTest {
             filter.doFilter(req, res, chain);
 
             String output = out.toString();
-            assert output.contains("GET /test");
+            assertTrue(output.contains("GET /test"), "Output should contain logged method and path");
         } finally {
             System.setOut(originalOut);
         }

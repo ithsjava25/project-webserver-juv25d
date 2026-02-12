@@ -15,12 +15,11 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
-        pipeline.addFilter(new LoggingFilter());
+        pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.setPlugin(new StaticFilesPlugin());
-        pipeline.init();
 
         DefaultConnectionHandlerFactory handlerFactory =
-            new DefaultConnectionHandlerFactory(httpParser, logger);
+            new DefaultConnectionHandlerFactory(httpParser, logger, pipeline);
 
         Server server = new Server(
             config.getPort(),

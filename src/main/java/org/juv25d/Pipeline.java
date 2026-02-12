@@ -17,6 +17,9 @@ public class Pipeline {
     }
 
     public void setPlugin(Plugin plugin) {
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin cannot be null");
+        }
         this.plugin = plugin;
     }
 
@@ -30,5 +33,13 @@ public class Pipeline {
 
     public void destroy() {
         filters.forEach(Filter::destroy);
+    }
+
+    public List<Filter> getFilters() {
+        return filters;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 }

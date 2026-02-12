@@ -16,7 +16,7 @@ public class App {
 
         Pipeline pipeline = new Pipeline();
         pipeline.addFilter(new IpFilter(
-            Set.of("127.0.0.1", "::1", "0:0:0:0:0:0:0:1"),
+            Set.of(),
             Set.of()
         ));
         pipeline.addFilter(new LoggingFilter());

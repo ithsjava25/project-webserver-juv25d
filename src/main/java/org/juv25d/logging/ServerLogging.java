@@ -1,5 +1,7 @@
 package org.juv25d.logging;
 
+import org.juv25d.util.ConfigLoader;
+
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,7 +26,7 @@ public class ServerLogging {
 
         String levelName = System.getProperty(
             "log.level",
-            System.getenv().getOrDefault("LOG_LEVEL", "INFO")
+            System.getenv().getOrDefault("LOG_LEVEL", ConfigLoader.getInstance().getLogLevel())
         );
 
         try {

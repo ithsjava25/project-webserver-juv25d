@@ -24,7 +24,7 @@ class StaticFileHandlerTest {
         HttpRequest request = createRequest("GET", "/index.html");
         HttpResponse response = StaticFileHandler.handle(request);
 
-        assertThat(response.headers()).containsEntry("Content-Type", "text/html");
+        assertThat(response.headers()).containsEntry("Content-Type", "text/html; charset=utf-8");
     }
 
     @Test
@@ -32,7 +32,7 @@ class StaticFileHandlerTest {
         HttpRequest request = createRequest("GET", "/css/styles.css");
         HttpResponse response = StaticFileHandler.handle(request);
 
-        assertThat(response.headers()).containsEntry("Content-Type", "text/css");
+        assertThat(response.headers()).containsEntry("Content-Type", "text/css; charset=utf-8");
     }
 
     @Test
@@ -40,7 +40,7 @@ class StaticFileHandlerTest {
         HttpRequest request = createRequest("GET", "/js/app.js");
         HttpResponse response = StaticFileHandler.handle(request);
 
-        assertThat(response.headers()).containsEntry("Content-Type", "application/javascript");
+        assertThat(response.headers()).containsEntry("Content-Type", "application/javascript; charset=utf-8");
     }
 
     @Test
@@ -68,7 +68,7 @@ class StaticFileHandlerTest {
         HttpResponse response = StaticFileHandler.handle(request);
 
         assertThat(response.statusCode()).isEqualTo(200);
-        assertThat(response.headers()).containsEntry("Content-Type", "text/html");
+        assertThat(response.headers()).containsEntry("Content-Type", "text/html; charset=utf-8");
         assertThat(new String(response.body())).contains("<!DOCTYPE html>");
     }
 

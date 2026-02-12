@@ -38,7 +38,7 @@ public class IpFilter implements Filter {
     }
 
     private String getClientIp(HttpRequest req){
-        return "UNKNOWN";
+        return req.remoteIp();
     }
 
     private void forbidden(HttpResponse res, String ip) {
@@ -47,7 +47,7 @@ public class IpFilter implements Filter {
 
         res.setStatusCode(403);
         res.setStatusText("Forbidden");
-        res.setHeader("Content-Type", "text/plain; charset=uft-8");
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
         res.setBody(body);
     }

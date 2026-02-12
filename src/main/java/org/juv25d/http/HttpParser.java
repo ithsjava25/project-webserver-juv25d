@@ -57,7 +57,7 @@ public class HttpParser {
             }
             body = in.readNBytes(length);
         }
-        return new HttpRequest(method, path, query, version, headers, body);
+        return new HttpRequest(method, path, query, version, headers, body, "UNKNOWN");
     }
 
     private String readLine(InputStream in) throws IOException {

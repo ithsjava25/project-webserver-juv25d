@@ -16,12 +16,15 @@ public class Pipeline {
 
     private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
     private final Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
-    private List<Filter> sortedGlobalFilters = null;
+    private volatile List<Filter> sortedGlobalFilters = List.of();
     private Plugin plugin;
 
     public void addGlobalFilter(Filter filter, int order) {
         globalFilters.add(new FilterRegistration(filter, order, null));
-        sortedGlobalFilters = null;
+        sortedGlobalFilters = globalFilters.stream()
+            .sorted()
+            .map(FilterRegistration::filter)
+            .collect(Collectors.toUnmodifiableList());
     }
 
     public void addRouteFilter(Filter filter, int order, String pattern) {
@@ -35,17 +38,8 @@ public class Pipeline {
 
     public FilterChainImpl createChain(HttpRequest request) {
         List<Filter> filters = new ArrayList<>();
-
-        if (sortedGlobalFilters == null) {
-            sortedGlobalFilters = globalFilters.stream()
-                .sorted()
-                .map(FilterRegistration::filter)
-                .collect(Collectors.toList());
-        }
         filters.addAll(sortedGlobalFilters);
-
         String path = request.path();
-
         List<FilterRegistration> exactMatches = routeFilters.get(path);
         if (exactMatches != null) {
             exactMatches.stream()

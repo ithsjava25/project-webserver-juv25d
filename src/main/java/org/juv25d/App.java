@@ -4,7 +4,6 @@ import org.juv25d.filter.LoggingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.HelloPlugin;
-import org.juv25d.plugin.StaticFilesPlugin;
 
 import java.util.logging.Logger;
 
@@ -15,8 +14,7 @@ public class App {
 
         Pipeline pipeline = new Pipeline();
         pipeline.addFilter(new LoggingFilter());
-        pipeline.setPlugin(new StaticFilesPlugin());
-        //pipeline.setPlugin(new HelloPlugin());
+        pipeline.setPlugin(new HelloPlugin());
         pipeline.init();
 
         DefaultConnectionHandlerFactory handlerFactory =

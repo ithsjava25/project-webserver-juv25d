@@ -63,7 +63,6 @@ public class Pipeline {
                     .forEach(filters::add);
             }
         }
-
         return new FilterChainImpl(filters, plugin);
     }
 }

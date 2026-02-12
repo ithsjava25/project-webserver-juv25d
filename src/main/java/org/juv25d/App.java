@@ -15,6 +15,9 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
+
+        // IP filter is enabled but configured with open access during development
+        // White/blacklist can be tightened when specific IP restrictions are decided
         pipeline.addFilter(new IpFilter(
             Set.of(),
             Set.of()

@@ -15,13 +15,8 @@ public class App {
 
         Pipeline pipeline = new Pipeline();
         pipeline.addFilter(new LoggingFilter());
-
-// Option A: Use HelloPlugin (placeholder for testing)
-// pipeline.setPlugin(new HelloPlugin());
-
-// Option B: Use StaticFilesPlugin (actual functionality)
         pipeline.setPlugin(new StaticFilesPlugin());
-
+        //pipeline.setPlugin(new HelloPlugin());
         pipeline.init();
 
         DefaultConnectionHandlerFactory handlerFactory =

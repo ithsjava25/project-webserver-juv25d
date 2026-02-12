@@ -1,6 +1,5 @@
 package org.juv25d.plugin;
 
-import org.juv25d.plugin.Plugin;
 import org.juv25d.handler.StaticFileHandler;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
@@ -9,6 +8,12 @@ import java.io.IOException;
 
 /**
  * Plugin that serves static files using StaticFileHandler.
+ *
+ * NOTE: Currently not in use because it requires HttpResponse to have setters,
+ * but HttpResponse is being modified by other team members in parallel branches.
+ * To avoid merge conflicts, we use direct integration in ConnectionHandler instead.
+ *
+ * This plugin can be activated later once HttpResponse refactoring is complete.
  */
 public class StaticFilesPlugin implements Plugin {
 

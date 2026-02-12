@@ -5,15 +5,12 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Plugin that serves static files using StaticFileHandler.
+ * Integrates with the Pipeline architecture to handle GET requests for static resources.
  *
- * NOTE: Currently not in use because it requires HttpResponse to have setters,
- * but HttpResponse is being modified by other team members in parallel branches.
- * To avoid merge conflicts, we use direct integration in ConnectionHandler instead.
- *
- * This plugin can be activated later once HttpResponse refactoring is complete.
  */
 public class StaticFilesPlugin implements Plugin {
 
@@ -25,7 +22,10 @@ public class StaticFilesPlugin implements Plugin {
         // Copy the response from StaticFileHandler to the pipeline response
         response.setStatusCode(staticResponse.statusCode());
         response.setStatusText(staticResponse.statusText());
-        response.setHeaders(staticResponse.headers());
+
+        for (Map.Entry<String, String> header : staticResponse.headers().entrySet()) {
+            response.setHeader(header.getKey(), header.getValue());
+        }
         response.setBody(staticResponse.body());
     }
 }

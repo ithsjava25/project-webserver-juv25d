@@ -6,6 +6,7 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.plugin.Plugin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +34,9 @@ public class Pipeline {
     }
 
     public void setPlugin(Plugin plugin) {
+        if (plugin == null) {
+            throw new IllegalArgumentException("Plugin cannot be null");
+        }
         this.plugin = plugin;
     }
 
@@ -58,5 +62,13 @@ public class Pipeline {
             }
         }
         return new FilterChainImpl(filters, plugin);
+    }
+
+    public List<Filter> getFilters() {
+        return Collections.unmodifiableList(sortedGlobalFilters);
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 }

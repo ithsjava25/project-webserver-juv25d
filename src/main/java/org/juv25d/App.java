@@ -2,7 +2,7 @@ package org.juv25d;
 
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
-import org.juv25d.plugin.HelloPlugin;
+import org.juv25d.plugin.StaticFilesPlugin;
 
 import java.util.logging.Logger;
 
@@ -79,7 +79,7 @@ public class App {
         // Plugin: Final request handler, application logic, executed after all filters pass.
         // Replace HelloPlugin with your actual application plugin
 
-        pipeline.setPlugin(new HelloPlugin());
+        pipeline.setPlugin(new StaticFilesPlugin());
 
         // Filter initialization
         // Calls init() on all registered filters

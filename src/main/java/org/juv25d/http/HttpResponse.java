@@ -2,37 +2,57 @@ package org.juv25d.http;
 
 import java.util.*;
 
+/**
+ * Represents an HTTP Response.
+ * Changed to be mutable to allow Filters and Plugins in the Pipeline
+ * to modify status, headers, and body during processing.
+ */
 public class HttpResponse {
 
-    private final int statusCode;
-    private final String statusText;
-    private final Map<String, String> headers;
-    private final byte[] body;
+    private int statusCode;
+    private String statusText;
+    private Map<String, String> headers;
+    private byte[] body;
+
+    public HttpResponse(){}
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
-        Objects.requireNonNull(statusText, "statusText must not be null");
-        Objects.requireNonNull(headers, "headers must not be null");
-        Objects.requireNonNull(body, "body must not be null");
         this.statusCode = statusCode;
         this.statusText = statusText;
-        this.headers = Collections.unmodifiableMap(new LinkedHashMap<>(headers));
-        this.body = body.clone();
+        this.headers = new LinkedHashMap<>(headers);
+        this.body = body != null ? body.clone() : new byte[0];
     }
 
-    public int statusCode(){
+    public int statusCode() {
         return statusCode;
     }
 
-    public String statusText(){
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String statusText() {
         return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        Objects.requireNonNull(statusText, "statusText must not be null");
+        this.statusText = statusText;
     }
 
     public Map<String, String> headers() {
         return headers;
     }
 
-    public byte[] body(){
-        return body.clone();
+    public void setHeader(String name, String value) {
+        headers.put(name, value);
     }
 
+    public byte[] body() {
+        return body != null ? body.clone() : new byte[0];
+    }
+
+    public void setBody(byte[] body) {
+        this.body = body != null ? body.clone() : new byte[0];
+    }
 }

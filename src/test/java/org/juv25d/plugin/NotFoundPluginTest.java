@@ -14,7 +14,7 @@ class NotFoundPluginTest {
     @Test
     void sets404StatusAndBody() throws IOException {
         NotFoundPlugin plugin = new NotFoundPlugin();
-        HttpRequest req = new HttpRequest("GET", "/unknown", null, "HTTP/1.1", Map.of(), new byte[0]);
+        HttpRequest req = new HttpRequest("GET", "/unknown", null, "HTTP/1.1", Map.of(), new byte[0], "UNKNOWN");
         HttpResponse res = new HttpResponse();
 
         plugin.handle(req, res);

@@ -45,7 +45,8 @@ class FilterChainImplTest {
             null,
             "HTTP/1.1",
             Map.of(),
-            new byte[0]
+            new byte[0],
+            "UNKNOWN"
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
@@ -79,7 +80,7 @@ class FilterChainImplTest {
         );
 
         HttpRequest req = new HttpRequest(
-            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
+            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0], "UNKNOWN"
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
@@ -100,7 +101,7 @@ class FilterChainImplTest {
         );
 
         HttpRequest req = new HttpRequest(
-            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
+            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0], "UNKNOWN"
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));

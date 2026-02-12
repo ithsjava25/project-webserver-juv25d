@@ -156,7 +156,8 @@ class StaticFileHandlerTest {
             null,
             "HTTP/1.1",
             new HashMap<>(),
-            new byte[0]
+            new byte[0],
+            "UNKNOWN"
         );
     }
 }

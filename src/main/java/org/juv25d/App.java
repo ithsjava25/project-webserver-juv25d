@@ -20,11 +20,10 @@ public class App {
 
         // IP filter is enabled but configured with open access during development
         // White/blacklist can be tightened when specific IP restrictions are decided
-        pipeline.addFilter(new IpFilter(
+        pipeline.addGlobalFilter(new IpFilter(
             Set.of(),
             Set.of()
-        ));
-        pipeline.addFilter(new LoggingFilter());
+        ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.setPlugin(new StaticFilesPlugin());
 

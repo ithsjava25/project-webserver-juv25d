@@ -6,7 +6,7 @@
 
     <groupId>org.juv25d</groupId>
     <artifactId>JavaHttpServer</artifactId>
-    <version>1.0.0-beta</version>
+    <version>1.0.2-beta</version>
 
     <properties>
         <maven.compiler.release>25</maven.compiler.release>

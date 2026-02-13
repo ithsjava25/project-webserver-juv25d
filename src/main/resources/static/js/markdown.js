@@ -1,4 +1,4 @@
-fetch("/readme.md")
+fetch("/README.md")
     .then(response => response.text())
     .then(markdown => {
         const container = document.getElementById("readme_content");

@@ -4,9 +4,78 @@
 console.log('✅ JavaScript loaded successfully!');
 
 // Log some server info when page loads
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener("DOMContentLoaded", () => {
     console.log('🚀 Server: Java HTTP Server');
     console.log('👥 Team: juv25d');
     console.log('📍 Current path:', window.location.pathname);
     console.log('✨ Static file serving is working!');
+
+    route(window.location.pathname);
 });
+
+
+const routes = {
+    "/index.html": () => {},
+    "/readme.html": initReadme,
+};
+
+function route(path) {
+    const cleanPath = path.startsWith("/") ? path : "/" + path;
+    const handler = routes[cleanPath];
+    if (handler) handler();
+}
+
+
+const nav = document.querySelector(".nav-menu");
+
+function navigate(href) {
+    nav.classList.add("disable-anchors");
+    const main = document.getElementById("main-content");
+
+    main.classList.add("fade-out");
+
+    setTimeout(() => {
+        fetch(href)
+            .then(res => res.text())
+            .then(html => {
+                const doc = new DOMParser().parseFromString(html, "text/html");
+                const newMain = doc.querySelector("main");
+
+                main.innerHTML = newMain.innerHTML;
+                history.pushState(null, "", href);
+
+                route(href);
+
+                main.classList.remove("fade-out");
+            });
+    }, 200);
+
+    setTimeout(() => {
+        nav.classList.remove("disable-anchors");
+    }, 300);
+}
+
+document.querySelectorAll("a").forEach(link => {
+    link.addEventListener("click", e => {
+        const href = link.getAttribute("href");
+        if (href.endsWith(".html")) {
+            e.preventDefault();
+            navigate(href);
+        }
+    });
+});
+
+
+function initReadme() {
+    const container = document.getElementById("readme_content");
+    if (!container) return;
+
+    fetch("/README.md")
+        .then(res => res.text())
+        .then(md => {
+            container.innerHTML = marked.parse(md);
+        })
+        .catch(err => console.error("Kunde inte ladda README.md", err));
+}
+
+

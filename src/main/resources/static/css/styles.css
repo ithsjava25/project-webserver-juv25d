@@ -33,6 +33,7 @@ a {
     margin: 0 auto;
     background: transparent;
     border-radius: 10px;
+    backdrop-filter: blur(4px);
 
     background: linear-gradient(135deg, rgba(23, 23, 46, 0.6), rgba(23, 23, 46, 0.9), rgba(23, 23, 46, 0.6));
     color: white;
@@ -48,6 +49,11 @@ a {
     overflow: hidden;
 }
 /* Nav menu */
+
+.nav-menu.disable-anchors::before,
+.nav-menu.disable-anchors::after {
+    transition: none !important;
+}
 
 .nav-menu {
 
@@ -97,7 +103,7 @@ a {
     &::before {
         z-index: -1;
         background: rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(2px);
+        /*backdrop-filter: blur(2px);*/
     }
 
     &::after {
@@ -120,6 +126,29 @@ a {
         }
     }
 
+   /* &:has(a:active)::before {
+        background: transparent;
+    }
+
+    &:has(a:active)::before,
+    &:has(a:active)::after {
+        top: calc(anchor(top) - 6px);
+        left: calc(anchor(left) - 6px);
+        right: calc(anchor(right) - 6px);
+        bottom: calc(anchor(bottom) - 6px);
+
+        transition: 50ms;
+        backdrop-filter: none;
+
+        @supports (corner-shape: squircle) {
+            corner-shape: squircle;
+            border-radius: 50%;
+        }
+    }
+
+    &:has(a:active) > ul > li * {
+        color: black;
+    }*/
     & ul {
         display: flex;
         flex-direction: row;
@@ -163,7 +192,14 @@ header h1 {
 /* Main Content */
 main {
     padding: 40px 30px;
+    opacity: 1;
+    transition: opacity 200ms ease;
 }
+
+main.fade-out {
+    opacity: 0;
+}
+
 
 .features {
     isolation: isolate;

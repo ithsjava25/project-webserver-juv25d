@@ -92,7 +92,7 @@ function initReadme() {
             return res.text();
         })
         .then(md => {
-            container.innerHTML = marked.parse(md);
+            container.innerHTML = DOMPurify.sanitize(marked.parse(md));
         })
         .catch(err => console.error("Failed to load README.md", err));
 }

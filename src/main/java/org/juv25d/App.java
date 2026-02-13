@@ -1,11 +1,13 @@
 package org.juv25d;
 
+import org.juv25d.filter.IpFilter;
 import org.juv25d.filter.LoggingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.util.ConfigLoader;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class App {
@@ -15,6 +17,13 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
+
+        // IP filter is enabled but configured with open access during development
+        // White/blacklist can be tightened when specific IP restrictions are decided
+        pipeline.addGlobalFilter(new IpFilter(
+            Set.of(),
+            Set.of()
+        ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.setPlugin(new StaticFilesPlugin());
 

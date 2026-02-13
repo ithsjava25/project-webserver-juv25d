@@ -8,5 +8,6 @@ public record HttpRequest(
         String queryString,
         String httpVersion,
         Map<String, String> headers,
-        byte[] body
+        byte[] body,
+        String remoteIp
 ) {}

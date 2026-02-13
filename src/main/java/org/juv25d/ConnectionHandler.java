@@ -29,8 +29,18 @@ public class ConnectionHandler implements Runnable {
             var in = socket.getInputStream();
             var out = socket.getOutputStream();
 
-            HttpRequest request = httpParser.parse(in);
-            logger.info("Handling request: " + request.method() + " " + request.path());
+            HttpRequest parsed = httpParser.parse(in);
+            String remoteIp = socket.getInetAddress().getHostAddress();
+
+            HttpRequest request = new HttpRequest(
+                parsed.method(),
+                parsed.path(),
+                parsed.queryString(),
+                parsed.httpVersion(),
+                parsed.headers(),
+                parsed.body(),
+                remoteIp
+            );
 
             HttpResponse response = new HttpResponse(
                 200,

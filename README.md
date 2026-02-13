@@ -163,7 +163,7 @@ org.juv25d.App
 http://localhost:3000
 ```
 
-Note: Running the packaged JAR directly with `java -jar` is not supported, as the project is not built as a fat JAR (external dependencies such as SnakeYAML are not bundled).
+Note: The project is packaged as a fat JAR using the Maven Shade Plugin, so you can run it with `java -jar target/JavaHttpServer-1.0.2-beta.jar`.
 
 ---
 

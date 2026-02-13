@@ -6,19 +6,20 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 public class Server {
-    private static final int PORT = 3000;
+    private final int port;
     private final Logger logger;
     private final ConnectionHandlerFactory handlerFactory;
     private final Pipeline pipeline;
 
-    public Server(Logger logger, ConnectionHandlerFactory handlerFactory, Pipeline pipeline) {
+    public Server(int port, Logger logger, ConnectionHandlerFactory handlerFactory, Pipeline pipeline) {
+        this.port = port;
         this.logger = logger;
         this.handlerFactory = handlerFactory;
         this.pipeline = pipeline;
     }
 
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(PORT, 64)) {
+        try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
             logger.info("Server started at port: " + serverSocket.getLocalPort());
 
             while (true) {

@@ -1,0 +1,6 @@
+server:
+  port: 8080
+  root-dir: static
+
+logging:
+  level: INFO

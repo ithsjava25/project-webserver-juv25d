@@ -13,6 +13,10 @@ document.addEventListener("DOMContentLoaded", () => {
     route(window.location.pathname);
 });
 
+window.addEventListener("popstate", () => {
+    navigate(window.location.pathname);
+});
+
 
 const routes = {
     "/index.html": () => {},
@@ -41,19 +45,26 @@ function navigate(href) {
                 const doc = new DOMParser().parseFromString(html, "text/html");
                 const newMain = doc.querySelector("main");
 
+                if (!newMain) throw new Error("No <main> found in " + href);
+
                 main.innerHTML = newMain.innerHTML;
                 history.pushState(null, "", href);
-
                 route(href);
 
                 main.classList.remove("fade-out");
+
+                setTimeout(() => {
+                    nav.classList.remove("disable-anchors");
+                }, 150);
+            })
+            .catch(err => {
+                console.error("Navigation failed:", err);
+                main.classList.remove("fade-out");
+                nav.classList.remove("disable-anchors");
             });
     }, 200);
-
-    setTimeout(() => {
-        nav.classList.remove("disable-anchors");
-    }, 300);
 }
+
 
 document.querySelectorAll("a").forEach(link => {
     link.addEventListener("click", e => {

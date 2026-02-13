@@ -6,6 +6,9 @@
     padding: 0;
     box-sizing: border-box;
 }
+html {
+    scrollbar-gutter: stable;
+}
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -16,6 +19,7 @@ body {
     background-size: cover;
     min-height: 100vh;
     padding: 20px;
+    margin: 0;
 }
 
 a {
@@ -31,10 +35,7 @@ a {
 .container {
     max-width: 900px;
     margin: 0 auto;
-    background: transparent;
-    border-radius: 10px;
     backdrop-filter: blur(4px);
-
     background: linear-gradient(135deg, rgba(23, 23, 46, 0.6), rgba(23, 23, 46, 0.9), rgba(23, 23, 46, 0.6));
     color: white;
     text-align: center;
@@ -53,6 +54,10 @@ a {
 .nav-menu.disable-anchors::before,
 .nav-menu.disable-anchors::after {
     transition: none !important;
+}
+
+.disable-anchors a {
+    pointer-events: none;
 }
 
 .nav-menu {
@@ -256,7 +261,6 @@ main.fade-out {
     }
 
     & ul > li {
-        margin: 0.25rem 1rem;
         background: none;
         color: var(--base-color-white);
         padding: 24px 20px;
@@ -326,7 +330,7 @@ li {
 /* Footer */
 footer {
     background: transparent;
-    color: rgba(var(--base-color-white), 0.9);
+    color: var(--base-color-white);
     padding: 40px 30px;
     text-align: center;
     border-radius: 10px;

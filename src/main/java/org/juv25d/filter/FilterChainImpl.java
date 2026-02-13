@@ -24,7 +24,9 @@ public class FilterChainImpl implements FilterChain {
             Filter next = filters.get(index++);
             next.doFilter(req, res, this);
         } else {
-            plugin.handle(req, res);
+            if (plugin != null) {
+                plugin.handle(req, res);
+            }
         }
     }
 }

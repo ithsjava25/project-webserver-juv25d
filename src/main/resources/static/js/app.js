@@ -40,7 +40,10 @@ function navigate(href) {
 
     setTimeout(() => {
         fetch(href)
-            .then(res => res.text())
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return  res.text();
+            })
             .then(html => {
                 const doc = new DOMParser().parseFromString(html, "text/html");
                 const newMain = doc.querySelector("main");
@@ -66,15 +69,17 @@ function navigate(href) {
 }
 
 
-document.querySelectorAll("a").forEach(link => {
-    link.addEventListener("click", e => {
-        const href = link.getAttribute("href");
-        if (href.endsWith(".html")) {
-            e.preventDefault();
-            navigate(href);
-        }
-    });
+document.addEventListener("click", (e) => {
+    const link = e.target.closest("a");
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+    if (!href || !href.endsWith(".html")) return;
+
+    e.preventDefault();
+    navigate(href);
 });
+
 
 
 function initReadme() {
@@ -82,11 +87,14 @@ function initReadme() {
     if (!container) return;
 
     fetch("/README.md")
-        .then(res => res.text())
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to load README.md");
+            return res.text();
+        })
         .then(md => {
             container.innerHTML = marked.parse(md);
         })
-        .catch(err => console.error("Kunde inte ladda README.md", err));
+        .catch(err => console.error("Failed to load README.md", err));
 }
 
 

@@ -163,7 +163,7 @@ org.juv25d.App
 http://localhost:8080
 ```
 
-Note: The project is packaged as a fat JAR using the Maven Shade Plugin, so you can run it with `java -jar target/JavaHttpServer-<version>.jar`.
+Note: The project is packaged as a fat JAR using the Maven Shade Plugin, so you can run it with `java -jar target/app.jar`.
 
 ---
 

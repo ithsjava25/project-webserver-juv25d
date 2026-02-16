@@ -2,17 +2,33 @@ package org.juv25d.util;
 
 import org.junit.jupiter.api.Test;
 
-class ConfigLoaderTest {
+    class ConfigLoaderTest {
 
-    @Test
-    void loadsValuesFromYaml() {
-    }
+        @Test
+        void loadsValuesFromYaml() throws Exception {
+            String yaml = """
+                server:
+                  port: 3000
+                  root-dir: public
+                logging:
+                  level: INFO
+                """;
 
-    @Test
-    void usesDefaultsWhenServerKeysMissing() {
-    }
+            Object config = loadConfigFromYamlInIsolatedClassLoader(yaml);
+        }
 
-    @Test
-    void throwsWhenYamlMissing() {
+        private Object loadConfigFromYamlInIsolatedClassLoader(String yamlContentOrNull) throws Exception {
+            return null;
+        }
+
+
+        @Test
+        void usesDefaultsWhenServerKeysMissing() {
+
+        }
+
+        @Test
+        void throwsWhenYamlMissing() {
+
+        }
     }
-}

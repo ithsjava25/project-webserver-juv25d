@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigLoaderTest {
 
+
     /**
      * Verifies that ConfigLoader correctly reads and assigns configuration values when provided
      * with a valid YAML input stream. Ensures that all expected fields—server port, root directory,
@@ -33,9 +34,27 @@ class ConfigLoaderTest {
         assertEquals("DEBUG", loader.getLogLevel());
     }
 
+    /**
+     * Ensures that ConfigLoader falls back to its documented default values when the YAML input
+     * omits server configuration keys. This test confirms that missing fields do not cause errors
+     * and that default port and root directory values are applied as intended.
+     */
+
     @Test
     void usesDefaultsWhenServerKeysMissing() {
+        String yaml = """
+                server: {}
+                logging:
+                  level: "INFO"
+                """;
 
+        ConfigLoader loader = new ConfigLoader(
+            new ByteArrayInputStream(yaml.getBytes())
+        );
+
+        assertEquals(8080, loader.getPort());
+        assertEquals("static", loader.getRootDirectory());
+        assertEquals("INFO", loader.getLogLevel());
     }
 
     @Test
@@ -43,3 +62,4 @@ class ConfigLoaderTest {
 
     }
 }
+

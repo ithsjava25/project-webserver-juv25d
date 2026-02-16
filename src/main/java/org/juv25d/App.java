@@ -2,9 +2,13 @@ package org.juv25d;
 
 import org.juv25d.filter.IpFilter;
 import org.juv25d.filter.LoggingFilter;
+import org.juv25d.filter.IpFilter;
+import org.juv25d.filter.LoggingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
+import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
+import org.juv25d.router.SimpleRouter; // New import
 import org.juv25d.util.ConfigLoader;
 
 import java.util.Set;
@@ -25,7 +29,14 @@ public class App {
             Set.of()
         ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
-        pipeline.setPlugin(new StaticFilesPlugin());
+
+        // Initialize and configure SimpleRouter
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", new StaticFilesPlugin()); // Register StaticFilesPlugin for the root path
+        router.registerPlugin("/*", new StaticFilesPlugin()); // Register StaticFilesPlugin for all paths
+        router.registerPlugin("/notfound", new NotFoundPlugin()); // Example: Register NotFoundPlugin for a specific path
+
+        pipeline.setRouter(router); // Set the router in the pipeline
 
         DefaultConnectionHandlerFactory handlerFactory =
             new DefaultConnectionHandlerFactory(httpParser, logger, pipeline);

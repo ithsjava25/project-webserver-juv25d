@@ -13,7 +13,7 @@ public interface Router {
      * Resolves the given HttpRequest to a Plugin that can handle it.
      *
      * @param request The incoming HttpRequest.
-     * @return The Plugin instance responsible for handling the request, or null if no suitable plugin is found.
+     * @return The Plugin instance responsible for handling the request. Must not be null.
      */
     Plugin resolve(HttpRequest request);
 }

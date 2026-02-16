@@ -6,6 +6,7 @@ import org.juv25d.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Comparator;
 
 /**
  * A simple router implementation that maps request paths to specific Plugin instances.
@@ -18,7 +19,7 @@ public class SimpleRouter implements Router {
 
     public SimpleRouter() {
         this.routes = new HashMap<>();
-        this.notFoundPlugin = new NotFoundPlugin(); // Default not found handler
+        this.notFoundPlugin = new NotFoundPlugin();
     }
 
     /**
@@ -33,31 +34,36 @@ public class SimpleRouter implements Router {
 
     /**
      * Resolves the given HttpRequest to a Plugin that can handle it.
-     * It attempts to find an exact match for the request path. If no exact match is found,
-     * it checks for a wildcard path (e.g., "/*"). If still no match, it returns the notFoundPlugin.
+     * Resolution order:
+     * 1. Exact path match
+     * 2. Wildcard match (longest prefix wins)
+     * 3. NotFoundPlugin
      *
      * @param request The incoming HttpRequest.
-     * @return The Plugin instance responsible for handling the request. Never returns null.
+     * @return The Plugin instance responsible for handling the request.
      */
     @Override
     public Plugin resolve(HttpRequest request) {
         String path = request.path();
 
-        // Try to find an exact match for the path
-        if (routes.containsKey(path)) {
-            return routes.get(path);
+        // 1. Exact match
+        Plugin exactMatch = routes.get(path);
+        if (exactMatch != null) {
+            return exactMatch;
         }
 
-        // Check for wildcard path if no exact match (e.g., "/*" for a catch-all)
-        // This is a simple implementation and can be extended for more complex wildcard matching
-        for (Map.Entry<String, Plugin> entry : routes.entrySet()) {
-            String registeredPath = entry.getKey();
-            if (registeredPath.endsWith("/*") && path.startsWith(registeredPath.substring(0, registeredPath.length() - 1))) {
-                return entry.getValue();
-            }
-        }
-
-        // If nothing matches, return the NotFoundPlugin
-        return notFoundPlugin;
+        // 2. Wildcard match (deterministic: longest prefix first)
+        return routes.entrySet().stream()
+            .filter(entry -> entry.getKey().endsWith("/*"))
+            .sorted(Comparator.comparingInt(
+                entry -> -entry.getKey().length()
+            )) // longest (most specific) first
+            .filter(entry -> {
+                String prefix = entry.getKey().substring(0, entry.getKey().length() - 1);
+                return path.startsWith(prefix);
+            })
+            .map(Map.Entry::getValue)
+            .findFirst()
+            .orElse(notFoundPlugin);
     }
 }

@@ -98,4 +98,24 @@ class SimpleRouterTest {
         Plugin resolvedPlugin = router.resolve(request);
         assertTrue(resolvedPlugin instanceof NotFoundPlugin);
     }
+
+    @Test
+    void resolve_prefersMoreSpecificWildcardOverLessSpecific() {
+        router.registerPlugin("/api/*", mockPluginA);
+        router.registerPlugin("/api/users/*", mockPluginB);
+
+        HttpRequest request = new HttpRequest(
+            "GET",
+            "/api/users/123",
+            null,
+            "HTTP/1.1",
+            Map.of(),
+            new byte[0],
+            "UNKNOWN"
+        );
+
+        Plugin resolvedPlugin = router.resolve(request);
+        assertEquals(mockPluginB, resolvedPlugin);
+    }
+
 }

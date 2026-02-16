@@ -18,7 +18,7 @@ public class Pipeline {
     private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
     private final Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
     private volatile List<Filter> sortedGlobalFilters = List.of();
-    private Router router; // Changed from Plugin plugin;
+    private volatile Router router; // Changed from Plugin plugin;
 
     public void addGlobalFilter(Filter filter, int order) {
         globalFilters.add(new FilterRegistration(filter, order, null));

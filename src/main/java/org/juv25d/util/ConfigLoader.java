@@ -12,8 +12,13 @@ public class ConfigLoader {
     private String rootDirectory;
 
     private ConfigLoader() {
-        loadConfiguration();
-    }
+        loadConfiguration(getClass().getClassLoader()
+            .getResourceAsStream("application-properties.yml")); }
+
+    // new constructor for testing
+    ConfigLoader(InputStream input) {
+        loadConfiguration(input); }
+
 
     public static synchronized ConfigLoader getInstance() {
         if (instance == null) {
@@ -22,10 +27,10 @@ public class ConfigLoader {
         return instance;
     }
 
-    private void loadConfiguration() {
+    private void loadConfiguration(InputStream input) {
         Yaml yaml = new Yaml();
 
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application-properties.yml")) {
+        try (input) {
             if (input == null) {
                 throw new IllegalArgumentException("Did not find application-properties.yml");
             }

@@ -2,33 +2,44 @@ package org.juv25d.util;
 
 import org.junit.jupiter.api.Test;
 
-    class ConfigLoaderTest {
+import java.io.ByteArrayInputStream;
 
-        @Test
-        void loadsValuesFromYaml() throws Exception {
-            String yaml = """
+import static org.junit.jupiter.api.Assertions.*;
+
+class ConfigLoaderTest {
+
+    /**
+     * Verifies that ConfigLoader correctly reads and assigns configuration values when provided
+     * with a valid YAML input stream. Ensures that all expected fields—server port, root directory,
+     * and logging level—are populated with the values defined in the YAML content.
+     */
+
+    @Test
+    void loadsValuesFromYaml() {
+        String yaml = """
                 server:
-                  port: 3000
-                  root-dir: public
+                  port: 9090
+                  root-dir: "public"
                 logging:
-                  level: INFO
+                  level: "DEBUG"
                 """;
 
-            Object config = loadConfigFromYamlInIsolatedClassLoader(yaml);
-        }
+        ConfigLoader loader = new ConfigLoader(
+            new ByteArrayInputStream(yaml.getBytes())
+        );
 
-        private Object loadConfigFromYamlInIsolatedClassLoader(String yamlContentOrNull) throws Exception {
-            return null;
-        }
-
-
-        @Test
-        void usesDefaultsWhenServerKeysMissing() {
-
-        }
-
-        @Test
-        void throwsWhenYamlMissing() {
-
-        }
+        assertEquals(9090, loader.getPort());
+        assertEquals("public", loader.getRootDirectory());
+        assertEquals("DEBUG", loader.getLogLevel());
     }
+
+    @Test
+    void usesDefaultsWhenServerKeysMissing() {
+
+    }
+
+    @Test
+    void throwsWhenYamlMissing() {
+
+    }
+}

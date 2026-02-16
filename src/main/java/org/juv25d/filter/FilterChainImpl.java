@@ -2,7 +2,6 @@ package org.juv25d.filter;
 
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
-import org.juv25d.plugin.Plugin;
 import org.juv25d.router.Router; // New import
 
 import java.io.IOException;

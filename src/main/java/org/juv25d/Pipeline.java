@@ -3,7 +3,6 @@ package org.juv25d;
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterChainImpl;
 import org.juv25d.http.HttpRequest;
-import org.juv25d.plugin.Plugin;
 import org.juv25d.router.Router; // New import
 
 import java.util.ArrayList;

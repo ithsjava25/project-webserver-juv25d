@@ -56,7 +56,7 @@ public class SimpleRouter implements Router {
                 return entry.getValue();
             }
         }
-        
+
         // If nothing matches, return the NotFoundPlugin
         return notFoundPlugin;
     }

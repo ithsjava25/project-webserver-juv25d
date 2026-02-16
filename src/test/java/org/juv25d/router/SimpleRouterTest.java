@@ -5,13 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.plugin.NotFoundPlugin;
 import org.juv25d.plugin.Plugin;
-import org.mockito.Mockito;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class SimpleRouterTest {
 

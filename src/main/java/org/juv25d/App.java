@@ -1,5 +1,6 @@
 package org.juv25d;
 
+import org.juv25d.filter.IpFilter;
 import org.juv25d.filter.LoggingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
@@ -8,6 +9,8 @@ import org.juv25d.util.ConfigLoader;
 import org.juv25d.filter.RedirectFilter;
 import org.juv25d.filter.RedirectRule;
 import java.util.List;
+
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class App {
@@ -25,6 +28,13 @@ public class App {
         );
         pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 0);
 
+
+        // IP filter is enabled but configured with open access during development
+        // White/blacklist can be tightened when specific IP restrictions are decided
+        pipeline.addGlobalFilter(new IpFilter(
+            Set.of(),
+            Set.of()
+        ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.setPlugin(new StaticFilesPlugin());
 

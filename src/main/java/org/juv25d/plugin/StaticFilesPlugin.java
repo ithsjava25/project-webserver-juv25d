@@ -29,3 +29,4 @@ public class StaticFilesPlugin implements Plugin {
         response.setBody(staticResponse.body());
     }
 }
+

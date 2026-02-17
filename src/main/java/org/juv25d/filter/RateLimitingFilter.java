@@ -14,8 +14,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-// TODO Documentation, ADR
-
+/**
+ * A filter that implements rate limiting for incoming HTTP requests.
+ * It uses a token bucket algorithm via Bucket4J to limit the number of requests per client IP.
+ */
 public class RateLimitingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();
@@ -26,6 +28,13 @@ public class RateLimitingFilter implements Filter {
     private final long refillTokens;
     private final Duration refillPeriod;
 
+    /**
+     * Constructs a new RateLimitingFilter.
+     *
+     * @param requestsPerMinute the number of requests allowed per minute for each IP
+     * @param burstCapacity the maximum number of requests that can be handled in a burst
+     * @throws IllegalArgumentException if requestsPerMinute or burstCapacity is not positive
+     */
     public RateLimitingFilter(long requestsPerMinute, long burstCapacity) {
         if (requestsPerMinute <= 0) {
             throw new IllegalArgumentException("requestsPerMinute must be positive");
@@ -44,6 +53,15 @@ public class RateLimitingFilter implements Filter {
         ));
     }
 
+    /**
+     * Applies the rate limiting logic to the incoming request.
+     * If the rate limit is exceeded, a 429 Too Many Requests response is sent.
+     *
+     * @param req   the HTTP request
+     * @param res   the HTTP response
+     * @param chain the filter chain
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
         String clientIp = getClientIp(req);
@@ -72,6 +90,11 @@ public class RateLimitingFilter implements Filter {
             .build();
     }
 
+    /**
+     * Returns the number of currently tracked IP addresses.
+     *
+     * @return the number of tracked IP addresses
+     */
     public int getTrackedIpCount() {
         return buckets.size();
     }
@@ -95,7 +118,9 @@ public class RateLimitingFilter implements Filter {
         res.setBody(body);
     }
 
-    // Implement for clearing bucket on server shutdown
+    /**
+     * Clears all tracked rate limiting buckets.
+     */
     @Override
     public void destroy() {
         buckets.clear();

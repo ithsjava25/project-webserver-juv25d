@@ -13,6 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for the {@link RateLimitingFilter} class.
+ */
 @ExtendWith(MockitoExtension.class)
 class RateLimitingFilterTest {
 
@@ -23,6 +26,9 @@ class RateLimitingFilterTest {
     @Mock
     private FilterChain chain;
 
+    /**
+     * Verifies that the filter allows requests when they are within the rate limit.
+     */
     @Test
     void shouldAllowRequest_whenWithinRateLimit() throws IOException {
         // Arrange
@@ -38,6 +44,9 @@ class RateLimitingFilterTest {
         verifyNoInteractions(res);
     }
 
+    /**
+     * Verifies that the filter blocks requests when the rate limit is exceeded.
+     */
     @Test
     void shouldBlockRequest_whenExceedingRateLimit() throws IOException {
         // Arrange
@@ -57,6 +66,9 @@ class RateLimitingFilterTest {
         verify(res).setHeader("Retry-After", "60");
     }
 
+    /**
+     * Verifies that rate limits are tracked independently for different client IPs.
+     */
     @Test
     void shouldAllowRequests_fromDifferentIpsIndependently() throws IOException {
         // Arrange
@@ -80,6 +92,9 @@ class RateLimitingFilterTest {
         verifyNoInteractions(res2);
     }
 
+    /**
+     * Verifies that the internal bucket map is cleared when the filter is destroyed.
+     */
     @Test
     void shouldClearBuckets_onDestroy() throws IOException {
         // Arrange
@@ -96,6 +111,9 @@ class RateLimitingFilterTest {
         assertThat(filter.getTrackedIpCount()).isZero();
     }
 
+    /**
+     * Verifies that the constructor throws an exception for invalid configuration values.
+     */
     @Test
     void shouldThrowException_whenInvalidConfiguration() {
         // Act & Assert

@@ -14,12 +14,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-// TODO Test suite
 // TODO Documentation, ADR
 
 public class RateLimitingFilter implements Filter {
 
-    // TODO Logging
     private static final Logger logger = ServerLogging.getLogger();
 
     // Thread-safe map storing one bucket per IP address

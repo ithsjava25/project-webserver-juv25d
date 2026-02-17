@@ -1,6 +1,5 @@
 package org.juv25d.filter;
 
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.juv25d.http.HttpRequest;
@@ -8,10 +7,10 @@ import org.juv25d.http.HttpResponse;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,7 +24,7 @@ class RateLimitingFilterTest {
     private FilterChain chain;
 
     @Test
-    void shouldAllowRequestWhenWithinRateLimit() throws IOException {
+    void shouldAllowRequest_whenWithinRateLimit() throws IOException {
         // Arrange
         RateLimitingFilter filter = new RateLimitingFilter(60, 5);
         when(req.remoteIp()).thenReturn("127.0.0.1");
@@ -40,7 +39,7 @@ class RateLimitingFilterTest {
     }
 
     @Test
-    void shouldBlockRequestWhenExceedingRateLimit() throws IOException {
+    void shouldBlockRequest_whenExceedingRateLimit() throws IOException {
         // Arrange
         RateLimitingFilter filter = new RateLimitingFilter(60, 5);
         when(req.remoteIp()).thenReturn("127.0.0.1");
@@ -59,7 +58,7 @@ class RateLimitingFilterTest {
     }
 
     @Test
-    void shouldAllowRequestsFromDifferentIpsIndependently() throws IOException {
+    void shouldAllowRequests_fromDifferentIpsIndependently() throws IOException {
         // Arrange
         RateLimitingFilter filter = new RateLimitingFilter(60, 5);
         HttpRequest req2 = mock(HttpRequest.class);
@@ -68,7 +67,7 @@ class RateLimitingFilterTest {
         when(req2.remoteIp()).thenReturn("192.168.1.1");
 
         // Act
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 6; i++) { // Empty first bucket
             filter.doFilter(req, res, chain);
         }
         for (int i = 0; i < 2; i++) {
@@ -82,7 +81,7 @@ class RateLimitingFilterTest {
     }
 
     @Test
-    void destroyClearsBuckets() throws IOException {
+    void shouldClearBuckets_onDestroy() throws IOException {
         // Arrange
         RateLimitingFilter filter = new RateLimitingFilter(60, 5);
         when(req.remoteIp()).thenReturn("127.0.0.1");
@@ -95,5 +94,16 @@ class RateLimitingFilterTest {
 
         // Assert
         assertThat(filter.getTrackedIpCount()).isZero();
+    }
+
+    @Test
+    void shouldThrowException_whenInvalidConfiguration() {
+        // Act & Assert
+        assertThatThrownBy(() -> new RateLimitingFilter(0, 5))
+            .isInstanceOf(IllegalArgumentException.class);
+
+        // Act & Assert
+        assertThatThrownBy(() -> new RateLimitingFilter(60, 0))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

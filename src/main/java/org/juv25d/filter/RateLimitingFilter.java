@@ -20,12 +20,11 @@ public class RateLimitingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();
 
-    // Thread-safe map storing one bucket per IP address
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
-    private final long capacity;          // Maximum tokens in the bucket (burst capacity)
-    private final long refillTokens;      // How many tokens to refill
-    private final Duration refillPeriod;  // How often to refill
+    private final long capacity;
+    private final long refillTokens;
+    private final Duration refillPeriod;
 
     public RateLimitingFilter(long requestsPerMinute, long burstCapacity) {
         if (requestsPerMinute <= 0) {
@@ -64,12 +63,10 @@ public class RateLimitingFilter implements Filter {
     }
 
     private Bucket createBucket() {
-        // Define the bandwidth limit
         Bandwidth limit = Bandwidth.classic(
-            capacity,                                       // Max tokens
-            Refill.intervally(refillTokens, refillPeriod)); // Refill rate
+            capacity,
+            Refill.intervally(refillTokens, refillPeriod));
 
-        // Build and return the bucket
         return Bucket.builder()
             .addLimit(limit)
             .build();
@@ -103,5 +100,4 @@ public class RateLimitingFilter implements Filter {
     public void destroy() {
         buckets.clear();
     }
-
 }

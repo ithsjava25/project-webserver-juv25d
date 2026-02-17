@@ -38,16 +38,20 @@ public class ConfigLoader {
             Map<String, Object> config = yaml.load(input);
 
             // server
-            Map<String, Object> serverConfig = (Map<String, Object>) config.get("server");
+            Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
             if (serverConfig != null) {
-                this.port = (Integer) serverConfig.getOrDefault("port", 8080);
-                this.rootDirectory = (String) serverConfig.getOrDefault("root-dir", "static");
+                Object portValue = serverConfig.getOrDefault("port", 8080);
+                this.port = (portValue instanceof Number n) ? n.intValue() : 8080;
+
+                Object root = serverConfig.getOrDefault("root-dir", "static");
+                this.rootDirectory = String.valueOf(root);
             }
 
             // logging
-            Map<String, Object> loggingConfig = (Map<String, Object>) config.get("logging");
+            Map<String, Object> loggingConfig = asStringObjectMap(config.get("logging"));
             if (loggingConfig != null) {
-                this.logLevel = (String) loggingConfig.get("level");
+                Object level = loggingConfig.get("level");
+                this.logLevel = (level != null) ? String.valueOf(level) : null;
             }
 
         } catch (Exception e) {
@@ -65,5 +69,13 @@ public class ConfigLoader {
 
     public String getRootDirectory() {
         return rootDirectory;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asStringObjectMap(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        return null;
     }
 }

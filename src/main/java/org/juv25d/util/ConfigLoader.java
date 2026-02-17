@@ -41,6 +41,7 @@ public class ConfigLoader {
             // defaults always
             this.port = 8080;
             this.rootDirectory = "static";
+            this.logLevel = "INFO";
 
             // server
             Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
@@ -56,7 +57,7 @@ public class ConfigLoader {
             Map<String, Object> loggingConfig = asStringObjectMap(config.get("logging"));
             if (loggingConfig != null) {
                 Object level = loggingConfig.get("level");
-                this.logLevel = (level != null) ? String.valueOf(level) : null;
+                if (level != null) this.logLevel = String.valueOf(level);
             }
 
         } catch (Exception e) {

@@ -36,6 +36,7 @@ public class ConfigLoader {
             }
 
             Map<String, Object> config = yaml.load(input);
+            if (config == null) config = Map.of();
 
             // defaults always
             this.port = 8080;

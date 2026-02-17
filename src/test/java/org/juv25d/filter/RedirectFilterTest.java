@@ -182,8 +182,9 @@ class RedirectFilterTest {
             path,
             "",
             "HTTP/1.1",
-            Map.of(),
-            new byte[0]
+            Map.<String, String>of(),
+            new byte[0],
+            "127.0.0.1"
         );
     }
 }

@@ -4,6 +4,7 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import java.io.IOException;
 import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class IpFilterTest {
@@ -12,15 +13,33 @@ class IpFilterTest {
     void whitelist_allowsIp() throws IOException {
         IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null);
 
-        HttpRequest request = mock(HttpRequest.class);
-        when(request.remoteIp()).thenReturn("127.0.0.1");
+        HttpRequest req = mock(HttpRequest.class);
+        when(req.remoteIp()).thenReturn("127.0.0.1");
 
-        HttpResponse response = mock(HttpResponse.class);
+        HttpResponse res = mock(HttpResponse.class);
         FilterChain chain = mock(FilterChain.class);
 
-        filter.doFilter(request, response, chain);
+        filter.doFilter(req, res, chain);
 
-        verify(chain).doFilter(request, response);
-        verify(response, never()).setStatusCode(403);
+        verify(chain).doFilter(req, res);
+        verify(res, never()).setStatusCode(403);
+    }
+
+    @Test
+    void whitelist_blocksIpNotInList() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("10.0.0.1"), null);
+
+        HttpRequest req = mock(HttpRequest.class);
+        when(req.remoteIp()).thenReturn("127.0.0.1");
+
+        HttpResponse res = new HttpResponse();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+        verify(chain, never()).doFilter(req, res);
+
+        assertEquals(403, res.statusCode());
+        assertEquals("Forbidden", res.statusText());
+
     }
 }

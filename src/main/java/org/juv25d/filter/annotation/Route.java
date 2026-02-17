@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Route {
+    String[] value();
     int order() default 0;
-    String[] paths();
 }

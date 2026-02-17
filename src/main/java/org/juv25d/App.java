@@ -2,6 +2,7 @@ package org.juv25d;
 
 import org.juv25d.filter.IpFilter;
 import org.juv25d.filter.LoggingFilter;
+import org.juv25d.filter.RateLimitingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.StaticFilesPlugin;
@@ -25,6 +26,7 @@ public class App {
             Set.of()
         ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
+        pipeline.addGlobalFilter(new RateLimitingFilter(60, 10), 0);
         pipeline.setPlugin(new StaticFilesPlugin());
 
         DefaultConnectionHandlerFactory handlerFactory =

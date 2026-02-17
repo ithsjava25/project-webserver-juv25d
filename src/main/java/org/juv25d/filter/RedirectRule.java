@@ -1,5 +1,7 @@
 package org.juv25d.filter;
 
+import java.util.regex.Pattern;
+
 /**
  * Represents a URL redirect rule.
  *
@@ -49,10 +51,16 @@ public class RedirectRule {
 
         // Check for wildcard matching
         if (sourcePath.contains("*")) {
-            // Convert wildcard to regex pattern
-            // Example: "/docs/*" becomes "/docs/.*"
-            String regexPattern = sourcePath.replace("*", ".*");
-            return requestPath.matches(regexPattern);
+            // Split on wildcard, escape each literal segment, then rejoin with ".*"
+            String[] parts = sourcePath.split("\\*", -1);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                sb.append(Pattern.quote(parts[i]));
+                if (i < parts.length - 1) {
+                    sb.append(".*");
+                }
+            }
+            return requestPath.matches(sb.toString());
         }
 
         // Exact match

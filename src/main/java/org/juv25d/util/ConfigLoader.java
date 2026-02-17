@@ -37,14 +37,18 @@ public class ConfigLoader {
 
             Map<String, Object> config = yaml.load(input);
 
+            // defaults always
+            this.port = 8080;
+            this.rootDirectory = "static";
+
             // server
             Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
             if (serverConfig != null) {
-                Object portValue = serverConfig.getOrDefault("port", 8080);
-                this.port = (portValue instanceof Number n) ? n.intValue() : 8080;
+                Object portValue = serverConfig.get("port");
+                if (portValue instanceof Number n) this.port = n.intValue();
 
-                Object root = serverConfig.getOrDefault("root-dir", "static");
-                this.rootDirectory = String.valueOf(root);
+                Object root = serverConfig.get("root-dir");
+                if (root != null) this.rootDirectory = String.valueOf(root);
             }
 
             // logging
@@ -55,7 +59,7 @@ public class ConfigLoader {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application config");
+            throw new RuntimeException("Failed to load application config", e);
         }
     }
 

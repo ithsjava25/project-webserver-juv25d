@@ -57,9 +57,14 @@ class ConfigLoaderTest {
         assertEquals("INFO", loader.getLogLevel());
     }
 
-    @Test
-    void throwsWhenYamlMissing() {
+    /**
+     * Confirms that ConfigLoader fails predictably when no YAML configuration is provided.
+     * Passing a null InputStream should trigger a RuntimeException, indicating that the loader
+     * cannot operate without configuration data.
+     */
 
-    }
+    @Test void throwsWhenYamlMissing() {
+        assertThrows(RuntimeException.class, () ->
+            new ConfigLoader(null) ); }
 }
 

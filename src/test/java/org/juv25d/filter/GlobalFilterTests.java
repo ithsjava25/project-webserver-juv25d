@@ -5,6 +5,7 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.plugin.Plugin;
 import org.juv25d.Pipeline;
+import org.juv25d.router.SimpleRouter; // New import
 
 import java.io.IOException;
 
@@ -19,7 +20,11 @@ public class GlobalFilterTests {
 
         RecordingFilter global = new RecordingFilter("global");
         pipeline.addGlobalFilter(global, 1);
-        pipeline.setPlugin(new NoOpPlugin());
+
+        // Configure SimpleRouter and set it in the pipeline
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", new NoOpPlugin()); // Register NoOpPlugin for the root path
+        pipeline.setRouter(router); // Set the router in the pipeline
 
         execute(pipeline, "/anything");
 

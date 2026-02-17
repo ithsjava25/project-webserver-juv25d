@@ -2,6 +2,7 @@ package org.juv25d;
 
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,7 +23,8 @@ public class AppIT {
     public static GenericContainer<?> server = new GenericContainer<>(
         new ImageFromDockerfile("java-http-server-test")
             .withFileFromPath(".", Paths.get("."))
-    ).withExposedPorts(8080);
+    ).withExposedPorts(8080)
+        .waitingFor(Wait.forHttp("/").forStatusCode(200));
 
     private final HttpClient client = HttpClient.newHttpClient();
 

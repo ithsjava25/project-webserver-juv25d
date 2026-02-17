@@ -4,8 +4,6 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import java.io.IOException;
 import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 class IpFilterTest {
@@ -23,6 +21,6 @@ class IpFilterTest {
         filter.doFilter(request, response, chain);
 
         verify(chain).doFilter(request, response);
-        assertNotEquals(403, response.statusCode());
+        verify(response, never()).setStatusCode(403);
     }
 }

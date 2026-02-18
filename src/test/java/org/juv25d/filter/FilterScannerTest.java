@@ -49,6 +49,22 @@ class FilterScannerTest {
         verifyNoInteractions(pipeline);
     }
 
+
+    @Test
+    void shouldRejectFilterWithNoAnnotation() {
+        Pipeline pipeline = mock(Pipeline.class);
+        Filter filter = new UnannotatedFilter();
+        assertThrows(IllegalStateException.class,
+            () -> FilterScanner.register(filter, pipeline));
+        verifyNoInteractions(pipeline);
+    }
+
+    static class UnannotatedFilter implements Filter {
+        public void init() {}
+        public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) {}
+        public void destroy() {}
+    }
+
     @Global(order = 5)
     static class GlobalTestFilter implements Filter {
         public void init() {}

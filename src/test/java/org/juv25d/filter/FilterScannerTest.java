@@ -7,6 +7,7 @@ import org.juv25d.filter.annotation.Route;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 
@@ -31,6 +32,14 @@ class FilterScannerTest {
         verifyNoMoreInteractions(pipeline);
     }
 
+    @Test
+    void shouldThrowIfBothAnnotationsPresent() {
+        Pipeline pipeline = mock(Pipeline.class);
+        Filter filter = new InvalidAnnotatedFilter();
+        assertThrows(IllegalStateException.class,
+            () -> FilterScanner.register(filter, pipeline));
+        verifyNoInteractions(pipeline);
+    }
 
     @Global(order = 5)
     static class GlobalTestFilter implements Filter {

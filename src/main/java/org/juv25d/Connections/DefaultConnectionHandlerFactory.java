@@ -1,11 +1,12 @@
-package org.juv25d;
+package org.juv25d.Connections;
 
+import org.juv25d.Server.Pipeline;
 import org.juv25d.http.HttpParser;
 
 import java.net.Socket;
 import java.util.logging.Logger;
 
-public class DefaultConnectionHandlerFactory implements ConnectionHandlerFactory{
+public class DefaultConnectionHandlerFactory implements ConnectionHandlerFactory {
     private final HttpParser httpParser;
     private final Logger logger;
     private final Pipeline pipeline;

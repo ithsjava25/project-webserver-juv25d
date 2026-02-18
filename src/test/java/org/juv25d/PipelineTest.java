@@ -1,6 +1,7 @@
 package org.juv25d;
 
 import org.junit.jupiter.api.Test;
+import org.juv25d.Server.Pipeline;
 import org.juv25d.plugin.HelloPlugin;
 import org.juv25d.router.SimpleRouter; // New import
 

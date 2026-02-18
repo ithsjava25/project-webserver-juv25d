@@ -1,4 +1,4 @@
-package org.juv25d.config;
+package org.juv25d.filter.config;
 
 import org.juv25d.Server.ServerBuilder;
 import org.juv25d.filter.*;

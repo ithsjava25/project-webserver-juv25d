@@ -1,7 +1,7 @@
 package org.juv25d.filter;
 
 import org.junit.jupiter.api.Test;
-import org.juv25d.Pipeline;
+import org.juv25d.Server.Pipeline;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.plugin.Plugin;

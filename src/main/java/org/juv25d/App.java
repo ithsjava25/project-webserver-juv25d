@@ -2,7 +2,7 @@ package org.juv25d;
 
 import org.juv25d.Server.Server;
 import org.juv25d.Server.ServerBuilder;
-import org.juv25d.config.FilterConfiguration;
+import org.juv25d.filter.config.FilterConfiguration;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.plugin.NotFoundPlugin;
 import org.juv25d.plugin.StaticFilesPlugin;

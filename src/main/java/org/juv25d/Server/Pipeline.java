@@ -1,4 +1,4 @@
-package org.juv25d;
+package org.juv25d.Server;
 
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterChainImpl;

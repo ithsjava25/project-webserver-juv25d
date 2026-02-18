@@ -1,6 +1,6 @@
 package org.juv25d.filter;
 
-import org.juv25d.Pipeline;
+import org.juv25d.Server.Pipeline;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.filter.annotation.Route;
 

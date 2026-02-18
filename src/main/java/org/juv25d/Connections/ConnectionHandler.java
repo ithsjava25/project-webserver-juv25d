@@ -1,5 +1,6 @@
-package org.juv25d;
+package org.juv25d.Connections;
 
+import org.juv25d.Server.Pipeline;
 import org.juv25d.http.HttpParser;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;

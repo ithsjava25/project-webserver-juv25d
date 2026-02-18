@@ -12,6 +12,7 @@ public class ConfigLoader {
     private String rootDirectory;
     private long requestsPerMinute;
     private long burstCapacity;
+    private boolean rateLimitingEnabled;
 
     private ConfigLoader() {
         loadConfiguration();
@@ -50,8 +51,12 @@ public class ConfigLoader {
             // rate-limiting
             Map<String, Object> rateLimitingConfig = (Map<String, Object>) config.get("rate-limiting");
             if (rateLimitingConfig != null) {
+                this.rateLimitingEnabled = (Boolean) rateLimitingConfig.getOrDefault("enabled", true);
                 this.requestsPerMinute = ((Number) rateLimitingConfig.getOrDefault("requests-per-minute", 60L)).longValue();
-                this.burstCapacity = ((Number) rateLimitingConfig.getOrDefault("burst-capacity", 10L)).longValue();
+                this.burstCapacity = ((Number) rateLimitingConfig.getOrDefault("burst-capacity", 100L)).longValue();
+            } else {
+                // rate-limiting is disabled if not present in the config file.
+                this.rateLimitingEnabled = false;
             }
 
         } catch (Exception e) {
@@ -77,5 +82,9 @@ public class ConfigLoader {
 
     public long getBurstCapacity() {
         return burstCapacity;
+    }
+
+    public boolean isRateLimitingEnabled() {
+        return rateLimitingEnabled;
     }
 }

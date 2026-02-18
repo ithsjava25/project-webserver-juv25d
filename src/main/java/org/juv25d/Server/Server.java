@@ -6,6 +6,7 @@ import org.juv25d.Pipeline;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 public class Server {
@@ -13,20 +14,20 @@ public class Server {
     private final Logger logger;
     private final ConnectionHandlerFactory handlerFactory;
     private final Pipeline pipeline;
+    private final AtomicBoolean shutdownHookRegistered = new AtomicBoolean(false);
 
     public Server(int port, Logger logger, ConnectionHandlerFactory handlerFactory, Pipeline pipeline) {
         this.port = port;
         this.logger = logger;
         this.handlerFactory = handlerFactory;
         this.pipeline = pipeline;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        logger.info("Shutting down server...");
+        pipeline.destroyFilters();
+        }));
     }
 
     public void start() {
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Shutting down server...");
-            pipeline.destroyFilters();
-        }));
 
         try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
 

@@ -5,6 +5,7 @@ import org.juv25d.http.HttpResponse;
 import java.io.IOException;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 class IpFilterTest {
@@ -16,13 +17,13 @@ class IpFilterTest {
         HttpRequest req = mock(HttpRequest.class);
         when(req.remoteIp()).thenReturn("127.0.0.1");
 
-        HttpResponse res = mock(HttpResponse.class);
+        HttpResponse res = new HttpResponse();
         FilterChain chain = mock(FilterChain.class);
 
         filter.doFilter(req, res, chain);
 
         verify(chain).doFilter(req, res);
-        verify(res, never()).setStatusCode(403);
+        assertNotEquals(403, res.statusCode());
     }
 
     @Test

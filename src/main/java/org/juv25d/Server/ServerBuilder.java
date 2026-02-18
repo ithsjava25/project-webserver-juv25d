@@ -16,7 +16,6 @@ public class ServerBuilder {
     private int port = 8080;
     private Logger logger;
     private Router router;
-    private HttpParser httpParser = new HttpParser();
 
     private final Pipeline pipeline = new Pipeline();
 
@@ -32,11 +31,6 @@ public class ServerBuilder {
 
     public ServerBuilder router(Router router) {
         this.router = router;
-        return this;
-    }
-
-    public ServerBuilder httpParser(HttpParser parser) {
-        this.httpParser = parser;
         return this;
     }
 
@@ -59,7 +53,7 @@ public class ServerBuilder {
         pipeline.setRouter(router);
 
         DefaultConnectionHandlerFactory handlerFactory =
-            new DefaultConnectionHandlerFactory(httpParser, logger, pipeline);
+            new DefaultConnectionHandlerFactory(new HttpParser(), logger, pipeline);
 
         return new Server(
             port,

@@ -14,19 +14,15 @@ import java.util.stream.Stream;
 
 public class Pipeline {
 
-    private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
-    private final Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
+    private List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
+    private Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
 
     private volatile List<Filter> sortedGlobalFilters = List.of();
     private volatile Router router;
 
-    public void addGlobalFilter(Filter filter, int order) {
-        globalFilters.add(new FilterRegistration(filter, order, null));
-
-        sortedGlobalFilters = globalFilters.stream()
-            .sorted()
-            .map(FilterRegistration::filter)
-            .collect(Collectors.toUnmodifiableList());
+    public synchronized void addGlobalFilter(Filter filter, int order) {
+     globalFilters.add(new FilterRegistration(filter, order, null));
+     sortedGlobalFilters = globalFilters.stream().sorted().map(FilterRegistration::filter).collect(Collectors.toUnmodifiableList());
     }
 
     public void addRouteFilter(Filter filter, int order, String pattern) {

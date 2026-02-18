@@ -1,6 +1,6 @@
 package org.juv25d.Server;
 
-import org.juv25d.Connections.DefaultConnectionHandlerFactory;
+import org.juv25d.connections.DefaultConnectionHandlerFactory;
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterScanner;
 import org.juv25d.http.HttpParser;

@@ -1,6 +1,6 @@
 package org.juv25d.Server;
 
-import org.juv25d.Connections.ConnectionHandlerFactory;
+import org.juv25d.connections.ConnectionHandlerFactory;
 
 import java.io.IOException;
 import java.net.ServerSocket;

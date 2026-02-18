@@ -1,4 +1,4 @@
-package org.juv25d.Connections;
+package org.juv25d.connections;
 
 import org.juv25d.Server.Pipeline;
 

@@ -21,8 +21,8 @@ public class Pipeline {
     private volatile Router router;
 
     public synchronized void addGlobalFilter(Filter filter, int order) {
-     globalFilters.add(new FilterRegistration(filter, order, null));
-     sortedGlobalFilters = globalFilters.stream().sorted().map(FilterRegistration::filter).collect(Collectors.toUnmodifiableList());
+        globalFilters.add(new FilterRegistration(filter, order, null));
+        sortedGlobalFilters = globalFilters.stream().sorted().map(FilterRegistration::filter).collect(Collectors.toUnmodifiableList());
     }
 
     public void addRouteFilter(Filter filter, int order, String pattern) {
@@ -88,6 +88,12 @@ public class Pipeline {
     }
 
     public void destroyFilters() {
-        getAllFilters().forEach(Filter::destroy);
+        for (Filter filter : getAllFilters()) {
+            try {
+                filter.destroy();
+            } catch (Exception e) {
+                System.err.println("Error destroying filter " + filter.getClass().getName() + ": " + e.getMessage());
+            }
+        }
     }
 }

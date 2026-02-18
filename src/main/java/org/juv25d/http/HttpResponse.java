@@ -23,7 +23,7 @@ public class HttpResponse {
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         this.statusCode = statusCode;
-        this.statusText = statusText;
+        this.statusText = Objects.requireNonNull(statusText, "statusText must not be null");
         this.headers = new LinkedHashMap<>(headers != null ? headers : Map.of());
         this.body = body != null ? body.clone() : new byte[0];
     }

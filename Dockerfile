@@ -13,5 +13,5 @@ FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 
 # might need to update this later when we have our explicit class names
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/app.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

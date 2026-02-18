@@ -14,7 +14,10 @@ public class HttpResponse {
     private Map<String, String> headers;
     private byte[] body;
 
-    public HttpResponse(){}
+    public HttpResponse(){
+        this.headers = new LinkedHashMap<>();
+        this.body = new byte[0];
+    }
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         this.statusCode = statusCode;

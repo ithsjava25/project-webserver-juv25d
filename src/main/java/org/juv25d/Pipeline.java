@@ -3,7 +3,7 @@ package org.juv25d;
 import org.juv25d.filter.Filter;
 import org.juv25d.filter.FilterChainImpl;
 import org.juv25d.http.HttpRequest;
-import org.juv25d.plugin.Plugin;
+import org.juv25d.router.Router; // New import
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +18,7 @@ public class Pipeline {
     private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
     private final Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
     private volatile List<Filter> sortedGlobalFilters = List.of();
-    private Plugin plugin;
+    private volatile Router router; // Changed from Plugin plugin;
 
     public void addGlobalFilter(Filter filter, int order) {
         globalFilters.add(new FilterRegistration(filter, order, null));
@@ -33,11 +33,11 @@ public class Pipeline {
             .add(new FilterRegistration(filter, order, pattern));
     }
 
-    public void setPlugin(Plugin plugin) {
-        if (plugin == null) {
-            throw new IllegalArgumentException("Plugin cannot be null");
+    public void setRouter(Router router) {
+        if (router == null) {
+            throw new IllegalArgumentException("Router cannot be null");
         }
-        this.plugin = plugin;
+        this.router = router;
     }
 
     public FilterChainImpl createChain(HttpRequest request) {
@@ -61,14 +61,14 @@ public class Pipeline {
                     .forEach(filters::add);
             }
         }
-        return new FilterChainImpl(filters, plugin);
+        return new FilterChainImpl(filters, router); // Pass router instead of plugin
     }
 
     public List<Filter> getFilters() {
         return Collections.unmodifiableList(sortedGlobalFilters);
     }
 
-    public Plugin getPlugin() {
-        return plugin;
+    public Router getRouter() { // Renamed from getPlugin
+        return router;
     }
 }

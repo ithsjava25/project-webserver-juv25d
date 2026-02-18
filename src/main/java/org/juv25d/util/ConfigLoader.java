@@ -10,6 +10,8 @@ public class ConfigLoader {
     private int port;
     private String logLevel;
     private String rootDirectory;
+    private long requestsPerMinute;
+    private long burstCapacity;
 
     private ConfigLoader() {
         loadConfiguration();
@@ -45,6 +47,13 @@ public class ConfigLoader {
                 this.logLevel = (String) loggingConfig.get("level");
             }
 
+            // rate-limiting
+            Map<String, Object> rateLimitingConfig = (Map<String, Object>) config.get("rate-limiting");
+            if (rateLimitingConfig != null) {
+                this.requestsPerMinute = ((Number) rateLimitingConfig.getOrDefault("requests-per-minute", 60L)).longValue();
+                this.burstCapacity = ((Number) rateLimitingConfig.getOrDefault("burst-capacity", 10L)).longValue();
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to load application config");
         }
@@ -62,7 +71,11 @@ public class ConfigLoader {
         return rootDirectory;
     }
 
-    public long getLong(String s) {
-        return Long.parseLong(s);
+    public long getRequestsPerMinute() {
+        return requestsPerMinute;
+    }
+
+    public long getBurstCapacity() {
+        return burstCapacity;
     }
 }

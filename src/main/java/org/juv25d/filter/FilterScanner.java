@@ -25,6 +25,7 @@ public class FilterScanner {
 
         if (global != null) {
             pipeline.addGlobalFilter((Filter) instance, global.order());
+            return;
         }
 
         if (route != null) {
@@ -35,6 +36,10 @@ public class FilterScanner {
                     pattern
                 );
             }
+            return;
         }
+        throw new IllegalStateException(
+            filterClass.getName() + " must be annotated with either `@Global` or `@Route`"
+        );
     }
 }

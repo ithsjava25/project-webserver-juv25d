@@ -21,6 +21,16 @@ class FilterScannerTest {
         verifyNoMoreInteractions(pipeline);
     }
 
+    @Test
+    void shouldRegisterRouteFilterForEachPattern() {
+        Pipeline pipeline = mock(Pipeline.class);
+        Filter filter = new RouteTestFilter();
+        FilterScanner.register(filter, pipeline);
+        verify(pipeline).addRouteFilter(filter, 3, "/users");
+        verify(pipeline).addRouteFilter(filter, 3, "/admin");
+        verifyNoMoreInteractions(pipeline);
+    }
+
 
     @Global(order = 5)
     static class GlobalTestFilter implements Filter {

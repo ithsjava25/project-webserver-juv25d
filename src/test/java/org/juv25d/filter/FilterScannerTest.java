@@ -41,6 +41,14 @@ class FilterScannerTest {
         verifyNoInteractions(pipeline);
     }
 
+    @Test
+    void shouldIgnoreNonFilterObjects() {
+        Pipeline pipeline = mock(Pipeline.class);
+        Object notAFilter = new Object();
+        FilterScanner.register(notAFilter, pipeline);
+        verifyNoInteractions(pipeline);
+    }
+
     @Global(order = 5)
     static class GlobalTestFilter implements Filter {
         public void init() {}

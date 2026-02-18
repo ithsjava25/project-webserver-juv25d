@@ -1,5 +1,6 @@
 package org.juv25d;
 
+import org.juv25d.Server.Server;
 import org.juv25d.filter.IpFilter;
 import org.juv25d.filter.LoggingFilter;
 import org.juv25d.filter.RateLimitingFilter;

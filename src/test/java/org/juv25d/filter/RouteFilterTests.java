@@ -5,6 +5,7 @@ import org.juv25d.Pipeline;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.plugin.Plugin;
+import org.juv25d.router.SimpleRouter; // New import
 
 import java.io.IOException;
 
@@ -19,7 +20,12 @@ public class RouteFilterTests {
 
         RecordingFilter route = new RecordingFilter("route");
         pipeline.addRouteFilter(route, 1, "/api/*");
-        pipeline.setPlugin(new NoOpPlugin());
+
+        // Configure SimpleRouter and set it in the pipeline
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", new NoOpPlugin()); // Register NoOpPlugin for the root path
+        pipeline.setRouter(router); // Set the router in the pipeline
+
         execute(pipeline, "/api/test");
         assertTrue(route.wasExecuted());
         route.reset();
@@ -30,7 +36,12 @@ public class RouteFilterTests {
     @Test
     void routeFilter_shouldMatchExactPath() throws Exception {
         Pipeline pipeline = new Pipeline();
-        pipeline.setPlugin(new NoOpPlugin());
+
+        // Configure SimpleRouter and set it in the pipeline
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", new NoOpPlugin()); // Register NoOpPlugin for the root path
+        pipeline.setRouter(router); // Set the router in the pipeline
+
         RecordingFilter exact = new RecordingFilter("exact");
         pipeline.addRouteFilter(exact, 1, "/admin");
         execute(pipeline, "/admin");

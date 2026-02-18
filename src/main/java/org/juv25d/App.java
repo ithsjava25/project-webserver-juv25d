@@ -29,7 +29,6 @@ public class App {
         ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.addGlobalFilter(new RateLimitingFilter(60, 10), 0);
-        pipeline.setPlugin(new StaticFilesPlugin());
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();

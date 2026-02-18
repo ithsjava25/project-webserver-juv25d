@@ -45,7 +45,7 @@ public class Pipeline {
     }
 
     public FilterChainImpl createChain(HttpRequest request) {
-        List<Filter> filters = new ArrayList<>();
+        Set<Filter> filters = new LinkedHashSet<>();
 
         filters.addAll(sortedGlobalFilters);
 
@@ -70,7 +70,7 @@ public class Pipeline {
             }
         }
 
-        return new FilterChainImpl(filters, router);
+        return new FilterChainImpl(new ArrayList<>(filters), router);
     }
 
     public List<Filter> getAllFilters() {

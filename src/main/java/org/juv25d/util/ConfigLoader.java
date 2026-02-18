@@ -61,4 +61,8 @@ public class ConfigLoader {
     public String getRootDirectory() {
         return rootDirectory;
     }
+
+    public long getLong(String s) {
+        return Long.parseLong(s);
+    }
 }

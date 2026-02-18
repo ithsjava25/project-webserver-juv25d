@@ -63,7 +63,10 @@ class RateLimitingFilterTest {
         verifyNoMoreInteractions(chain);
         verify(res).setStatusCode(429);
         verify(res).setStatusText("Too Many Requests");
+        verify(res).setHeader("Content-Type", "text/plain; charset=utf-8");
+        verify(res).setHeader(eq("Content-Length"), any());
         verify(res).setHeader("Retry-After", "60");
+        verify(res).setBody(any());
     }
 
     /**

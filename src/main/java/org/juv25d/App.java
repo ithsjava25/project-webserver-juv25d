@@ -28,7 +28,10 @@ public class App {
             Set.of()
         ), 0);
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
-        pipeline.addGlobalFilter(new RateLimitingFilter(60, 10), 0);
+        pipeline.addGlobalFilter(new RateLimitingFilter(
+            config.getLong("rate-limiting.requests-per-minute"),
+            config.getLong("rate-limiting.burst-capacity")
+        ), 0);
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();

@@ -9,28 +9,22 @@ import org.juv25d.router.Router;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Pipeline {
 
-    private List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
-    private Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
+    private final List<FilterRegistration> globalFilters = new CopyOnWriteArrayList<>();
+    private final Map<String, List<FilterRegistration>> routeFilters = new ConcurrentHashMap<>();
 
-    private volatile List<Filter> sortedGlobalFilters = List.of();
     private volatile Router router;
 
-    public synchronized void addGlobalFilter(Filter filter, int order) {
+    public void addGlobalFilter(Filter filter, int order) {
         globalFilters.add(new FilterRegistration(filter, order, null));
-        sortedGlobalFilters = globalFilters.stream().sorted().map(FilterRegistration::filter).collect(Collectors.toUnmodifiableList());
     }
 
     public void addRouteFilter(Filter filter, int order, String pattern) {
-        List<FilterRegistration> registrations =
-            routeFilters.computeIfAbsent(pattern, k -> new CopyOnWriteArrayList<>());
-
-        registrations.add(new FilterRegistration(filter, order, pattern));
-        registrations.sort(null);
+        routeFilters
+            .computeIfAbsent(pattern, k -> new CopyOnWriteArrayList<>())
+            .add(new FilterRegistration(filter, order, pattern));
     }
 
     public void setRouter(Router router) {
@@ -45,42 +39,49 @@ public class Pipeline {
     }
 
     public FilterChainImpl createChain(HttpRequest request) {
-        Set<Filter> filters = new LinkedHashSet<>();
-
-        filters.addAll(sortedGlobalFilters);
+        if (router == null) {
+            throw new IllegalStateException("Router not set");
+        }
 
         String path = request.path();
 
-        List<FilterRegistration> exactMatches = routeFilters.get(path);
-        if (exactMatches != null) {
-            exactMatches.stream()
-                .map(FilterRegistration::filter)
-                .forEach(filters::add);
-        }
+        List<FilterRegistration> collected = new ArrayList<>();
+
+        collected.addAll(globalFilters);
 
         for (Map.Entry<String, List<FilterRegistration>> entry : routeFilters.entrySet()) {
             String pattern = entry.getKey();
 
-            if (pattern.endsWith("*") &&
-                path.startsWith(pattern.substring(0, pattern.length() - 1))) {
-
-                entry.getValue().stream()
-                    .map(FilterRegistration::filter)
-                    .forEach(filters::add);
+            if (matches(pattern, path)) {
+                collected.addAll(entry.getValue());
             }
         }
 
-        return new FilterChainImpl(new ArrayList<>(filters), router);
+        Collections.sort(collected);
+
+        List<Filter> finalFilters = new ArrayList<>();
+        Set<Filter> seen = new HashSet<>();
+
+        for (FilterRegistration reg : collected) {
+            if (seen.add(reg.filter())) {
+                finalFilters.add(reg.filter());
+            }
+        }
+
+        return new FilterChainImpl(finalFilters, router);
     }
 
-    public List<Filter> getAllFilters() {
-        return Stream.concat(
-                globalFilters.stream(),
-                routeFilters.values().stream().flatMap(List::stream)
-            )
-            .map(FilterRegistration::filter)
-            .distinct()
-            .toList();
+    private boolean matches(String pattern, String path) {
+        if (pattern.equals(path)) {
+            return true;
+        }
+
+        if (pattern.endsWith("*")) {
+            String prefix = pattern.substring(0, pattern.length() - 1);
+            return path.startsWith(prefix);
+        }
+
+        return false;
     }
 
     public void initFilters() {
@@ -92,8 +93,31 @@ public class Pipeline {
             try {
                 filter.destroy();
             } catch (Exception e) {
-                System.err.println("Error destroying filter " + filter.getClass().getName() + ": " + e.getMessage());
+                System.err.println(
+                    "Error destroying filter " +
+                        filter.getClass().getName() +
+                        ": " + e.getMessage()
+                );
             }
         }
+    }
+
+    public List<Filter> getAllFilters() {
+        List<FilterRegistration> all = new ArrayList<>(globalFilters);
+
+        routeFilters.values().forEach(all::addAll);
+
+        Collections.sort(all);
+
+        List<Filter> result = new ArrayList<>();
+        Set<Filter> seen = new HashSet<>();
+
+        for (FilterRegistration reg : all) {
+            if (seen.add(reg.filter())) {
+                result.add(reg.filter());
+            }
+        }
+
+        return result;
     }
 }

@@ -22,7 +22,14 @@ public class Server {
     }
 
     public void start() {
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Shutting down server...");
+            pipeline.destroyFilters();
+        }));
+
         try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
+
             logger.info("Server started at port: " + serverSocket.getLocalPort());
 
             while (true) {

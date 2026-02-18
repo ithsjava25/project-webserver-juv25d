@@ -1,12 +1,25 @@
 package org.juv25d.filter;
 
+import org.junit.jupiter.api.Test;
+import org.juv25d.Pipeline;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.filter.annotation.Route;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
+import static org.mockito.Mockito.*;
+
 
 class FilterScannerTest {
+
+    @Test
+    void shouldRegisterGlobalFilter() {
+        Pipeline pipeline = mock(Pipeline.class);
+        Filter filter = new GlobalTestFilter();
+        FilterScanner.register(filter, pipeline);
+        verify(pipeline).addGlobalFilter(filter, 5);
+        verifyNoMoreInteractions(pipeline);
+    }
 
 
     @Global(order = 5)

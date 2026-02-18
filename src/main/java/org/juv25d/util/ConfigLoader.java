@@ -97,6 +97,7 @@ public class ConfigLoader {
             return (Map<String, Object>) map;
         }
         return null;
+    }
     public long getRequestsPerMinute() {
         return requestsPerMinute;
     }

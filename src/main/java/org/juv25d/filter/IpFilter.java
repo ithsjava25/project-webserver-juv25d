@@ -15,16 +15,6 @@ public class IpFilter implements Filter {
 
     private final boolean allowByDefault;
 
-    public IpFilter(Set<String> whitelist, Set<String> blacklist) {
-        if (whitelist != null) {
-            this.whitelist.addAll(whitelist);
-        }
-        if (blacklist != null) {
-            this.blacklist.addAll(blacklist);
-        }
-        this.allowByDefault = true;
-    }
-
     public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
         if (whitelist != null) {
             this.whitelist.addAll(whitelist);

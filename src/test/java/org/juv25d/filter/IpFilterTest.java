@@ -16,7 +16,7 @@ class IpFilterTest {
 
     @Test
     void whitelist_allowsIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false);
 
         when(req.remoteIp()).thenReturn("127.0.0.1");
 
@@ -28,7 +28,7 @@ class IpFilterTest {
 
     @Test
     void blacklist_blocksIp() throws IOException {
-        IpFilter filter = new IpFilter(null, Set.of("127.0.0.1"));
+        IpFilter filter = new IpFilter(null, Set.of("127.0.0.1"), true);
 
         when(req.remoteIp()).thenReturn("127.0.0.1");
 
@@ -41,8 +41,8 @@ class IpFilterTest {
     }
 
     @Test
-    void allowsIp_inBothLists_noChangeDefault() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"));
+    void allowsIP_inBothList_defaultTrue() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"), true);;
 
         when(req.remoteIp()).thenReturn("127.0.0.1");
 
@@ -53,32 +53,7 @@ class IpFilterTest {
     }
 
     @Test
-    void allowsIP_inNeitherList_noChangeDefault() throws IOException {
-        IpFilter filter = new IpFilter(null, null);
-
-        when(req.remoteIp()).thenReturn("127.0.0.1");
-
-        filter.doFilter(req, res, chain);
-
-        verify(chain).doFilter(req, res);
-        assertEquals(200, res.statusCode());
-    }
-
-    @Test
-    void blocksIP_inBothList_ChangeDefault() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"), false);
-
-        when(req.remoteIp()).thenReturn("127.0.0.1");
-
-        filter.doFilter(req, res, chain);
-        verify(chain, never()).doFilter(req, res);
-
-        assertEquals(403, res.statusCode());
-        assertEquals("Forbidden", res.statusText());
-    }
-
-    @Test
-    void blocksIP_inNeitherList_ChangeDefault() throws IOException {
+    void blocksIP_inNeitherList_defaultFalse() throws IOException {
         IpFilter filter = new IpFilter(null, null, false);
 
         when(req.remoteIp()).thenReturn("127.0.0.1");

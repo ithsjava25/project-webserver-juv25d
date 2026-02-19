@@ -35,7 +35,8 @@ public class App {
         // White/blacklist can be tightened when specific IP restrictions are decided
         pipeline.addGlobalFilter(new IpFilter(
             Set.of(),
-            Set.of()
+            Set.of(),
+            true
         ), 0);
 
         pipeline.addGlobalFilter(new LoggingFilter(), 0);

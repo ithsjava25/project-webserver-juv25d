@@ -4,3 +4,8 @@ server:
 
 logging:
   level: INFO
+
+rate-limiting:
+  enabled: true
+  requests-per-minute: 60
+  burst-capacity: 100

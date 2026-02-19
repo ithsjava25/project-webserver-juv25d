@@ -75,7 +75,7 @@ public class StaticFileHandler {
             return new HttpResponse(200, "OK", headers, fileContent);
 
         } catch (IOException e) {
-            logger.log(Level.WARNING, "File not found: " + resourcePath, e);
+            logger.log(Level.WARNING, "File not found: " + resourcePath);
             return createNotFoundResponse(path);
         }
     }

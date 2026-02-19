@@ -2,7 +2,7 @@ package org.juv25d.filter;
 
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
-import org.juv25d.plugin.Plugin;
+import org.juv25d.router.Router; // New import
 
 import java.io.IOException;
 import java.util.List;
@@ -10,12 +10,12 @@ import java.util.List;
 public class FilterChainImpl implements FilterChain {
 
     private final List<Filter> filters;
-    private final Plugin plugin;
+    private final Router router; // Changed from Plugin plugin;
     private int index = 0;
 
-    public FilterChainImpl(List<Filter> filters, Plugin plugin) {
+    public FilterChainImpl(List<Filter> filters, Router router) { // Changed constructor parameter
         this.filters = filters;
-        this.plugin = plugin;
+        this.router = router; // Changed assignment
     }
 
     @Override
@@ -24,9 +24,7 @@ public class FilterChainImpl implements FilterChain {
             Filter next = filters.get(index++);
             next.doFilter(req, res, this);
         } else {
-            if (plugin != null) {
-                plugin.handle(req, res);
-            }
+            router.resolve(req).handle(req, res); // Use router to resolve and handle
         }
     }
 }

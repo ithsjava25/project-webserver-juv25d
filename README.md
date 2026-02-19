@@ -131,7 +131,7 @@ docker pull ghcr.io/ithsjava25/project-webserver-juv25d:latest
 ## Step 3 – Run the container
 
 ```bash
-docker run -p 3000:3000 ghcr.io/ithsjava25/project-webserver-juv25d:latest
+docker run -p 8080:8080 ghcr.io/ithsjava25/project-webserver-juv25d:latest
 ```
 
 ---
@@ -139,10 +139,10 @@ docker run -p 3000:3000 ghcr.io/ithsjava25/project-webserver-juv25d:latest
 ## Step 4 – Open in browser
 
 ```
-http://localhost:3000
+http://localhost:8080
 ```
 
-The server runs on port **3000**.
+The server runs on port **8080**.
 
 ---
 
@@ -160,10 +160,10 @@ org.juv25d.App
 3. Open:
 
 ```
-http://localhost:3000
+http://localhost:8080
 ```
 
-Note: Running the packaged JAR directly with `java -jar` is not supported, as the project is not built as a fat JAR (external dependencies such as SnakeYAML are not bundled).
+Note: The project is packaged as a fat JAR using the Maven Shade Plugin, so you can run it with `java -jar target/app.jar`.
 
 ---
 
@@ -327,7 +327,7 @@ Example:
 
 ```yaml
 server:
-    port: 3000
+    port: 8080
     root-dir: static
 
 logging:

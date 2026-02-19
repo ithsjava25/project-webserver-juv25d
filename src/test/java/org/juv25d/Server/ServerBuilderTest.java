@@ -33,17 +33,19 @@ class ServerBuilderTest {
     }
 
     @Test
-    void buildShouldInitializeAnnotatedFilters() {
+    void startShouldInitializeAnnotatedFilters() {
         AtomicBoolean initialized = new AtomicBoolean(false);
 
-        new ServerBuilder()
+        Server server = new ServerBuilder()
             .logger(Logger.getGlobal())
             .router(mock(Router.class))
             .addFilter(new TestGlobalFilter(initialized))
             .build();
 
+        server.start();
+
         assertTrue(initialized.get(),
-            "Annotated filter should be initialized during build()");
+            "Annotated filter should be initialized during start()");
     }
 
     @Global(order = 1)

@@ -1,16 +1,13 @@
 package org.juv25d;
 
-import org.juv25d.filter.IpFilter;
-import org.juv25d.filter.LoggingFilter;
-import org.juv25d.filter.RateLimitingFilter;
+import org.juv25d.filter.*;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.router.SimpleRouter; // New import
 import org.juv25d.util.ConfigLoader;
-import org.juv25d.filter.RedirectFilter;
-import org.juv25d.filter.RedirectRule;
+
 import java.util.List;
 
 import java.util.Set;
@@ -23,6 +20,9 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
+
+        pipeline.addGlobalFilter(new SecurityHeadersFilter(), 0);
+
         // Configure redirect rules
         List<RedirectRule> redirectRules = List.of(
             new RedirectRule("/old-page", "/new-page", 301),
@@ -30,7 +30,6 @@ public class App {
             new RedirectRule("/docs/*", "/documentation/", 301)
         );
         pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 0);
-
 
         // IP filter is enabled but configured with open access during development
         // White/blacklist can be tightened when specific IP restrictions are decided

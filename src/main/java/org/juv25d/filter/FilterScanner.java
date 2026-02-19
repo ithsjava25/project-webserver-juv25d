@@ -19,7 +19,7 @@ public class FilterScanner {
         if (global != null && route != null) {
             throw new IllegalStateException(
                 filterClass.getName() +
-                    " cannot be annotated with both @Global and @Route"
+                    "cannot be annotated with both @Global and @Route"
             );
         }
 
@@ -39,7 +39,7 @@ public class FilterScanner {
             return;
         }
         throw new IllegalStateException(
-            filterClass.getName() + " must be annotated with either `@Global` or `@Route`"
+            filterClass.getName() + "must be annotated with either @Global or @Route"
         );
     }
 }

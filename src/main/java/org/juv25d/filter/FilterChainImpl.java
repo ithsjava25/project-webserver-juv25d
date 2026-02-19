@@ -10,12 +10,12 @@ import java.util.List;
 public class FilterChainImpl implements FilterChain {
 
     private final List<Filter> filters;
-    private final Router router; // Changed from Plugin plugin;
+    private final Router router;
     private int index = 0;
 
-    public FilterChainImpl(List<Filter> filters, Router router) { // Changed constructor parameter
+    public FilterChainImpl(List<Filter> filters, Router router) {
         this.filters = filters;
-        this.router = router; // Changed assignment
+        this.router = router;
     }
 
     @Override
@@ -24,7 +24,7 @@ public class FilterChainImpl implements FilterChain {
             Filter next = filters.get(index++);
             next.doFilter(req, res, this);
         } else {
-            router.resolve(req).handle(req, res); // Use router to resolve and handle
+            router.resolve(req).handle(req, res);
         }
     }
 }

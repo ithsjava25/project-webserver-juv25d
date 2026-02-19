@@ -18,10 +18,7 @@ public class Server {
         this.logger = logger;
         this.handlerFactory = handlerFactory;
         this.pipeline = pipeline;
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-        logger.info("Shutting down server...");
-        pipeline.destroyFilters();
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     public void start() {
@@ -32,12 +29,17 @@ public class Server {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                Runnable handler = handlerFactory.create(socket, pipeline);
+                Runnable handler = handlerFactory.create(socket);
                 Thread.ofVirtual().start(handler);
             }
 
         } catch (IOException e) {
             throw new RuntimeException("Server error", e);
         }
+    }
+
+    public void stop() {
+        logger.info("Shutting down server...");
+        pipeline.destroyFilters();
     }
 }

@@ -3,6 +3,7 @@ package org.juv25d.util;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +27,7 @@ class ConfigLoaderTest {
                 """;
 
         ConfigLoader loader = new ConfigLoader(
-            new ByteArrayInputStream(yaml.getBytes())
+            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))
         );
 
         assertEquals(9090, loader.getPort());
@@ -43,19 +44,19 @@ class ConfigLoaderTest {
     @Test
     void usesDefaultsWhenServerKeysMissing() {
         String yaml = """
-                server: {}
-                logging:
-                  level: "INFO"
-                """;
+        server: {}
+        logging: {}
+        """;
 
         ConfigLoader loader = new ConfigLoader(
-            new ByteArrayInputStream(yaml.getBytes())
+            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))
         );
 
         assertEquals(8080, loader.getPort());
         assertEquals("static", loader.getRootDirectory());
         assertEquals("INFO", loader.getLogLevel());
     }
+
 
     /**
      * Confirms that ConfigLoader fails predictably when no YAML configuration is provided.

@@ -33,10 +33,10 @@ public class ConfigLoader {
     private void loadConfiguration(InputStream input) {
         Yaml yaml = new Yaml();
 
+        if (input == null) {
+            throw new IllegalArgumentException("Did not find application-properties.yml");
+        }
         try (input) {
-            if (input == null) {
-                throw new IllegalArgumentException("Did not find application-properties.yml");
-            }
 
             Map<String, Object> config = yaml.load(input);
             if (config == null) config = Map.of();

@@ -50,7 +50,6 @@ public class ServerBuilder {
         Objects.requireNonNull(router, "Router must be configured");
 
         pipeline.setRouter(router);
-        pipeline.initFilters();
 
         DefaultConnectionHandlerFactory handlerFactory =
             new DefaultConnectionHandlerFactory(new HttpParser(), logger, pipeline);

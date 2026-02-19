@@ -18,11 +18,13 @@ public class Server {
         this.logger = logger;
         this.handlerFactory = handlerFactory;
         this.pipeline = pipeline;
+
         Runtime.getRuntime().addShutdownHook(new Thread(this::stop));
     }
 
     public void start() {
 
+        pipeline.initFilters();
         try (ServerSocket serverSocket = new ServerSocket(port, 64)) {
 
             logger.info("Server started at port: " + serverSocket.getLocalPort());

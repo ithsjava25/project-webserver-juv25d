@@ -58,6 +58,10 @@ body {
     box-shadow: 0 0 4px 0px rgba(255, 255, 255, 0.2);
 }
 
+#health-box button:active {
+    font-size: 1.4rem;
+}
+
 .health-content {
     visibility: hidden;
     opacity: 0;

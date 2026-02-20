@@ -40,7 +40,7 @@ public class HealthCheckPlugin implements Plugin {
         long usedMemory = runtime.totalMemory() - runtime.freeMemory();
         long maxMemory = runtime.maxMemory();
         long responseTimeMs =
-            (System.nanoTime() - req.creationTimeNanos()) / 1_000_000;
+            (System.nanoTime() - req.creationTimeNanos()) / 1_000;
         String localTime = ZonedDateTime
             .now(ZoneId.systemDefault())
             .format(TIME_FORMAT);

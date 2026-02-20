@@ -9,7 +9,7 @@ async function loadHealth() {
         document.getElementById("health-version").textContent = data.buildVersion;
         document.getElementById("health-commit").textContent = data.gitCommit;
         document.getElementById("health-response").textContent =
-            data.responseTimeMs + " ms";
+            data.responseTimeMs + " µs";
 
         const usedMb = (data.memory.usedBytes / 1024 / 1024).toFixed(1);
         const maxMb = (data.memory.maxBytes / 1024 / 1024).toFixed(1);

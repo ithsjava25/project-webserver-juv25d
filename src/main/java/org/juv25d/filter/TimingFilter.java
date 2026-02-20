@@ -19,5 +19,6 @@ public class TimingFilter implements Filter {
 
         long durationMs = (System.nanoTime() - start) / 1_000_000;
         logger.info(req.method() + " " + req.path() + " took " + durationMs + " ms");
+
     }
 }

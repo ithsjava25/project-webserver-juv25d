@@ -1,6 +1,9 @@
 async function loadHealth() {
     try {
         const res = await fetch("/health");
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`)
+        };
         const data = await res.json();
 
         document.getElementById("health-status").textContent = data.status;

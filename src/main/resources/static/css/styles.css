@@ -49,7 +49,6 @@ body {
     height: 36px;
     cursor: pointer;
     font-size: 1.2rem;
-
     transition: 150ms ease;
     anchor-name: --health-button;
 }
@@ -70,7 +69,6 @@ body {
     padding: 10px;
     border-radius: 6px;
     font-size: 12px;
-
     position: absolute;
     margin-right: 8px;
     inset: auto;

@@ -20,10 +20,12 @@ public class App {
         HttpParser httpParser = new HttpParser();
         Pipeline pipeline = new Pipeline();
 
-        pipeline.addGlobalFilter(new IpFilter(Set.of(), Set.of()), 0);
+        pipeline.addGlobalFilter(new SecurityHeadersFilter(), 0);
+
+        pipeline.addGlobalFilter(new IpFilter(Set.of(), Set.of()), 1);
 
         if (config.isRateLimitingEnabled()) {pipeline.addGlobalFilter(new RateLimitingFilter(
-            config.getRequestsPerMinute(), config.getBurstCapacity()), 1);}
+            config.getRequestsPerMinute(), config.getBurstCapacity()), 2);}
 
         List<RedirectRule> redirectRules = List.of(
             new RedirectRule("/old-page", "/new-page", 301),
@@ -31,11 +33,9 @@ public class App {
             new RedirectRule("/docs/*", "/documentation/", 301)
         );
 
-        pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 2);
+        pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 3);
 
-        pipeline.addGlobalFilter(new LoggingFilter(), 3);
-
-        pipeline.addGlobalFilter(new SecurityHeadersFilter(), 4);
+        pipeline.addGlobalFilter(new LoggingFilter(), 4);
 
 
         SimpleRouter router = new SimpleRouter();

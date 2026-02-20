@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * </pre>
  */
 
-@Global(order = 2)
+@Global(order = 3)
 public class RedirectFilter implements Filter {
     private final List<RedirectRule> rules;
     private final Logger logger;

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
-@Global(order = 0)
+@Global(order = 1)
 public class IpFilter implements Filter {
 
     private final Set<String> whitelist;

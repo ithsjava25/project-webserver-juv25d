@@ -6,7 +6,7 @@ import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
 
-@Global(order = 3)
+@Global(order = 4)
 public class LoggingFilter implements Filter {
 
     @Override

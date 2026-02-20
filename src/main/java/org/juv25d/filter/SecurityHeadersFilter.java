@@ -10,7 +10,7 @@ import java.io.IOException;
  * Filter that adds security headers to every HTTP response.
  * This helps protect against attacks such as Clickjacking and MIME sniffing.
  */
-@Global(order = 4)
+@Global(order = 0)
 public class SecurityHeadersFilter implements Filter {
 
     @Override

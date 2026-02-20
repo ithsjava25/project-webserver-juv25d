@@ -3,6 +3,7 @@ package org.juv25d;
 import org.juv25d.filter.*;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
+import org.juv25d.plugin.HealthCheckPlugin;
 import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.router.SimpleRouter; // New import
@@ -49,6 +50,7 @@ public class App {
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/health", new HealthCheckPlugin()); //Register HealthCheckPlugin for a specified path
         router.registerPlugin("/", new StaticFilesPlugin()); // Register StaticFilesPlugin for the root path
         router.registerPlugin("/*", new StaticFilesPlugin()); // Register StaticFilesPlugin for all paths
         router.registerPlugin("/notfound", new NotFoundPlugin()); // Example: Register NotFoundPlugin for a specific path

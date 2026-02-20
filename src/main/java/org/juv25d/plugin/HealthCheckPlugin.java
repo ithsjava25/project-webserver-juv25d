@@ -12,19 +12,21 @@ import java.time.Instant;
  * Responds to /health by default.
  */
 public class HealthCheckPlugin implements Plugin {
+    private static final String SERVER_NAME = "juv25d-webserver/1.0";
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
         String timestamp = Instant.now().toString();
         String jsonBody = String.format(
-            "{\"status\": \"UP\", \"timestamp\": \"%s\", \"server\": \"juv25d-webserver/1.0\"}",
-            timestamp
+            "{\"status\": \"UP\", \"timestamp\": \"%s\", \"server\": \"%s\"}",
+            timestamp, SERVER_NAME
         );
 
         res.setStatusCode(200);
         res.setStatusText("OK");
+        byte[] bodyBytes = jsonBody.getBytes(StandardCharsets.UTF_8);
         res.setHeader("Content-Type", "application/json");
-        res.setHeader("Content-Length", String.valueOf(jsonBody.getBytes(StandardCharsets.UTF_8).length));
-        res.setBody(jsonBody.getBytes(StandardCharsets.UTF_8));
+        res.setHeader("Content-Length", String.valueOf(bodyBytes.length));
+        res.setBody(bodyBytes);
     }
 }

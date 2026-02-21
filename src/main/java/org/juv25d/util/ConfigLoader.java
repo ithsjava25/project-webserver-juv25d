@@ -3,6 +3,7 @@ package org.juv25d.util;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Map;
 
 public class ConfigLoader {
@@ -64,14 +65,19 @@ public class ConfigLoader {
             }
 
             // rate-limiting
-            Map<String, Object> rateLimitingConfig = (Map<String, Object>) config.get("rate-limiting");
+            // defaults (consistent pattern)
+            this.rateLimitingEnabled = false;
+
+            Map<String, Object> rateLimitingConfig = asStringObjectMap(config.get("rate-limiting"));
             if (rateLimitingConfig != null) {
-                this.rateLimitingEnabled = (Boolean) rateLimitingConfig.getOrDefault("enabled", true);
-                this.requestsPerMinute = ((Number) rateLimitingConfig.getOrDefault("requests-per-minute", 60L)).longValue();
-                this.burstCapacity = ((Number) rateLimitingConfig.getOrDefault("burst-capacity", 100L)).longValue();
-            } else {
-                // rate-limiting is disabled if not present in the config file.
-                this.rateLimitingEnabled = false;
+                this.rateLimitingEnabled =
+                    Boolean.parseBoolean(String.valueOf(rateLimitingConfig.getOrDefault("enabled", false)));
+
+                this.requestsPerMinute =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("requests-per-minute", 60L)));
+
+                this.burstCapacity =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
             }
 
         } catch (Exception e) {
@@ -96,7 +102,7 @@ public class ConfigLoader {
         if (value instanceof Map<?, ?> map) {
             return (Map<String, Object>) map;
         }
-        return null;
+        return Collections.emptyMap();
     }
     public long getRequestsPerMinute() {
         return requestsPerMinute;

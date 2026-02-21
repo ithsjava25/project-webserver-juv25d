@@ -81,7 +81,7 @@ class ConfigLoaderTest {
     @Test
     void shouldThrowWhenYamlIsMalformed() {
         String yaml = "server:\nBadYaml";
-        InputStream input = new ByteArrayInputStream(yaml.getBytes());
+        InputStream input = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8));
 
         RuntimeException ex = assertThrows(RuntimeException.class,
             () -> new ConfigLoader(input));

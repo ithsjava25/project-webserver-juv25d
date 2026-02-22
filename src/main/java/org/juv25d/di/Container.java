@@ -21,10 +21,14 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Container {
 
-    /** Stores fully constructed singleton instances (beans). */
+    /**
+     * Stores fully constructed singleton instances (beans).
+     */
     private final Map<Class<?>, Object> beans = new ConcurrentHashMap<>();
 
-    /** Maps abstractions (interfaces) to concrete implementations. */
+    /**
+     * Maps abstractions (interfaces) to concrete implementations.
+     */
     private final Map<Class<?>, Class<?>> bindings = new ConcurrentHashMap<>();
 
     /**
@@ -33,7 +37,9 @@ public class Container {
     private final ThreadLocal<Set<Class<?>>> resolving =
         ThreadLocal.withInitial(HashSet::new);
 
-    /** Per-type locks to prevent concurrent creation of the same bean */
+    /**
+     * Per-type locks to prevent concurrent creation of the same bean
+     */
     private final ConcurrentHashMap<Class<?>, ReentrantLock> locks = new ConcurrentHashMap<>();
 
     /**
@@ -53,17 +59,16 @@ public class Container {
 
     /**
      * Registers a pre-created instance as a bean.
-     *
+     * <p>
      * This is typically used for:
+     * <p>
+     * Configuration objects
+     * External dependencies
+     * Manually constructed services
      *
-     *     Configuration objects
-     *     External dependencies
-     *     Manually constructed services
-     *
-     *
-     * @param type the class type
+     * @param type     the class type
      * @param instance the instance to register
-     * @param <T> the type of the bean
+     * @param <T>      the type of the bean
      */
     public <T> void register(Class<T> type, T instance) {
         beans.put(type, instance);
@@ -71,13 +76,13 @@ public class Container {
 
     /**
      * Binds an interface (or abstraction) to a concrete implementation.
-     *
+     * <p>
      * When the abstraction is requested, the container will resolve
      * the specified implementation instead.
      *
-     * @param abstraction the interface or abstract class
+     * @param abstraction    the interface or abstract class
      * @param implementation the concrete implementation class
-     * @param <T> the type being bound
+     * @param <T>            the type being bound
      */
     public <T> void bind(Class<T> abstraction, Class<? extends T> implementation) {
         bindings.put(abstraction, implementation);
@@ -87,7 +92,7 @@ public class Container {
      * Retrieves or creates an instance of the given type.
      *
      * @param type the class to resolve
-     * @param <T> the type
+     * @param <T>  the type
      * @return a fully constructed instance
      */
     public <T> T get(Class<T> type) {
@@ -96,11 +101,11 @@ public class Container {
 
     /**
      * Creates a new instance of a class using constructor injection.
-     *
+     * <p>
      * The constructor is selected based on:
-     *
-     *     {@code @Inject} annotation (highest priority)
-     *     Largest resolvable constructor<
+     * <p>
+     * {@code @Inject} annotation (highest priority)
+     * Largest resolvable constructor<
      *
      * @param clazz the class to instantiate
      * @return a new instance
@@ -123,21 +128,20 @@ public class Container {
 
     /**
      * Resolves a type into a fully constructed instance.
-     *
+     * <p>
      * This method:
-     *
+     * <p>
      * Returns existing beans if available.
      * Resolves interface bindings.
-     *  Detects circular dependencies per thread.
-     *  Automatically creates instances for constructable classes in the base package.
-     *  Uses a per-type ReentrantLock with timeout to prevent deadlocks across threads.
-     *
+     * Detects circular dependencies per thread.
+     * Automatically creates instances for constructable classes in the base package.
+     * Uses a per-type ReentrantLock with timeout to prevent deadlocks across threads.
      *
      * @param type the class to resolve
-     * @param <T> the type of the bean
+     * @param <T>  the type of the bean
      * @return a fully constructed instance
      * @throws RuntimeException if the type is unbound, non-constructable, part of a circular dependency,
-     *         deadlock is detected, or the thread is interrupted while waiting for the lock
+     *                          deadlock is detected, or the thread is interrupted while waiting for the lock
      */
     @SuppressWarnings("unchecked")
     private <T> T resolve(Class<T> type) {
@@ -208,11 +212,11 @@ public class Container {
 
     /**
      * Selects the most appropriate constructor for instantiation.
-     *
+     * <p>
      * Selection rules:
-     *
-     *     If exactly one constructor is annotated with {@code @Inject}, use it
-     *     Otherwise, choose the largest constructor whose parameters can all be resolved
+     * <p>
+     * If exactly one constructor is annotated with {@code @Inject}, use it
+     * Otherwise, choose the largest constructor whose parameters can all be resolved
      *
      * @param filterClass the target class
      * @return selected constructor
@@ -251,10 +255,9 @@ public class Container {
      *
      * @param ctor the constructor to test
      * @return {@code true} if all parameters are resolvable without instantiation,
-     *         {@code false} if any parameter is unresolvable or part of a cycle
+     * {@code false} if any parameter is unresolvable or part of a cycle
      */
     private boolean canResolveAll(Constructor<?> ctor) {
-        // Use the shared ThreadLocal resolving set to track circular dependencies
         Set<Class<?>> current = resolving.get();
         for (Class<?> param : ctor.getParameterTypes()) {
             if (!canResolve(param, current)) return false;
@@ -269,60 +272,61 @@ public class Container {
      *
      * Resolution rules:
      *
-     *  Interface bindings are resolved to their implementation.
-     *  Already registered beans are trivially resolvable.
-     *  Classes inside the base package that are instantiable are recursively
-     *  checked for resolvable constructor parameters.
-     *  If the type is already in the resolving set, a circular dependency
-     *  is detected and the method returns false.
+     * Interface bindings are resolved to their implementation.
+     * Already registered beans are trivially resolvable.
+     * Classes inside the base package that are instantiable are recursively
+     * checked for resolvable constructor parameters.
+     * If the type is already in the resolving set, a circular dependency
+     * is detected and the method returns {@code false}.
      *
-     * @param type the class type to check
+     *
+     * @param type    the class type to check
      * @param current the set of types currently being resolved to detect cycles
      * @return {@code true} if the type can be resolved without instantiation,
-     *         {@code false} otherwise
+     * {@code false} otherwise
      */
     private boolean canResolve(Class<?> type, Set<Class<?>> current) {
-        // Resolve interface bindings
         if (bindings.containsKey(type)) {
             type = (Class<?>) bindings.get(type);
         }
 
-        // Cannot resolve unbound interface
         if (type.isInterface() && !bindings.containsKey(type)) {
             return false;
         }
 
-        // Circular dependency check
         if (!current.add(type)) {
-            return false; // cycle detected
+            return false;
         }
 
         try {
-            // Already registered bean is trivially resolvable
-            if (beans.containsKey(type)) {
-                return true;
-            }
+            if (beans.containsKey(type)) return true;
 
-            // Only auto-create classes inside basePackage that are instantiable
             if (type.getPackageName().startsWith(basePackage) && isConstructable(type)) {
-                Constructor<?> constructor = findBestConstructor(type);
-                for (Class<?> param : constructor.getParameterTypes()) {
-                    if (!canResolve(param, current)) return false;
+                try {
+                    Constructor<?> constructor = findBestConstructor(type);
+                    for (Class<?> param : constructor.getParameterTypes()) {
+                        if (!canResolve(param, current)) return false;
+                    }
+                } catch (RuntimeException e) {
+                    return false;
                 }
                 return true;
             }
 
             return false;
+
         } finally {
             current.remove(type);
         }
     }
 
     /**
-     * Determines whether a class can be instantiated.
+     * Determines whether a class is instantiable.
+     *
+     * A class is considered constructable if it is not an interface and not abstract.
      *
      * @param filterClass the class to check
-     * @return true if it is not an interface or abstract class
+     * @return {@code true} if the class can be instantiated, {@code false} otherwise
      */
     private boolean isConstructable(Class<?> filterClass) {
         return !filterClass.isInterface() && !Modifier.isAbstract(filterClass.getModifiers());

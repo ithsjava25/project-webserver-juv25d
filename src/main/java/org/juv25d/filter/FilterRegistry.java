@@ -8,6 +8,7 @@ public class FilterRegistry {
 
     private final List<FilterRegistration> global = new CopyOnWriteArrayList<>();
     private final Map<String, List<FilterRegistration>> routes = new ConcurrentHashMap<>();
+    private volatile boolean isShutdown = false;
 
     public void registerGlobal(Filter filter, int order) {
         global.add(new FilterRegistration(filter, order, null));
@@ -27,6 +28,9 @@ public class FilterRegistry {
     }
 
     public void shutdown() {
+        if (isShutdown) return;
+        isShutdown = true;
+
         Set<Filter> destroyed = Collections.newSetFromMap(new IdentityHashMap<>());
 
         for (FilterRegistration reg : global) {

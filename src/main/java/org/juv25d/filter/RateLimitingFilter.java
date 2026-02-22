@@ -30,6 +30,7 @@ public class RateLimitingFilter implements Filter {
     private final long capacity;
     private final long refillTokens;
     private final Duration refillPeriod;
+    private final boolean enabled;
 
     /**
      * Constructs a new RateLimitingFilter.
@@ -49,6 +50,7 @@ public class RateLimitingFilter implements Filter {
         this.capacity = burstCapacity;
         this.refillTokens = requestsPerMinute;
         this.refillPeriod = Duration.ofMinutes(1);
+        this.enabled = true;
 
         logger.info(String.format(
             "RateLimitingFilter initialized - Limit: %d req/min, Burst: %d",
@@ -58,16 +60,21 @@ public class RateLimitingFilter implements Filter {
 
     public RateLimitingFilter() {
         RateLimitConfig config = new RateLimitConfig();
-        if (!config.isEnabled()) {
-            this.capacity = Long.MAX_VALUE;
-            this.refillTokens = Long.MAX_VALUE;
+        this.enabled = config.isEnabled();
+
+        if (!enabled) {
+            // Disable bucket logic safely
+            this.capacity = 0;
+            this.refillTokens = 0;
             this.refillPeriod = Duration.ofMinutes(1);
             return;
         }
+
         if (config.rpm() <= 0 || config.burst() <= 0) {
             throw new IllegalArgumentException(
                 "RateLimitConfig values must be positive (rpm=" + config.rpm() + ", burst=" + config.burst() + ")");
         }
+
         this.capacity = config.burst();
         this.refillTokens = config.rpm();
         this.refillPeriod = Duration.ofMinutes(1);
@@ -84,6 +91,8 @@ public class RateLimitingFilter implements Filter {
      */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
+        if (!enabled) {chain.doFilter(req, res);return;}
+
         String clientIp = getClientIp(req);
 
         Bucket bucket = buckets.computeIfAbsent(clientIp, k -> createBucket());

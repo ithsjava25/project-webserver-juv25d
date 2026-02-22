@@ -2,6 +2,7 @@ package org.juv25d.proxy;
 
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
+import org.juv25d.http.HttpStatus;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.plugin.Plugin;
 
@@ -56,7 +57,10 @@ public class ProxyPlugin implements Plugin {
 
             // relay the upstream response back to the client including the headers
             res.setStatusCode(upstreamResponse.statusCode());
-            res.setStatusText("OK");
+            res.setStatusText(String.valueOf(
+                HttpStatus.getStatusFromCode(upstreamResponse.statusCode()).getDescription()
+                )
+            );
             res.setBody(upstreamResponse.body());
 
             upstreamResponse.headers().map().forEach((name, values) -> {
@@ -65,8 +69,15 @@ public class ProxyPlugin implements Plugin {
                 }
             });
 
+            logger.info(String.format("Successful proxy %s %s -> %s (upstream: %d %s)",
+                req.method(), req.path(), upstreamUrl, res.statusCode(), res.statusText()));
+
         } catch (Exception e) {
-            logger.warning("Something went wrong.");
+            res.setStatusCode(502);
+            res.setStatusText("Bad Gateway");
+
+            logger.warning(String.format("Proxy error for %s %s -> %s",
+                req.method(), req.path(), upstreamUrl));
         }
     }
 

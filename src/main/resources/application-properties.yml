@@ -1,6 +1,10 @@
 server:
   port: 8080
   root-dir: static
+  proxy:
+    routes:
+      - base-route: /api/test
+        upstream-url: https://jsonplaceholder.typicode.com
 
 logging:
   level: INFO

@@ -1,9 +1,12 @@
 package org.juv25d.util;
 
+import org.juv25d.proxy.ProxyRoute;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
@@ -14,6 +17,7 @@ public class ConfigLoader {
     private long requestsPerMinute;
     private long burstCapacity;
     private boolean rateLimitingEnabled;
+    private List<ProxyRoute> proxyRoutes = new ArrayList<>();
 
     private ConfigLoader() {
         loadConfiguration(getClass().getClassLoader()
@@ -55,6 +59,19 @@ public class ConfigLoader {
 
                 Object root = serverConfig.get("root-dir");
                 if (root != null) this.rootDirectory = String.valueOf(root);
+
+                // proxy routes
+                Map<String, Object> proxyConfig = asStringObjectMap(serverConfig.get("proxy"));
+                if (proxyConfig != null) {
+                    List<Map<String, Object>> routes = (List<Map<String, Object>>) proxyConfig.get("routes");
+                    if (routes != null) {
+                        for (Map<String, Object> route : routes) {
+                            String baseRoute = String.valueOf(route.get("base-route"));
+                            String upstreamUrl = String.valueOf(route.get("upstream-url"));
+                            this.proxyRoutes.add(new ProxyRoute(baseRoute, upstreamUrl));
+                        }
+                    }
+                }
             }
 
             // logging
@@ -114,5 +131,9 @@ public class ConfigLoader {
 
     public boolean isRateLimitingEnabled() {
         return rateLimitingEnabled;
+    }
+
+    public List<ProxyRoute> getProxyRoutes() {
+        return Collections.unmodifiableList(proxyRoutes);
     }
 }

@@ -51,6 +51,12 @@ public class FilterScanner {
                 // Skip classes without relevant annotations
                 if (!isGlobal && !isRoute) continue;
 
+                if (isGlobal && isRoute) {
+                    System.err.println("Filter " + filterClass.getName()
+                         " has both `@Global` and `@Route` — skipping. Use only one.");
+                    continue;
+                }
+
                 Filter filter = factory.create(filterClass);
 
                 Map<String, String> params = new HashMap<>();
@@ -83,7 +89,7 @@ public class FilterScanner {
             } catch (Exception e) {
                 // Fail-safe: skip problematic filters but continue scanning
                 System.err.println("Skipping filter: "
-                    + filterClass.getName() + " due to " + e.getMessage());
+                     filterClass.getName() + " due to " + e.getMessage());
             }
         }
     }

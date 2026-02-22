@@ -4,10 +4,10 @@ import java.util.*;
 
 public class HttpResponse {
 
-    private final int statusCode;
-    private final String statusText;
-    private final Map<String, String> headers;
-    private final byte[] body;
+    private int statusCode;
+    private String statusText;
+    private Map<String, String> headers;
+    private byte[] body;
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         Objects.requireNonNull(statusText, "statusText must not be null");
@@ -15,7 +15,7 @@ public class HttpResponse {
         Objects.requireNonNull(body, "body must not be null");
         this.statusCode = statusCode;
         this.statusText = statusText;
-        this.headers = Collections.unmodifiableMap(new LinkedHashMap<>(headers));
+        this.headers = new LinkedHashMap<>(headers);
         this.body = body.clone();
     }
 
@@ -35,12 +35,20 @@ public class HttpResponse {
         return body.clone();
     }
 
-    public void setHeader(String s, String origin) {
+    public void setHeader(String name, String value) {
+        Objects.requireNonNull(name, "name must not be null");
+        Objects.requireNonNull(value, "value must not be null");
+        this.headers.put(name, value);
     }
 
-    public void setStatus(int i, String noContent) {
+    public void setStatus(int statusCode, String statusText) {
+        Objects.requireNonNull(statusText, "statusText must not be null");
+        this.statusCode = statusCode;
+        this.statusText = statusText;
     }
 
-    public void setBody(byte[] bytes) {
+    public void setBody(byte[] body) {
+        Objects.requireNonNull(body, "body must not be null");
+        this.body = body.clone();
     }
 }

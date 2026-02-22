@@ -1,5 +1,6 @@
 package org.juv25d;
 
+import org.juv25d.filter.CorsFilter;
 import org.juv25d.filter.LoggingFilter;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
@@ -13,6 +14,7 @@ public class App {
         HttpParser httpParser = new HttpParser();
 
         Pipeline pipeline = new Pipeline();
+        pipeline.addFilter(new CorsFilter());
         pipeline.addFilter(new LoggingFilter());
         pipeline.setPlugin(new HelloPlugin());
         pipeline.init();

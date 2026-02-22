@@ -15,7 +15,7 @@ class MetricPluginTest {
     @Test
     void sets200StatusAndJsonBody() throws IOException {
         MetricPlugin plugin = new MetricPlugin();
-        HttpRequest req = new HttpRequest("GET", "/health", null, "HTTP/1.1", Map.of(), new byte[0], "HEALTH");
+        HttpRequest req = new HttpRequest("GET", "/metric", null, "HTTP/1.1", Map.of(), new byte[0], "HEALTH");
         HttpResponse res = new HttpResponse();
 
         plugin.handle(req, res);
@@ -30,7 +30,7 @@ class MetricPluginTest {
         assertTrue(body.contains("\"server\": \"juv25d-webserver\""), "Body should contain server info");
         assertTrue(body.contains("\"buildVersion\""), "Body should contain buildVersion");
         assertTrue(body.contains("\"gitCommit\""), "Body should contain gitCommit");
-        assertTrue(body.contains("\"responseTimeMs\""), "Body should contain responseTimeMs");
+        assertTrue(body.contains("\"responseTimeUs\""), "Body should contain responseTimeUs");
         assertTrue(body.contains("\"memory\""), "Body should contain memory info");
 
         String contentLength = res.headers().get("Content-Length");

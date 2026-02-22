@@ -22,6 +22,7 @@ async function loadHealth() {
 
         document.getElementById("health-memory").textContent =
             `${usedMb} / ${maxMb} MB`;
+        document.getElementById("health-status").textContent = "UP";
 
     } catch (e) {
         document.getElementById("health-status").textContent = "DOWN";

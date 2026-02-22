@@ -8,6 +8,32 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 
+/**
+ * These tests ensure that classes only depend on other classes according to the intended architecture.
+ * They enforce strict boundaries between components and prevent unintended coupling or dependency violations.
+ *
+ * The request lifecycle is designed to follow this strict flow:
+ *
+ * Client
+ * ↓
+ * ServerSocket
+ * ↓
+ * ConnectionHandler (Virtual Thread)
+ * ↓
+ * Pipeline
+ * ↓
+ * FilterChain
+ * ↓
+ * Router
+ * ↓
+ * Plugin
+ * ↓
+ * HttpResponseWriter
+ * ↓
+ * Client
+ *
+ * Each component has a clearly defined responsibility and must not violate the intended direction of dependencies.
+ */
 
 @AnalyzeClasses(packages = "org.juv25d")
 public class ArchitectureTest {

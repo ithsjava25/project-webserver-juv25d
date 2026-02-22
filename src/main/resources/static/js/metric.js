@@ -11,7 +11,7 @@ async function loadHealth() {
         document.getElementById("health-version").textContent = data.buildVersion;
         document.getElementById("health-commit").textContent = data.gitCommit;
         document.getElementById("health-response").textContent =
-            data.responseTimeMs + " µs";
+            data.responseTimeUs + " µs";
 
         const usedMb = data.memory
             ? (data.memory.usedBytes / 1024 / 1024).toFixed(1)

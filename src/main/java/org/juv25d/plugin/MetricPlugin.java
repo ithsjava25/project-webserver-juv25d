@@ -51,7 +51,7 @@ public class MetricPlugin implements Plugin {
         Runtime runtime = Runtime.getRuntime();
         long usedMemory = runtime.totalMemory() - runtime.freeMemory();
         long maxMemory = runtime.maxMemory();
-        long responseTimeMs =
+        long responseTimeUs =
             (System.nanoTime() - req.creationTimeNanos()) / 1_000;
         String localTime = ZonedDateTime
             .now(ZoneId.systemDefault())
@@ -67,7 +67,7 @@ public class MetricPlugin implements Plugin {
               "server": "%s",
               "buildVersion": "%s",
               "gitCommit": "%s",
-              "responseTimeMs": %d,
+              "responseTimeUs": %d,
               "memory": {
                 "usedBytes": %d,
                 "maxBytes": %d
@@ -79,7 +79,7 @@ public class MetricPlugin implements Plugin {
             SERVER_NAME,
             version,
             commit,
-            responseTimeMs,
+            responseTimeUs,
             usedMemory,
             maxMemory
         );

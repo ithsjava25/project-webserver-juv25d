@@ -19,7 +19,7 @@ public class HealthCheckPlugin implements Plugin {
 
         String jsonBody = """
             {
-              "status": "UP",
+              "status": "UP"
               }
             """;
 

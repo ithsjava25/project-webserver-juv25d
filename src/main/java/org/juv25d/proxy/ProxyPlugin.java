@@ -43,7 +43,9 @@ public class ProxyPlugin implements Plugin {
 
         // copy request headers and pass to new HttpRequest
         for (Map.Entry<String, String> header : req.headers().entrySet()) {
-            requestBuilder.header(header.getKey(), header.getValue());
+            if (!isRestrictedHeader(header.getKey())) {
+                requestBuilder.header(header.getKey(), header.getValue());
+            }
         }
 
         try {
@@ -66,5 +68,17 @@ public class ProxyPlugin implements Plugin {
         } catch (Exception e) {
             logger.warning("Something went wrong.");
         }
+    }
+
+    private boolean isRestrictedHeader(String headerName) {
+        String lower = headerName.toLowerCase();
+        return lower.equals("connection") ||
+            lower.equals("content-length") ||
+            lower.equals("host") ||
+            lower.equals("upgrade") ||
+            lower.equals("http2-settings") ||
+            lower.equals("te") ||
+            lower.equals("trailer") ||
+            lower.equals("transfer-encoding");
     }
 }

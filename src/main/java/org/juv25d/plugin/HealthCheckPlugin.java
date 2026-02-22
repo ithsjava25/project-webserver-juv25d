@@ -4,12 +4,7 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Properties;
 
 /**
  * HealthCheckPlugin provides a simple JSON endpoint to verify the server's status.

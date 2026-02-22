@@ -4,6 +4,7 @@ import org.juv25d.filter.*;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.HealthCheckPlugin;
+import org.juv25d.plugin.MetricPlugin;
 import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.router.SimpleRouter; // New import
@@ -50,6 +51,7 @@ public class App {
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/metric", new MetricPlugin()); //Register MetricPlugin for a specified path
         router.registerPlugin("/health", new HealthCheckPlugin()); //Register HealthCheckPlugin for a specified path
         router.registerPlugin("/", new StaticFilesPlugin()); // Register StaticFilesPlugin for the root path
         router.registerPlugin("/*", new StaticFilesPlugin()); // Register StaticFilesPlugin for all paths

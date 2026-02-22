@@ -1,12 +1,11 @@
 async function loadHealth() {
     try {
-        const res = await fetch("/health");
+        const res = await fetch("/metric");
         if (!res.ok) {
             throw new Error(`HTTP ${res.status}`)
         };
         const data = await res.json();
 
-        document.getElementById("health-status").textContent = data.status;
         document.getElementById("local-time").textContent = data.localTime;
         document.getElementById("utc-time").textContent = data.utcTime;
         document.getElementById("health-version").textContent = data.buildVersion;
@@ -14,8 +13,13 @@ async function loadHealth() {
         document.getElementById("health-response").textContent =
             data.responseTimeMs + " µs";
 
-        const usedMb = (data.memory.usedBytes / 1024 / 1024).toFixed(1);
-        const maxMb = (data.memory.maxBytes / 1024 / 1024).toFixed(1);
+        const usedMb = data.memory
+            ? (data.memory.usedBytes / 1024 / 1024).toFixed(1)
+            : "N/A";
+        const maxMb = data.memory
+            ? (data.memory.maxBytes / 1024 / 1024).toFixed(1)
+            : "N/A";
+
         document.getElementById("health-memory").textContent =
             `${usedMb} / ${maxMb} MB`;
 

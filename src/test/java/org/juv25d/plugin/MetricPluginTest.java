@@ -10,11 +10,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class HealthCheckPluginTest {
+class MetricPluginTest {
 
     @Test
     void sets200StatusAndJsonBody() throws IOException {
-        HealthCheckPlugin plugin = new HealthCheckPlugin();
+        MetricPlugin plugin = new MetricPlugin();
         HttpRequest req = new HttpRequest("GET", "/health", null, "HTTP/1.1", Map.of(), new byte[0], "HEALTH");
         HttpResponse res = new HttpResponse();
 
@@ -25,7 +25,6 @@ class HealthCheckPluginTest {
         assertEquals("application/json", res.headers().get("Content-Type"));
 
         String body = new String(res.body(), StandardCharsets.UTF_8);
-        assertTrue(body.contains("\"status\": \"UP\""), "Body should contain status: UP");
         assertTrue(body.contains("\"localTime\""), "Body should contain localTime");
         assertTrue(body.contains("\"utcTime\""), "Body should contain utcTime");
         assertTrue(body.contains("\"server\": \"juv25d-webserver\""), "Body should contain server info");

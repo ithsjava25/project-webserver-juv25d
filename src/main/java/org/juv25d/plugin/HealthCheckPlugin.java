@@ -17,77 +17,16 @@ import java.util.Properties;
  */
 public class HealthCheckPlugin implements Plugin {
 
-    private static final String SERVER_NAME = "juv25d-webserver";
-    private static final DateTimeFormatter TIME_FORMAT =
-        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss z");
-
-    private final String version;
-    private final String commit;
-
-    public HealthCheckPlugin() {
-        Properties props = new Properties();
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("build.properties")) {
-            if (is != null) {
-                props.load(is);
-            }
-        } catch (IOException e) {
-            System.out.println("Error loading build.properties: " + e.getMessage());
-        }
-        this.version = escapeJson(props.getProperty("build.version", "dev"));
-        String commitValue = props.getProperty("build.commit");
-        if (commitValue == null || commitValue.isBlank()) {
-            this.commit = "unknown";
-        } else {
-            this.commit = escapeJson(commitValue);
-        }
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
 
-        Runtime runtime = Runtime.getRuntime();
-        long usedMemory = runtime.totalMemory() - runtime.freeMemory();
-        long maxMemory = runtime.maxMemory();
-        long responseTimeMs =
-            (System.nanoTime() - req.creationTimeNanos()) / 1_000;
-        String localTime = ZonedDateTime
-            .now(ZoneId.systemDefault())
-            .format(TIME_FORMAT);
-        String utcTime = ZonedDateTime
-            .now(ZoneId.of("UTC"))
-            .format(TIME_FORMAT);
 
-        String jsonBody = String.format("""
+        String jsonBody = """
             {
               "status": "UP",
-              "localTime": "%s",
-              "utcTime": "%s",
-              "server": "%s",
-              "buildVersion": "%s",
-              "gitCommit": "%s",
-              "responseTimeMs": %d,
-              "memory": {
-                "usedBytes": %d,
-                "maxBytes": %d
               }
-            }
-            """,
-            localTime,
-            utcTime,
-            SERVER_NAME,
-            version,
-            commit,
-            responseTimeMs,
-            usedMemory,
-            maxMemory
-        );
+            """;
 
         byte[] bodyBytes = jsonBody.getBytes(StandardCharsets.UTF_8);
 

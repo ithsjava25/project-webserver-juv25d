@@ -198,6 +198,7 @@ public class StaticFileHandler {
     }
 
     private static String opaqueTag(String etag) {
+        if (etag == null) return null;
         String e = etag.trim();
         return e.startsWith("W/") ? e.substring(2) : e;
     }
@@ -213,7 +214,7 @@ public class StaticFileHandler {
 
         String[] parts = value.split(",");
         for (String part : parts) {
-            if (part != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
+            if (part != null && opaqueTag(part) != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
                 return true;
             }
         }

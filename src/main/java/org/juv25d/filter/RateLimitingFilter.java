@@ -58,6 +58,16 @@ public class RateLimitingFilter implements Filter {
 
     public RateLimitingFilter() {
         RateLimitConfig config = new RateLimitConfig();
+        if (!config.isEnabled()) {
+            this.capacity = Long.MAX_VALUE;
+            this.refillTokens = Long.MAX_VALUE;
+            this.refillPeriod = Duration.ofMinutes(1);
+            return;
+        }
+        if (config.rpm() <= 0 || config.burst() <= 0) {
+            throw new IllegalArgumentException(
+                "RateLimitConfig values must be positive (rpm=" + config.rpm() + ", burst=" + config.burst() + ")");
+        }
         this.capacity = config.burst();
         this.refillTokens = config.rpm();
         this.refillPeriod = Duration.ofMinutes(1);

@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FilterRegistryTest {
 
     static class TestFilter implements Filter {
-        boolean destroyed = false;
+        int destroyCount = 0;
 
         @Override
         public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) {
@@ -20,7 +20,7 @@ class FilterRegistryTest {
 
         @Override
         public void destroy() {
-            destroyed = true;
+            destroyCount++;
         }
     }
 
@@ -74,6 +74,6 @@ class FilterRegistryTest {
 
         registry.shutdown();
 
-        assertTrue(filter.destroyed);
+        assertEquals(1, filter.destroyCount);
     }
 }

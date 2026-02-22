@@ -36,7 +36,7 @@ public class ClassScanner {
                 // Only supports file system resources (not JARs)
                 if (resource.getProtocol().equals("file")) {
                     File dir = new File(resource.toURI());
-                    scanDir(dir, basePackage, classes);
+                    scanDir(dir, basePackage, classes, cl);
                 }
             }
 
@@ -55,8 +55,7 @@ public class ClassScanner {
      * @param classes the result set where discovered classes are added
      * @throws ClassNotFoundException if a class cannot be loaded
      */
-    private static void scanDir(File dir, String pkg, Set<Class<?>> classes)
-        throws ClassNotFoundException {
+    private static void scanDir(File dir, String pkg, Set<Class<?>> classes, ClassLoader cl) {
 
         if (!dir.exists()) return;
 
@@ -65,12 +64,12 @@ public class ClassScanner {
 
         for (File file : files) {
             if (file.isDirectory()) {
-                scanDir(file, pkg + "." + file.getName(), classes);
+                scanDir(file, pkg + "." + file.getName(), classes, cl);
             }
             else if (file.getName().endsWith(".class")) {
                 String className = pkg + "." + file.getName().replace(".class", "");
                 try {
-                    classes.add(Class.forName(className));
+                    classes.add(Class.forName(className, true, cl));
                 } catch (ClassNotFoundException | NoClassDefFoundError e) {
                     // Skip classes that cannot be loaded (e.g. missing dependencies)
                 }

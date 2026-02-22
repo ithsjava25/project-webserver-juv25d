@@ -32,6 +32,9 @@ public class Container {
     private final ThreadLocal<Set<Class<?>>> resolving =
         ThreadLocal.withInitial(HashSet::new);
 
+    /** Per-type locks to prevent concurrent creation of the same bean */
+    private final ConcurrentHashMap<Class<?>, Object> locks = new ConcurrentHashMap<>();
+
     /**
      * Base package used to restrict which classes can be auto-instantiated.
      */
@@ -133,7 +136,6 @@ public class Container {
      */
     @SuppressWarnings("unchecked")
     private <T> T resolve(Class<T> type) {
-
         // 0. Interface binding
         if (bindings.containsKey(type)) {
             type = (Class<T>) bindings.get(type);
@@ -141,46 +143,44 @@ public class Container {
 
         // Explicit interface check
         if (type.isInterface() && !bindings.containsKey(type)) {
-            throw new RuntimeException(
-                "No binding found for interface: " + type.getName()
-            );
+            throw new RuntimeException("No binding found for interface: " + type.getName());
         }
 
-        // 1. Existing bean
-        if (beans.containsKey(type)) {
-            return (T) beans.get(type);
-        }
+        // 1. Fast path: check existing bean
+        Object existing = beans.get(type);
+        if (existing != null) return (T) existing;
 
-        // 2. Circular dependency detection
-        Set<Class<?>> current = resolving.get();
-        if (current.contains(type)) {
-            throw new RuntimeException(
-                "Circular dependency detected: " + current
-            );
-        }
+        // 2. Synchronize per-type to prevent duplicate creation
+        Object lock = locks.computeIfAbsent(type, k -> new Object());
+        synchronized (lock) {
+            // Double-check after acquiring lock
+            existing = beans.get(type);
+            if (existing != null) return (T) existing;
 
-        current.add(type);
+            // Circular dependency detection
+            Set<Class<?>> current = resolving.get();
+            if (current.contains(type)) {
+                throw new RuntimeException("Circular dependency detected: " + current);
+            }
+            current.add(type);
 
-        try {
-            // 3. Auto-create only classes within base package
-            if (type.getPackageName().startsWith(basePackage)) {
-
-                if (!isConstructable(type)) {
-                    throw new RuntimeException("Cannot construct: " + type.getName());
+            try {
+                if (type.getPackageName().startsWith(basePackage)) {
+                    if (!isConstructable(type)) {
+                        throw new RuntimeException("Cannot construct: " + type.getName());
+                    }
+                    T instance = (T) create(type);
+                    beans.put(type, instance);
+                    return instance;
                 }
 
-                T instance = (T) create(type);
-                beans.put(type, instance);
-                return instance;
+                throw new RuntimeException(
+                    "No bean registered for type: " + type.getName() +
+                        "\nResolution path: " + current
+                );
+            } finally {
+                current.remove(type);
             }
-
-            throw new RuntimeException(
-                "No bean registered for type: " + type.getName() +
-                    "\nResolution path: " + current
-            );
-
-        } finally {
-            current.remove(type);
         }
     }
 
@@ -222,19 +222,77 @@ public class Container {
     }
 
     /**
-     * Checks whether all constructor parameters can be resolved.
+     * Checks whether all constructor parameters can be resolved without
+     * actually creating instances. This method is used during constructor
+     * selection to avoid premature bean instantiation and to detect circular
+     * dependencies using the shared resolving set.
      *
      * @param ctor the constructor to test
-     * @return true if all parameters are resolvable
+     * @return {@code true} if all parameters are resolvable without instantiation,
+     *         {@code false} if any parameter is unresolvable or part of a cycle
      */
     private boolean canResolveAll(Constructor<?> ctor) {
-        try {
-            for (Class<?> param : ctor.getParameterTypes()) {
-                resolve(param);
-            }
-            return true;
-        } catch (Exception e) {
+        // Use the shared ThreadLocal resolving set to track circular dependencies
+        Set<Class<?>> current = resolving.get();
+        for (Class<?> param : ctor.getParameterTypes()) {
+            if (!canResolve(param, current)) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Determines whether a type can be resolved without creating or caching
+     * an instance. This dry-run method is used during constructor selection
+     * and leverages the shared resolving set for circular dependency detection.
+     *
+     * Resolution rules:
+     *
+     *  Interface bindings are resolved to their implementation.
+     *  Already registered beans are trivially resolvable.
+     *  Classes inside the base package that are instantiable are recursively
+     *  checked for resolvable constructor parameters.
+     *  If the type is already in the resolving set, a circular dependency
+     *  is detected and the method returns false.
+     *
+     * @param type the class type to check
+     * @param current the set of types currently being resolved to detect cycles
+     * @return {@code true} if the type can be resolved without instantiation,
+     *         {@code false} otherwise
+     */
+    private boolean canResolve(Class<?> type, Set<Class<?>> current) {
+        // Resolve interface bindings
+        if (bindings.containsKey(type)) {
+            type = (Class<?>) bindings.get(type);
+        }
+
+        // Cannot resolve unbound interface
+        if (type.isInterface() && !bindings.containsKey(type)) {
             return false;
+        }
+
+        // Circular dependency check
+        if (!current.add(type)) {
+            return false; // cycle detected
+        }
+
+        try {
+            // Already registered bean is trivially resolvable
+            if (beans.containsKey(type)) {
+                return true;
+            }
+
+            // Only auto-create classes inside basePackage that are instantiable
+            if (type.getPackageName().startsWith(basePackage) && isConstructable(type)) {
+                Constructor<?> constructor = findBestConstructor(type);
+                for (Class<?> param : constructor.getParameterTypes()) {
+                    if (!canResolve(param, current)) return false;
+                }
+                return true;
+            }
+
+            return false;
+        } finally {
+            current.remove(type);
         }
     }
 

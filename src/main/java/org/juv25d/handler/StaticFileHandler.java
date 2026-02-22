@@ -182,7 +182,7 @@ public class StaticFileHandler {
             byte[] hash = digest.digest(content);
             return "\"" + toHex(hash) + "\"";
         }catch (NoSuchAlgorithmException e) {
-            return "\"" + content.length + "\"";
+            throw new AssertionError("SHA-256 not available", e);
         }
     }
 
@@ -197,6 +197,11 @@ public class StaticFileHandler {
         return new String(out);
     }
 
+    private static String opaqueTag(String etag) {
+        String e = etag.trim();
+        return e.startsWith("W/") ? e.substring(2) : e;
+    }
+
     private static boolean etagMatches(String ifNoneMatchHeader, String currentEtag) {
         if (ifNoneMatchHeader == null || ifNoneMatchHeader.isBlank()) {
             return false;
@@ -208,7 +213,7 @@ public class StaticFileHandler {
 
         String[] parts = value.split(",");
         for (String part : parts) {
-            if (part != null && part.trim().equals(currentEtag)) {
+            if (part != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
                 return true;
             }
         }

@@ -8,7 +8,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-RUN mvn dependency:copy-dependencies -DoutputDirectory=target/deps
+RUN mvn dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime
 
 FROM eclipse-temurin:25-jre-alpine
 

@@ -51,7 +51,6 @@ public class App {
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();
-        ProxyRoute apiRoute = new ProxyRoute("/api", "https://jsonplaceholder.typicode.com");
 
         for (ProxyRoute proxyRoute : config.getProxyRoutes()) {
             // register exact path requests, example: /api

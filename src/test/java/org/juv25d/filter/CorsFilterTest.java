@@ -42,7 +42,54 @@ public class CorsFilterTest {
         );
     }
 
+    @Test
+    void shouldNotAddCorsHeaders_whenNoOriginHeader() throws Exception {
+        HttpResponse<String> response = client.send(
+            request("GET", "/api/test").build(),
+            BodyHandlers.ofString()
+        );
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("Access-Control-Allow-Origin").isEmpty());
+    }
 
+    @Test
+    void shouldHandlePreflightOptionsRequest() throws Exception {
+        HttpResponse<String> response = client.send(
+            request("OPTIONS", "/api/test")
+                .header("Origin", "http://localhost:3000")
+                .header("Access-Control-Request-Method", "GET")
+                .header("Access-Control-Request-Headers", "Content-Type")
+                .build(),
+            BodyHandlers.ofString()
+        );
+        assertEquals(204, response.statusCode());
+        assertEquals(
+            "http://localhost:3000",
+            response.headers().firstValue("Access-Control-Allow-Origin").orElse(null)
+        );
+        assertTrue(
+            response.headers().firstValue("Access-Control-Allow-Methods")
+                .orElse("")
+                .contains("GET"),
+            "Allow-Methods should contain GET"
+        );
+        assertEquals(
+            "Content-Type",
+            response.headers().firstValue("Access-Control-Allow-Headers").orElse(null)
+        );
+    }
+
+    @Test
+    void shouldNotAllowUnknownOrigin() throws Exception {
+        HttpResponse<String> response = client.send(
+            request("GET", "/api/test")
+                .header("Origin", "http://evil.com")
+                .build(),
+            BodyHandlers.ofString()
+        );
+        assertEquals(200, response.statusCode());
+        assertTrue(response.headers().firstValue("Access-Control-Allow-Origin").isEmpty());
+    }
 
     // Helper method
     private static HttpRequest.Builder request(String method, String path) {

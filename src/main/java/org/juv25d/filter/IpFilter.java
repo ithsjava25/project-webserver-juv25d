@@ -1,12 +1,14 @@
 package org.juv25d.filter;
 
+import org.juv25d.config.IpFilterConfig;
+import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
+@Global(order = 1)
 public class IpFilter implements Filter {
 
     private final Set<String> whitelist;
@@ -15,6 +17,12 @@ public class IpFilter implements Filter {
     public IpFilter(Set<String> whitelist, Set<String> blacklist) {
         this.whitelist = whitelist;
         this.blacklist = blacklist;
+    }
+
+    public IpFilter() {
+        IpFilterConfig config = new IpFilterConfig();
+        this.whitelist = config.whitelist();
+        this.blacklist = config.blacklist();
     }
 
     @Override

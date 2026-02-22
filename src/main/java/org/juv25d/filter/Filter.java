@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.config.FilterConfig;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 

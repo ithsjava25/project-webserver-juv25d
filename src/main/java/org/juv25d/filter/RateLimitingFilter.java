@@ -3,6 +3,8 @@ package org.juv25d.filter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
+import org.juv25d.config.RateLimitConfig;
+import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
@@ -18,6 +20,7 @@ import java.util.logging.Logger;
  * A filter that implements rate limiting for incoming HTTP requests.
  * It uses a token bucket algorithm via Bucket4J to limit the number of requests per client IP.
  */
+@Global(order = 3)
 public class RateLimitingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();
@@ -51,6 +54,13 @@ public class RateLimitingFilter implements Filter {
             "RateLimitingFilter initialized - Limit: %d req/min, Burst: %d",
             requestsPerMinute, burstCapacity
         ));
+    }
+
+    public RateLimitingFilter() {
+        RateLimitConfig config = new RateLimitConfig();
+        this.capacity = config.burst();
+        this.refillTokens = config.rpm();
+        this.refillPeriod = Duration.ofMinutes(1);
     }
 
     /**

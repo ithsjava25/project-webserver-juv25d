@@ -1,4 +1,4 @@
-package org.juv25d.filter;
+package org.juv25d.config;
 
 import java.util.Map;
 

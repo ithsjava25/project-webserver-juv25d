@@ -5,6 +5,7 @@ import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
+import org.juv25d.proxy.ProxyPlugin;
 import org.juv25d.proxy.ProxyRoute;
 import org.juv25d.router.SimpleRouter; // New import
 import org.juv25d.util.ConfigLoader;
@@ -52,6 +53,13 @@ public class App {
         SimpleRouter router = new SimpleRouter();
         ProxyRoute apiRoute = new ProxyRoute("/api", "https://jsonplaceholder.typicode.com");
 
+        for (ProxyRoute proxyRoute : config.getProxyRoutes()) {
+            // register exact path requests, example: /api
+            router.registerPlugin(proxyRoute.getBaseRoute(), new ProxyPlugin(proxyRoute));
+
+            // register sub-path requests, example: /api/users
+            router.registerPlugin(proxyRoute.getBaseRoute() + "/*", new ProxyPlugin(proxyRoute));
+        }
         router.registerPlugin("/", new StaticFilesPlugin()); // Register StaticFilesPlugin for the root path
         router.registerPlugin("/*", new StaticFilesPlugin()); // Register StaticFilesPlugin for all paths
         router.registerPlugin("/notfound", new NotFoundPlugin()); // Example: Register NotFoundPlugin for a specific path

@@ -10,8 +10,8 @@ public class ProxyRoute {
         this.upstreamUrl = upstreamUrl;
     }
 
-    public String buildUrl(String remainingPath, String query) {
-        String url = upstreamUrl + remainingPath;
+    public String buildUrl(String targetPath, String query) {
+        String url = upstreamUrl + targetPath;
         if (query != null && !query.isEmpty()) url += "?" + query;
 
         return url;

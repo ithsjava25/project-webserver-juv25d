@@ -17,6 +17,7 @@ import java.net.http.HttpTimeoutException;
 import java.util.Map;
 import java.util.logging.Logger;
 
+
 public class ProxyPlugin implements Plugin {
     private static final Logger logger = ServerLogging.getLogger();
     private final ProxyRoute proxyRoute;
@@ -77,8 +78,8 @@ public class ProxyPlugin implements Plugin {
         } catch (ConnectException e) {
             res.setStatusCode(502);
             res.setStatusText("Bad Gateway");
-            logger.warning(String.format("Connection failed to upstream server %s: %s",
-                upstreamUrl, e.getMessage()));
+            logger.warning(String.format("Connection failed to upstream server %s",
+                upstreamUrl));
 
         } catch (HttpTimeoutException e) {
             res.setStatusCode(504);
@@ -86,8 +87,8 @@ public class ProxyPlugin implements Plugin {
                 HttpStatus.getStatusFromCode(res.statusCode()).getDescription()
             ));
 
-            logger.warning(String.format("Timeout connecting to upstream server %s: %s",
-                upstreamUrl, e.getMessage()));
+            logger.warning(String.format("Timeout connecting to upstream server %s",
+                upstreamUrl));
 
         } catch (Exception e) {
             res.setStatusCode(502);

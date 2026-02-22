@@ -1,5 +1,6 @@
 package org.juv25d;
 
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
@@ -35,7 +36,10 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
  * Each component has a clearly defined responsibility and must not violate the intended direction of dependencies.
  */
 
-@AnalyzeClasses(packages = "org.juv25d")
+@AnalyzeClasses(
+packages = "org.juv25d",
+importOptions = ImportOption.Predefined.DoNotIncludeTests.class)
+
 public class ArchitectureTest {
 
 
@@ -44,12 +48,24 @@ public class ArchitectureTest {
         ArchRuleDefinition.classes()
             .that().haveSimpleName("ConnectionHandler")
             .should().onlyBeAccessed().byClassesThat(
-            simpleName("Server")
-            .or(simpleName("ConnectionHandler"))
-            .or(simpleName("DefaultConnectionHandlerFactory"))
-            .or(simpleName("ConnectionHandlerFactory")))
+                simpleName("Server")
+                    .or(simpleName("ConnectionHandler"))
+                    .or(simpleName("DefaultConnectionHandlerFactory"))
+                    .or(simpleName("ConnectionHandlerFactory")))
             .as("ConnectionHandler access rule")
-            .because("connectionHandler should only be accessed by server")
-            ;
+            .because("connectionHandler should only be accessed by server");
+
+    @ArchTest
+    static final ArchRule pipelineAccessRule =
+        ArchRuleDefinition.classes()
+            .that().haveSimpleName("Pipeline")
+            .should().onlyBeAccessed().byClassesThat(
+                simpleName("ConnectionHandler")
+                    .or(simpleName("ConnectionHandlerFactory"))
+                    .or(simpleName("Pipeline"))
+                    .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
+                    .as("Pipeline access rule")
+                    .because("Pipeline should only be accessed by ConnectionHandler");
 }
+
 

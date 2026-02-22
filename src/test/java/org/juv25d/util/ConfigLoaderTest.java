@@ -3,6 +3,7 @@ package org.juv25d.util;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,6 +25,10 @@ class ConfigLoaderTest {
                   root-dir: "public"
                 logging:
                   level: "DEBUG"
+                rate-limiting:
+                  enabled: true
+                  requests-per-minute: 20
+                  burst-capacity: 10
                 """;
 
         ConfigLoader loader = new ConfigLoader(
@@ -33,6 +38,9 @@ class ConfigLoaderTest {
         assertEquals(9090, loader.getPort());
         assertEquals("public", loader.getRootDirectory());
         assertEquals("DEBUG", loader.getLogLevel());
+        assertTrue(loader.isRateLimitingEnabled());
+        assertEquals(20, loader.getRequestsPerMinute());
+        assertEquals(10, loader.getBurstCapacity());
     }
 
     /**
@@ -46,6 +54,7 @@ class ConfigLoaderTest {
         String yaml = """
         server: {}
         logging: {}
+        rate-limiting: {}
         """;
 
         ConfigLoader loader = new ConfigLoader(
@@ -55,6 +64,7 @@ class ConfigLoaderTest {
         assertEquals(8080, loader.getPort());
         assertEquals("static", loader.getRootDirectory());
         assertEquals("INFO", loader.getLogLevel());
+        assertFalse(loader.isRateLimitingEnabled());
     }
 
 
@@ -67,5 +77,18 @@ class ConfigLoaderTest {
     @Test void throwsWhenYamlMissing() {
         assertThrows(RuntimeException.class, () ->
             new ConfigLoader(null) ); }
+
+    @Test
+    void shouldThrowWhenYamlIsMalformed() {
+        String yaml = "server:\nBadYaml";
+        InputStream input = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+            () -> new ConfigLoader(input));
+
+        assertTrue(ex.getMessage().contains("Failed to load application config"));
+    }
 }
+
+
 

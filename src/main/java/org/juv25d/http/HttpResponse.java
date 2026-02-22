@@ -35,4 +35,12 @@ public class HttpResponse {
         return body.clone();
     }
 
+    public void setHeader(String s, String origin) {
+    }
+
+    public void setStatus(int i, String noContent) {
+    }
+
+    public void setBody(byte[] bytes) {
+    }
 }

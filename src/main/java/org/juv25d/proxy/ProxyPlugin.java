@@ -7,11 +7,13 @@ import org.juv25d.logging.ServerLogging;
 import org.juv25d.plugin.Plugin;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -72,9 +74,26 @@ public class ProxyPlugin implements Plugin {
             logger.info(String.format("Successful proxy %s %s -> %s (upstream: %d %s)",
                 req.method(), req.path(), upstreamUrl, res.statusCode(), res.statusText()));
 
-        } catch (Exception e) {
+        } catch (ConnectException e) {
             res.setStatusCode(502);
             res.setStatusText("Bad Gateway");
+            logger.warning(String.format("Connection failed to upstream server %s: %s",
+                upstreamUrl, e.getMessage()));
+
+        } catch (HttpTimeoutException e) {
+            res.setStatusCode(504);
+            res.setStatusText(String.valueOf(
+                HttpStatus.getStatusFromCode(res.statusCode()).getDescription()
+            ));
+
+            logger.warning(String.format("Timeout connecting to upstream server %s: %s",
+                upstreamUrl, e.getMessage()));
+
+        } catch (Exception e) {
+            res.setStatusCode(502);
+            res.setStatusText(String.valueOf(
+                HttpStatus.getStatusFromCode(res.statusCode()).getDescription()
+            ));
 
             logger.warning(String.format("Proxy error for %s %s -> %s",
                 req.method(), req.path(), upstreamUrl));

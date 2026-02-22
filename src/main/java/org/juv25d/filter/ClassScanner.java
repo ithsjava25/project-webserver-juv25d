@@ -37,6 +37,14 @@ public class ClassScanner {
                 if (resource.getProtocol().equals("file")) {
                     File dir = new File(resource.toURI());
                     scanDir(dir, basePackage, classes, cl);
+                } else {
+                    // Log a warning for skipped non-file resources
+                    java.util.logging.Logger.getLogger(ClassScanner.class.getName())
+                        .warning(String.format(
+                            "ClassScanner: skipping non-file resource (protocol=%s, url=%s). " +
+                                "scanDir/findClasses cannot load classes from JARs; JAR scanning not implemented.",
+                            resource.getProtocol(), resource
+                        ));
                 }
             }
 

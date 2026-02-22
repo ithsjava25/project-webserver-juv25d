@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A lightweight Dependency Injection (DI) container.
@@ -33,7 +34,7 @@ public class Container {
         ThreadLocal.withInitial(HashSet::new);
 
     /** Per-type locks to prevent concurrent creation of the same bean */
-    private final ConcurrentHashMap<Class<?>, Object> locks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<?>, ReentrantLock> locks = new ConcurrentHashMap<>();
 
     /**
      * Base package used to restrict which classes can be auto-instantiated.
@@ -121,50 +122,63 @@ public class Container {
     }
 
     /**
-     * Resolves a type into a concrete instance.
+     * Resolves a type into a fully constructed instance.
      *
-     * Resolution process:
+     * This method:
      *
-     *     Check interface bindings
-     *     Return existing bean if available
-     *     Detect circular dependencies
-     *     Auto-create if inside base package
+     * Returns existing beans if available.
+     * Resolves interface bindings.
+     *  Detects circular dependencies per thread.
+     *  Automatically creates instances for constructable classes in the base package.
+     *  Uses a per-type ReentrantLock with timeout to prevent deadlocks across threads.
      *
-     * @param type the type to resolve
-     * @param <T> the type
-     * @return resolved instance
+     *
+     * @param type the class to resolve
+     * @param <T> the type of the bean
+     * @return a fully constructed instance
+     * @throws RuntimeException if the type is unbound, non-constructable, part of a circular dependency,
+     *         deadlock is detected, or the thread is interrupted while waiting for the lock
      */
     @SuppressWarnings("unchecked")
     private <T> T resolve(Class<T> type) {
-        // 0. Interface binding
+        // 0. Resolve interface bindings
         if (bindings.containsKey(type)) {
             type = (Class<T>) bindings.get(type);
         }
 
-        // Explicit interface check
+        // 1. Cannot resolve unbound interface
         if (type.isInterface() && !bindings.containsKey(type)) {
             throw new RuntimeException("No binding found for interface: " + type.getName());
         }
 
-        // 1. Fast path: check existing bean
+        // 2. Fast path: return existing bean
         Object existing = beans.get(type);
         if (existing != null) return (T) existing;
 
-        // 2. Synchronize per-type to prevent duplicate creation
-        Object lock = locks.computeIfAbsent(type, k -> new Object());
-        synchronized (lock) {
+        // 3. Acquire per-type lock to avoid concurrent creation
+        ReentrantLock lock = locks.computeIfAbsent(type, k -> new ReentrantLock());
+        boolean acquired = false;
+        try {
+            acquired = lock.tryLock(5, java.util.concurrent.TimeUnit.SECONDS);
+            if (!acquired) {
+                throw new RuntimeException(
+                    "Possible deadlock detected while resolving: " + type.getName() +
+                        "\nCurrent resolution path: " + resolving.get()
+                );
+            }
+
             // Double-check after acquiring lock
             existing = beans.get(type);
             if (existing != null) return (T) existing;
 
-            // Circular dependency detection
+            // 4. Circular dependency detection
             Set<Class<?>> current = resolving.get();
-            if (current.contains(type)) {
+            if (!current.add(type)) {
                 throw new RuntimeException("Circular dependency detected: " + current);
             }
-            current.add(type);
 
             try {
+                // 5. Auto-create if inside basePackage
                 if (type.getPackageName().startsWith(basePackage)) {
                     if (!isConstructable(type)) {
                         throw new RuntimeException("Cannot construct: " + type.getName());
@@ -180,6 +194,14 @@ public class Container {
                 );
             } finally {
                 current.remove(type);
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted while resolving: " + type.getName(), e);
+        } finally {
+            if (acquired) {
+                lock.unlock();
             }
         }
     }

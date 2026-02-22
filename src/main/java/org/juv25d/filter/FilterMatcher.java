@@ -1,6 +1,5 @@
 package org.juv25d.filter;
 
-import org.juv25d.FilterRegistration;
 import org.juv25d.http.HttpRequest;
 
 import java.util.*;

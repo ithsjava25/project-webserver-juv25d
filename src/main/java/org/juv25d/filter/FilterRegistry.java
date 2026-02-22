@@ -1,7 +1,5 @@
 package org.juv25d.filter;
 
-import org.juv25d.FilterRegistration;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;

@@ -1,6 +1,5 @@
 package org.juv25d.filter;
 
-import org.juv25d.FilterRegistration;
 import org.junit.jupiter.api.Test;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;

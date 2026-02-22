@@ -4,7 +4,12 @@ import org.juv25d.di.Container;
 import org.juv25d.filter.*;
 import org.juv25d.router.Router;
 
+import java.util.List;
+import java.util.logging.Logger;
+
 public class Bootstrap {
+
+    private static final Logger logger = Logger.getLogger(Bootstrap.class.getName());
 
     public static Pipeline init(Container container, String basePackage) {
 
@@ -13,12 +18,22 @@ public class Bootstrap {
 
         FilterScanner.scan(basePackage, registry, factory);
 
-        FilterMatcher matcher = new FilterMatcher(registry);
+        logger.info("Filters initialized:");
+        logger.info("  Global: " + registry.getGlobalFilters().stream()
+            .sorted()
+            .map(fr -> fr.filter().getClass().getSimpleName())
+            .toList());
+        logger.info("  Route-specific: " + registry.getRouteFilters().values().stream()
+            .flatMap(List::stream)
+            .distinct()
+            .sorted()
+            .map(fr -> fr.filter().getClass().getSimpleName())
+            .toList());
 
         Router router = container.get(Router.class);
-
         container.get(org.juv25d.router.RouterConfig.class);
 
-        return new Pipeline(matcher, router);
+        return new Pipeline(new FilterMatcher(registry), router);
     }
 }
+

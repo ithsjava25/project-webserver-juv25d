@@ -1,6 +1,14 @@
 package org.juv25d.proxy;
 
-// Maps base route to upstream target URL
+/*
+ * Maps a baseRoute with its respective proxy server URL.
+ * The mappings are initialized in ConfigLoader.java when reading them from
+ * application-properties.
+ *
+ * Example:
+ * baseRoute: /api/v1
+ * upstreamUrl: https://external-server-url
+ */
 public class ProxyRoute {
     private final String baseRoute;
     private final String upstreamUrl;

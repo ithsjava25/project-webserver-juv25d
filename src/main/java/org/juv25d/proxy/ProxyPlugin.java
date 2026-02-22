@@ -77,7 +77,9 @@ public class ProxyPlugin implements Plugin {
 
         } catch (ConnectException e) {
             res.setStatusCode(502);
-            res.setStatusText("Bad Gateway");
+            res.setStatusText(String.valueOf(
+                HttpStatus.getStatusFromCode(res.statusCode()).getDescription()
+            ));
             logger.warning(String.format("Connection failed to upstream server %s",
                 upstreamUrl));
 

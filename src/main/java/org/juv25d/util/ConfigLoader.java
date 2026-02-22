@@ -3,6 +3,7 @@ package org.juv25d.util;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Map;
 
 public class ConfigLoader {
@@ -10,10 +11,18 @@ public class ConfigLoader {
     private int port;
     private String logLevel;
     private String rootDirectory;
+    private long requestsPerMinute;
+    private long burstCapacity;
+    private boolean rateLimitingEnabled;
 
     private ConfigLoader() {
-        loadConfiguration();
-    }
+        loadConfiguration(getClass().getClassLoader()
+            .getResourceAsStream("application-properties.yml")); }
+
+    // new constructor for testing
+    ConfigLoader(InputStream input) {
+        loadConfiguration(input); }
+
 
     public static synchronized ConfigLoader getInstance() {
         if (instance == null) {
@@ -22,31 +31,57 @@ public class ConfigLoader {
         return instance;
     }
 
-    private void loadConfiguration() {
+    private void loadConfiguration(InputStream input) {
         Yaml yaml = new Yaml();
 
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application-properties.yml")) {
-            if (input == null) {
-                throw new IllegalArgumentException("Did not find application-properties.yml");
-            }
+        if (input == null) {
+            throw new IllegalArgumentException("Did not find application-properties.yml");
+        }
+        try (input) {
 
             Map<String, Object> config = yaml.load(input);
+            if (config == null) config = Map.of();
+
+            // defaults always
+            this.port = 8080;
+            this.rootDirectory = "static";
+            this.logLevel = "INFO";
 
             // server
-            Map<String, Object> serverConfig = (Map<String, Object>) config.get("server");
+            Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
             if (serverConfig != null) {
-                this.port = (Integer) serverConfig.getOrDefault("port", 8080);
-                this.rootDirectory = (String) serverConfig.getOrDefault("root-dir", "static");
+                Object portValue = serverConfig.get("port");
+                if (portValue instanceof Number n) this.port = n.intValue();
+
+                Object root = serverConfig.get("root-dir");
+                if (root != null) this.rootDirectory = String.valueOf(root);
             }
 
             // logging
-            Map<String, Object> loggingConfig = (Map<String, Object>) config.get("logging");
+            Map<String, Object> loggingConfig = asStringObjectMap(config.get("logging"));
             if (loggingConfig != null) {
-                this.logLevel = (String) loggingConfig.get("level");
+                Object level = loggingConfig.get("level");
+                if (level != null) this.logLevel = String.valueOf(level);
+            }
+
+            // rate-limiting
+            // defaults (consistent pattern)
+            this.rateLimitingEnabled = false;
+
+            Map<String, Object> rateLimitingConfig = asStringObjectMap(config.get("rate-limiting"));
+            if (rateLimitingConfig != null) {
+                this.rateLimitingEnabled =
+                    Boolean.parseBoolean(String.valueOf(rateLimitingConfig.getOrDefault("enabled", false)));
+
+                this.requestsPerMinute =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("requests-per-minute", 60L)));
+
+                this.burstCapacity =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application config");
+            throw new RuntimeException("Failed to load application config", e);
         }
     }
 
@@ -60,5 +95,24 @@ public class ConfigLoader {
 
     public String getRootDirectory() {
         return rootDirectory;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asStringObjectMap(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        return Collections.emptyMap();
+    }
+    public long getRequestsPerMinute() {
+        return requestsPerMinute;
+    }
+
+    public long getBurstCapacity() {
+        return burstCapacity;
+    }
+
+    public boolean isRateLimitingEnabled() {
+        return rateLimitingEnabled;
     }
 }

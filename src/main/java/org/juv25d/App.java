@@ -1,14 +1,14 @@
 package org.juv25d;
 
-import org.juv25d.filter.IpFilter;
-import org.juv25d.filter.LoggingFilter;
-import org.juv25d.filter.TimingFilter;
+import org.juv25d.filter.*;
 import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.plugin.NotFoundPlugin; // New import
 import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.router.SimpleRouter; // New import
 import org.juv25d.util.ConfigLoader;
+
+import java.util.List;
 
 import java.util.Set;
 import java.util.logging.Logger;
@@ -21,14 +21,32 @@ public class App {
 
         Pipeline pipeline = new Pipeline();
 
+        pipeline.addGlobalFilter(new SecurityHeadersFilter(), 0);
+
+        // Configure redirect rules
+        List<RedirectRule> redirectRules = List.of(
+            new RedirectRule("/old-page", "/new-page", 301),
+            new RedirectRule("/temp", "https://example.com/temporary", 302),
+            new RedirectRule("/docs/*", "/documentation/", 301)
+        );
+        pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 0);
+
         // IP filter is enabled but configured with open access during development
         // White/blacklist can be tightened when specific IP restrictions are decided
         pipeline.addGlobalFilter(new IpFilter(
             Set.of(),
             Set.of()
         ), 0);
+
         pipeline.addGlobalFilter(new LoggingFilter(), 0);
         pipeline.addGlobalFilter(new TimingFilter(), 0);
+
+        if (config.isRateLimitingEnabled()) {
+            pipeline.addGlobalFilter(new RateLimitingFilter(
+                config.getRequestsPerMinute(),
+                config.getBurstCapacity()
+            ), 0);
+        }
 
         // Initialize and configure SimpleRouter
         SimpleRouter router = new SimpleRouter();

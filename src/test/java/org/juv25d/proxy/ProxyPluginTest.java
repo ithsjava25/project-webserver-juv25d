@@ -17,8 +17,10 @@ import java.net.http.HttpHeaders;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 class ProxyPluginTest {
@@ -147,6 +149,32 @@ class ProxyPluginTest {
             assertEquals(200, res.statusCode());
             assertEquals("https://example.com/users", capturedRequest[0].uri().toString());
             assertEquals("GET", capturedRequest[0].method());
+        }
+
+        @DisplayName("filters restricted headers from being proxied")
+        @Test
+        void filtersRestrictedHeaders() throws Exception {
+            Map<String, String> headers = Map.of(
+                "Content-Type", "application/json",
+                "Connection", "keep-alive",
+                "Host", "example.com"
+            );
+            HttpRequest req = new HttpRequest("GET", "/api/test/users", null, "HTTP/1.1",
+                headers, new byte[0], "UNKNOWN");
+            HttpResponse res = new HttpResponse();
+
+            when(upstreamResponse.statusCode()).thenReturn(200);
+            when(upstreamResponse.body()).thenReturn(new byte[0]);
+            when(upstreamResponse.headers()).thenReturn(
+                HttpHeaders.of(Map.of(), (name, value) -> true));
+            doReturn(upstreamResponse).when(httpClient).send(
+                any(java.net.http.HttpRequest.class),
+                any(java.net.http.HttpResponse.BodyHandler.class)
+            );
+
+            proxyPlugin.handle(req, res);
+
+            assertThat(res.statusCode()).isEqualTo(200);
         }
     }
 }

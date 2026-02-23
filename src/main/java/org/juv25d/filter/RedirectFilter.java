@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
@@ -27,6 +28,8 @@ import java.util.logging.Logger;
  * pipeline.addFilter(new RedirectFilter(rules));
  * </pre>
  */
+
+@Global(order = 4)
 public class RedirectFilter implements Filter {
     private final List<RedirectRule> rules;
     private final Logger logger;

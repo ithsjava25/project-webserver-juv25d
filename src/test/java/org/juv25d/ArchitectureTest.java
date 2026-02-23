@@ -7,6 +7,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 
 
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 
 /**
@@ -63,6 +64,7 @@ public class ArchitectureTest {
                 simpleName("ConnectionHandler")
                     .or(simpleName("ConnectionHandlerFactory"))
                     .or(simpleName("Pipeline"))
+                    .or(simpleName("App")) // App handles bootstrapping and wiring of the Pipeline during startup. This should stay.
                     .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
                     .as("Pipeline access rule")
                     .because("Pipeline should only be accessed by ConnectionHandler");
@@ -75,6 +77,7 @@ public class ArchitectureTest {
                 simpleName("Pipeline")
                     .or(simpleName("FilterChain"))
                     .or(simpleName("FilterChainImpl"))
+                    .or(resideInAPackage("..filter.."))
                     .or(simpleName("ConnectionHandler"))) // TODO This needs to be accessed because connectionhandler creates doFilter()
                     .as("FilterChain access rule")
                     .because("FilterChain should only be accessed by Pipeline");

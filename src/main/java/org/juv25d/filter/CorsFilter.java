@@ -49,7 +49,8 @@ public class CorsFilter implements Filter {
                 res.setHeader("Access-Control-Allow-Origin", "Content-Type");
             }
             res.setHeader("Access-Control-Max-Age", "3600");
-            res.setStatus(204, "No Content");
+            res.setStatusText("No Content");
+            res.setStatusCode(204);
             res.setBody(new byte[0]);
             return;
         }

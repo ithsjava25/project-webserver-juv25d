@@ -39,8 +39,15 @@ public class ProxyPlugin implements Plugin {
         String targetPath = req.path().substring(baseRoute.length());
         String upstreamUrl = proxyRoute.buildUrl(targetPath, req.queryString());
 
-        logger.info(String.format("Proxying %s %s?%s -> %s",
-            req.method(), req.path(), req.queryString(), upstreamUrl));
+        String query = req.queryString();
+        String fullPath = req.path();
+
+        if (query != null && !query.isEmpty()) {
+            fullPath += "?" + query;
+        }
+
+        logger.info(String.format("Proxying %s %s -> %s",
+            req.method(), fullPath, upstreamUrl));
 
         Builder requestBuilder = java.net.http.HttpRequest.newBuilder()
             .uri(URI.create(upstreamUrl))

@@ -12,16 +12,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
+import java.net.ConnectException;
 import java.net.http.HttpClient;
 import java.net.http.HttpHeaders;
 
+import java.net.http.HttpTimeoutException;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProxyPluginTest {
 
@@ -30,7 +32,7 @@ class ProxyPluginTest {
         private ProxyRoute proxyRoute;
         private ProxyPlugin proxyPlugin;
 
-        @DisplayName("Should handle the request to an invalid upstream and return 502")
+        @DisplayName("should handle the request to an invalid upstream and return 502")
         @Test
         void handleInvalidDomain() throws IOException {
             this.proxyRoute = new ProxyRoute("/api", "https://invalid-upstream-domain-ex-juv25d.info");
@@ -175,6 +177,85 @@ class ProxyPluginTest {
             proxyPlugin.handle(req, res);
 
             assertThat(res.statusCode()).isEqualTo(200);
+        }
+
+        @DisplayName("proxies request and received 200 response with JSON data")
+        @Test
+        void successfullyProxiesRequest() throws Exception {
+            HttpRequest req = new HttpRequest("GET", "/api/test/users", null, "HTTP/1.1",
+                Map.of(), new byte[0], "UNKNOWN");
+            HttpResponse res = new HttpResponse();
+
+            when(upstreamResponse.statusCode()).thenReturn(200);
+            when(upstreamResponse.body()).thenReturn("{\"id\":1}".getBytes());
+            when(upstreamResponse.headers()).thenReturn(
+                HttpHeaders.of(Map.of("Content-Type", List.of("application/json")),
+                    (name, value) -> true));
+
+            doReturn(upstreamResponse).when(httpClient).send(
+                any(java.net.http.HttpRequest.class),
+                any(java.net.http.HttpResponse.BodyHandler.class)
+            );
+
+            proxyPlugin.handle(req, res);
+
+            assertThat(res.statusCode()).isEqualTo(200);
+            assertThat(new String(res.body())).isEqualTo("{\"id\":1}");
+            assertThat(res.headers()).containsKey("Content-Type");
+        }
+
+        @DisplayName("returns 502 response if ConnectException is caught due to failed connection to upstream server")
+        @Test
+        void handlesConnectionException() throws Exception {
+            HttpRequest req = new HttpRequest("GET", "/api/test/users", null, "HTTP/1.1",
+                Map.of(), new byte[0], "UNKNOWN");
+            HttpResponse res = new HttpResponse();
+
+            doThrow(new ConnectException("Connection refused")).when(httpClient).send(
+                any(java.net.http.HttpRequest.class),
+                any(java.net.http.HttpResponse.BodyHandler.class)
+            );
+
+            proxyPlugin.handle(req, res);
+
+            assertThat(res.statusCode()).isEqualTo(502);
+            assertThat(res.statusText()).isEqualTo("Bad Gateway");
+        }
+
+        @DisplayName("return 504 when request to upstream times out")
+        @Test
+        void handlesTimeoutException() throws Exception {
+            HttpRequest req = new HttpRequest("GET", "/api/test/users", null, "HTTP/1.1",
+                Map.of(), new byte[0], "UNKNOWN");
+            HttpResponse res = new HttpResponse();
+
+            doThrow(new HttpTimeoutException("Request timed out")).when(httpClient).send(
+                any(java.net.http.HttpRequest.class),
+                any(java.net.http.HttpResponse.BodyHandler.class)
+            );
+
+            proxyPlugin.handle(req, res);
+
+            assertThat(res.statusCode()).isEqualTo(504);
+            assertThat(res.statusText()).isEqualTo("Gateway Timeout");
+        }
+
+        @DisplayName("generic exception return 502 Bad Gateway as default")
+        @Test
+        void handlesGenericException() throws Exception {
+            HttpRequest req = new HttpRequest("GET", "/api/test/users", null, "HTTP/1.1",
+                Map.of(), new byte[0], "UNKNOWN");
+            HttpResponse res = new HttpResponse();
+
+            doThrow(new RuntimeException("Unexpected error")).when(httpClient).send(
+                any(java.net.http.HttpRequest.class),
+                any(java.net.http.HttpResponse.BodyHandler.class)
+            );
+
+            proxyPlugin.handle(req, res);
+
+            assertThat(res.statusCode()).isEqualTo(502);
+            assertThat(res.statusText()).isEqualTo("Bad Gateway");
         }
     }
 }

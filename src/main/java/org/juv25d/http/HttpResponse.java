@@ -42,6 +42,18 @@ public class HttpResponse {
         return headers;
     }
 
+    public String getHeader(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (var entry : headers.entrySet()) {
+            if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
     public void setHeader(String name, String value) {
         headers.put(name, value);
     }

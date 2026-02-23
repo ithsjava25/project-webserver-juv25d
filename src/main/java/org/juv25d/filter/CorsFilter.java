@@ -35,7 +35,12 @@ public class CorsFilter implements Filter {
 
         // Allowed origin => AC-AO on all res, even GET
         res.setHeader("Access-Control-Allow-Origin", origin);
-        res.setHeader("Vary", "Origin");
+        String vary = res.getHeader("Vary");
+        if (vary == null || vary.isBlank()) {
+            res.setHeader("Vary", "Origin");
+        } else if (!vary.toLowerCase().contains("origin")) {
+            res.setHeader("Vary", vary + ", Origin");
+        }
 
         // Preflight, OPTIONS
         if ("OPTIONS".equalsIgnoreCase(req.method())) {
@@ -46,7 +51,7 @@ public class CorsFilter implements Filter {
             if (requestedHeaders != null && !requestedHeaders.isBlank()) {
                 res.setHeader("Access-Control-Allow-Headers", requestedHeaders);
             } else {
-                res.setHeader("Access-Control-Allow-Origin", "Content-Type");
+                res.setHeader("Access-Control-Allow-Headers", "Content-Type");
             }
             res.setHeader("Access-Control-Max-Age", "3600");
             res.setStatusText("No Content");

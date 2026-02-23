@@ -1,7 +1,7 @@
 package org.juv25d.proxy;
 
 /*
- * Maps a baseRoute with its respective proxy server URL.
+ * Maps a baseRoute with its respective proxy upstream target URL.
  * The mappings are initialized in ConfigLoader.java when reading them from
  * application-properties.
  *

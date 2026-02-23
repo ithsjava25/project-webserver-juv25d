@@ -1,6 +1,4 @@
-package org.juv25d;
-
-import org.juv25d.filter.Filter;
+package org.juv25d.filter;
 
 public record FilterRegistration(Filter filter, int order, String pattern)
     implements Comparable<FilterRegistration> {

@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.config.IpFilterConfig;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
@@ -8,7 +9,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
-
 @Global(order = 2)
 public class IpFilter implements Filter {
 
@@ -25,6 +25,13 @@ public class IpFilter implements Filter {
             this.blacklist.addAll(blacklist);
         }
         this.allowByDefault = allowByDefault;
+    }
+
+    public IpFilter() {
+        IpFilterConfig config = new IpFilterConfig();
+        this.whitelist.addAll(config.whitelist());
+        this.blacklist.addAll(config.blacklist());
+        this.allowByDefault = config.allowByDefault();
     }
 
     @Override

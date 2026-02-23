@@ -3,6 +3,7 @@ package org.juv25d.filter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
+import org.juv25d.config.RateLimitConfig;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
@@ -19,7 +20,7 @@ import java.util.logging.Logger;
  * A filter that implements rate limiting for incoming HTTP requests.
  * It uses a token bucket algorithm via Bucket4J to limit the number of requests per client IP.
  */
-@Global(order = 3)
+@Global(order = 4)
 public class RateLimitingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();
@@ -29,6 +30,7 @@ public class RateLimitingFilter implements Filter {
     private final long capacity;
     private final long refillTokens;
     private final Duration refillPeriod;
+    private final boolean enabled;
 
     /**
      * Constructs a new RateLimitingFilter.
@@ -48,11 +50,34 @@ public class RateLimitingFilter implements Filter {
         this.capacity = burstCapacity;
         this.refillTokens = requestsPerMinute;
         this.refillPeriod = Duration.ofMinutes(1);
+        this.enabled = true;
 
         logger.info(String.format(
             "RateLimitingFilter initialized - Limit: %d req/min, Burst: %d",
             requestsPerMinute, burstCapacity
         ));
+    }
+
+    public RateLimitingFilter() {
+        RateLimitConfig config = new RateLimitConfig();
+        this.enabled = config.isEnabled();
+
+        if (!enabled) {
+            // Disable bucket logic safely
+            this.capacity = 0;
+            this.refillTokens = 0;
+            this.refillPeriod = Duration.ofMinutes(1);
+            return;
+        }
+
+        if (config.rpm() <= 0 || config.burst() <= 0) {
+            throw new IllegalArgumentException(
+                "RateLimitConfig values must be positive (rpm=" + config.rpm() + ", burst=" + config.burst() + ")");
+        }
+
+        this.capacity = config.burst();
+        this.refillTokens = config.rpm();
+        this.refillPeriod = Duration.ofMinutes(1);
     }
 
     /**
@@ -66,6 +91,8 @@ public class RateLimitingFilter implements Filter {
      */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
+        if (!enabled) {chain.doFilter(req, res);return;}
+
         String clientIp = getClientIp(req);
 
         Bucket bucket = buckets.computeIfAbsent(clientIp, k -> createBucket());

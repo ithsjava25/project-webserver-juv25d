@@ -70,7 +70,7 @@ public class ArchitectureTest {
     @ArchTest
     static final ArchRule filterChainRule =
         ArchRuleDefinition.classes()
-            .that().haveSimpleName("filterChain")
+            .that().haveSimpleName("FilterChain")
             .should().onlyBeAccessed().byClassesThat(
                 simpleName("Pipeline")
                     .or(simpleName("FilterChain"))
@@ -78,6 +78,19 @@ public class ArchitectureTest {
                     .or(simpleName("ConnectionHandler"))) // TODO This needs to be accessed because connectionhandler creates doFilter()
                     .as("FilterChain access rule")
                     .because("FilterChain should only be accessed by Pipeline");
+
+    @ArchTest
+    static final ArchRule routerRule =
+        ArchRuleDefinition.classes()
+            .that().haveSimpleName("Router")
+            .should().onlyBeAccessed().byClassesThat(
+                simpleName("FilterChain")
+                    .or(simpleName("FilterChainImpl"))
+                    .or(simpleName("Router"))
+                    .or(simpleName("Pipeline")) //TODO Pipeline injects router
+                    .or(simpleName("App"))) //TODO App Creates router
+                    .as("Router access rule")
+                    .because("Router should only be accessed by FilterChain");
 
 }
 

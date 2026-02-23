@@ -26,7 +26,7 @@ public class App {
 
         pipeline.addGlobalFilter(new LoggingFilter(), 1);
 
-        pipeline.addGlobalFilter(new IpFilter(Set.of(), Set.of()), 2);
+        pipeline.addGlobalFilter(new IpFilter(Set.of(), Set.of(), true), 2);
 
         if (config.isRateLimitingEnabled()) {pipeline.addGlobalFilter(new RateLimitingFilter(
             config.getRequestsPerMinute(), config.getBurstCapacity()), 3);}
@@ -36,18 +36,6 @@ public class App {
             new RedirectRule("/temp", "https://example.com/temporary", 302),
             new RedirectRule("/docs/*", "/documentation/", 301)
         );
-<<<<<<< fix/79-whiteandblacklist
-        pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 0);
-
-        // IP filter is enabled but configured with open access during development
-        // White/blacklist can be tightened when specific IP restrictions are decided
-        pipeline.addGlobalFilter(new IpFilter(
-            Set.of(),
-            Set.of(),
-            true
-        ), 0);
-=======
->>>>>>> main
 
         pipeline.addGlobalFilter(new RedirectFilter(redirectRules), 4);
 

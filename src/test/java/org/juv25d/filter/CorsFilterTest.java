@@ -1,100 +1,114 @@
 package org.juv25d.filter;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.juv25d.http.HttpRequest;
+import org.juv25d.http.HttpResponse;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.Map;
 
-import static java.net.http.HttpResponse.BodyHandlers;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class CorsFilterTest {
 
-    private static final String BASE_URL = "http://localhost:3000";
-    private static final HttpClient client = HttpClient.newHttpClient();
-
-    @BeforeAll
-    static void ensureServerIsRunning() {
-        // TODO: starta servern här, t.ex:
-        // Server.start(3000);
-        //
-    }
+    private final CorsFilter filter = new CorsFilter();
 
     @Test
     void shouldAllowConfiguredOrigin_onGet() throws Exception {
-        HttpResponse<String> response = client.send(
-            request("GET", "/api/test")
-                .header("Origin", "http://localhost:3000")
-                .build(),
-            BodyHandlers.ofString()
-        );
-        assertEquals(200, response.statusCode());
-        assertEquals(
-            "http://localhost:3000",
-            response.headers().firstValue("Access-Control-Allow-Origin").orElse(null)
-        );
-        assertEquals(
-            "Origin",
-            response.headers().firstValue("Vary").orElse(null)
-        );
+        HttpRequest req = request("GET", "/api/test", Map.of("Origin", "http://localhost:3000"));
+        HttpResponse res = response();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertEquals("http://localhost:3000", res.getHeader("Access-Control-Allow-Origin"));
+        assertEquals("Origin", res.getHeader("Vary"));
     }
 
     @Test
     void shouldNotAddCorsHeaders_whenNoOriginHeader() throws Exception {
-        HttpResponse<String> response = client.send(
-            request("GET", "/api/test").build(),
-            BodyHandlers.ofString()
-        );
-        assertEquals(200, response.statusCode());
-        assertTrue(response.headers().firstValue("Access-Control-Allow-Origin").isEmpty());
+        HttpRequest req = request("GET", "/api/test", Map.of());
+        HttpResponse res = response();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertNull(res.getHeader("Access-Control-Allow-Origin"));
     }
 
     @Test
     void shouldHandlePreflightOptionsRequest() throws Exception {
-        HttpResponse<String> response = client.send(
-            request("OPTIONS", "/api/test")
-                .header("Origin", "http://localhost:3000")
-                .header("Access-Control-Request-Method", "GET")
-                .header("Access-Control-Request-Headers", "Content-Type")
-                .build(),
-            BodyHandlers.ofString()
+        HttpRequest req = request(
+            "OPTIONS",
+            "/api/test",
+            Map.of(
+                "Origin", "http://localhost:3000",
+                "Access-Control-Request-Method", "GET",
+                "Access-Control-Request-Headers", "Content-Type"
+            )
         );
-        assertEquals(204, response.statusCode());
-        assertEquals(
-            "http://localhost:3000",
-            response.headers().firstValue("Access-Control-Allow-Origin").orElse(null)
-        );
-        assertTrue(
-            response.headers().firstValue("Access-Control-Allow-Methods")
-                .orElse("")
-                .contains("GET"),
-            "Allow-Methods should contain GET"
-        );
-        assertEquals(
-            "Content-Type",
-            response.headers().firstValue("Access-Control-Allow-Headers").orElse(null)
-        );
+        HttpResponse res = response();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(any(), any());
+        assertEquals(204, res.statusCode());
+        assertEquals("No Content", res.statusText());
+        assertEquals("http://localhost:3000", res.getHeader("Access-Control-Allow-Origin"));
+        assertTrue(res.getHeader("Access-Control-Allow-Methods").contains("GET"));
+        assertEquals("Content-Type", res.getHeader("Access-Control-Allow-Headers"));
+        assertArrayEquals(new byte[0], res.body());
     }
 
     @Test
     void shouldNotAllowUnknownOrigin() throws Exception {
-        HttpResponse<String> response = client.send(
-            request("GET", "/api/test")
-                .header("Origin", "http://evil.com")
-                .build(),
-            BodyHandlers.ofString()
-        );
-        assertEquals(200, response.statusCode());
-        assertTrue(response.headers().firstValue("Access-Control-Allow-Origin").isEmpty());
+        HttpRequest req = request("GET", "/api/test", Map.of("Origin", "http://evil.com"));
+        HttpResponse res = response();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertNull(res.getHeader("Access-Control-Allow-Origin"));
     }
 
-    // Helper method
-    private static HttpRequest.Builder request(String method, String path) {
-        return HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + path))
-            .method(method, HttpRequest.BodyPublishers.noBody());
+    @Test
+    void shouldFallbackToDefaultAllowHeaders_onPreflightWithoutRequestHeaders() throws Exception {
+        HttpRequest req = request(
+            "OPTIONS",
+            "/api/test",
+            Map.of(
+                "Origin", "http://localhost:3000",
+                "Access-Control-Request-Method", "GET"
+            )
+        );
+        HttpResponse res = response();
+        FilterChain chain = mock(FilterChain.class);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(any(), any());
+        assertEquals(204, res.statusCode());
+        assertEquals("Content-Type", res.getHeader("Access-Control-Allow-Headers"));
+    }
+
+    private static HttpRequest request(String method, String path, Map<String, String> headers) {
+        return new HttpRequest(
+            method,
+            path,
+            "",
+            "HTTP/1.1",
+            new HashMap<>(headers),
+            new byte[0],
+            "127.0.0.1"
+        );
+    }
+
+    private static HttpResponse response() {
+        return new HttpResponse(200, "OK", new HashMap<>(), new byte[0]);
     }
 }

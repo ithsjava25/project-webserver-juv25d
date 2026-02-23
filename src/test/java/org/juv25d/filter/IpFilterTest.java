@@ -42,7 +42,7 @@ class IpFilterTest {
 
     @Test
     void allowsIP_inBothList_defaultTrue() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"), true);;
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"), true);
 
         when(req.remoteIp()).thenReturn("127.0.0.1");
 

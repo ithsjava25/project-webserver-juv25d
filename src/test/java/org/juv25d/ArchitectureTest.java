@@ -66,6 +66,19 @@ public class ArchitectureTest {
                     .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
                     .as("Pipeline access rule")
                     .because("Pipeline should only be accessed by ConnectionHandler");
+
+    @ArchTest
+    static final ArchRule filterChainRule =
+        ArchRuleDefinition.classes()
+            .that().haveSimpleName("filterChain")
+            .should().onlyBeAccessed().byClassesThat(
+                simpleName("Pipeline")
+                    .or(simpleName("FilterChain"))
+                    .or(simpleName("FilterChainImpl"))
+                    .or(simpleName("ConnectionHandler"))) // TODO This needs to be accessed because connectionhandler creates doFilter()
+                    .as("FilterChain access rule")
+                    .because("FilterChain should only be accessed by Pipeline");
+
 }
 
 

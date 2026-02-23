@@ -11,10 +11,10 @@ public class HttpResponse {
 
     private int statusCode;
     private String statusText;
-    private Map<String, String> headers;
+    private final Map<String, String> headers;
     private byte[] body;
 
-    public HttpResponse(){
+    public HttpResponse() {
         this.statusCode = 200;
         this.statusText = "OK";
         this.headers = new LinkedHashMap<>();
@@ -23,8 +23,8 @@ public class HttpResponse {
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         this.statusCode = statusCode;
-        this.statusText = statusText;
-        this.headers = headers != null ? new LinkedHashMap<>(headers) : new LinkedHashMap<>();
+        this.statusText = Objects.requireNonNull(statusText, "statusText must not be null");
+        this.headers = new LinkedHashMap<>(headers != null ? headers : Map.of());
         this.body = body != null ? body.clone() : new byte[0];
     }
 

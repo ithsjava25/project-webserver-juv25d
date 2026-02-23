@@ -30,6 +30,61 @@ body {
     font-weight: bold;
     font-family: system-ui;
 }
+/* Health box */
+
+#health-box {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-family: monospace;
+    z-index: 9999;
+}
+
+#health-box button {
+    background: rgba(34, 34, 34, 1);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: 150ms ease;
+    anchor-name: --health-button;
+}
+
+#health-box button:hover {
+    box-shadow: 0 0 4px 0px rgba(255, 255, 255, 0.2);
+}
+
+#health-box button:active {
+    font-size: 1.4rem;
+}
+
+.health-content {
+    visibility: hidden;
+    opacity: 0;
+    background: #111;
+    color: #00eaff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    position: absolute;
+    margin-right: 8px;
+    inset: auto;
+    top: anchor(top);
+    right: anchor(left);
+    position-anchor: --health-button;
+    filter: grayscale(100%);
+    transition: 250ms ease-in-out allow-discrete;
+}
+
+.health-content:popover-open {
+    animation: fade-in 350ms ease;
+    visibility: visible;
+    opacity: 1;
+    filter: grayscale(0%);
+}
 
 /* Container */
 .container {
@@ -386,5 +441,21 @@ code {
 
     h2 {
         font-size: 1.5em;
+    }
+}
+
+/* Keyframes */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(1rem);
+        visibility: hidden;
+        filter: grayscale(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0rem);
+        visibility: visible;
+        filter: grayscale(0%);
     }
 }

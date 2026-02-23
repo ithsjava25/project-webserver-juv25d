@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
@@ -8,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
+@Global(order = 2)
 public class IpFilter implements Filter {
 
     private final Set<String> whitelist = new HashSet<>();

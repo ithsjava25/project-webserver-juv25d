@@ -41,5 +41,27 @@ class ProxyPluginTest {
         // returns 502 Bad Gateway when connection fails
         assertEquals(502, res.statusCode());
     }
+
+    @DisplayName("proxies the request to valid upstream target server but non existing resource path and relay 404")
+    @Test
+    void upstreamResourceNotFound() throws IOException {
+        this.proxyRoute = new ProxyRoute("/api", "https://jsonplaceholder.typicode.com");
+        this.proxyPlugin = new ProxyPlugin(proxyRoute);
+
+        HttpRequest req = new HttpRequest(
+            "GET",
+            "/api/test-resource",
+            null,
+            "HTTP/1.1",
+            Map.of("Content-Type", "application/json"),
+            new byte[0],
+            "127.0.0.1"
+        );
+        HttpResponse res = new HttpResponse();
+
+        proxyPlugin.handle(req, res);
+
+        assertEquals(404, res.statusCode());
+    }
 }
 

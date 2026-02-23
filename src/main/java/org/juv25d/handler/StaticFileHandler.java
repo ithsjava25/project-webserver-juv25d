@@ -7,6 +7,8 @@ import org.juv25d.logging.ServerLogging;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -26,6 +28,9 @@ public class StaticFileHandler {
 
     private static final Logger logger = ServerLogging.getLogger();
     private static final String STATIC_DIR = "/static/";
+
+    // Cache static files for 5 seconds, short max_age so that changes appear quickly and is easier to develop around
+    private static final int MAX_AGE_SECONDS = 5;
 
     private StaticFileHandler() {
         // Utility class - prevent instantiation
@@ -68,8 +73,22 @@ public class StaticFileHandler {
                 mimeType += "; charset=utf-8";
             }
 
+            String etag = computeStrongEtag(fileContent);
+
+            String ifNoneMatch = getHeaderIgnoreCase(request.headers(), "If-None-Match");
+            if (etagMatches(ifNoneMatch, etag)) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("ETag", etag);
+                headers.put("Cache-Control", "public, max-age=" + MAX_AGE_SECONDS);
+
+                logger.info("ETag match for " + resourcePath + " -> 304 Not Modified");
+                return new HttpResponse(304, "Not Modified", headers, new byte[0]);
+            }
+
             Map<String, String> headers = new HashMap<>();
             headers.put("Content-Type", mimeType);
+            headers.put("ETag", etag);
+            headers.put("Cache-Control", "public, max-age=" + MAX_AGE_SECONDS);
 
             logger.info("Successfully served: " + resourcePath + " (" + mimeType + ")");
             return new HttpResponse(200, "OK", headers, fileContent);
@@ -143,6 +162,63 @@ public class StaticFileHandler {
         try (inputStream) {
             return inputStream.readAllBytes();
         }
+    }
+
+    private static String getHeaderIgnoreCase(Map<String, String> headers, String name) {
+       if (headers == null || headers.isEmpty() || name == null) {
+           return null;
+       }
+       for (Map.Entry<String, String> e : headers.entrySet()) {
+           if (e.getKey() != null && e.getKey().equalsIgnoreCase(name)) {
+               return e.getValue();
+           }
+       }
+        return null;
+    }
+
+    private static String computeStrongEtag(byte[] content) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(content);
+            return "\"" + toHex(hash) + "\"";
+        }catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("SHA-256 not available", e);
+        }
+    }
+
+    private static String toHex(byte[] bytes) {
+        char[] hex = "0123456789abcdef".toCharArray();
+        char[] out = new char[bytes.length * 2];
+        for (int i = 0; i < bytes.length; i++) {
+            int v = bytes[i] & 0xFF;
+            out[i * 2] = hex[v >>> 4];
+            out[i * 2 + 1] = hex[v & 0x0F];
+        }
+        return new String(out);
+    }
+
+    private static String opaqueTag(String etag) {
+        if (etag == null) return null;
+        String e = etag.trim();
+        return e.startsWith("W/") ? e.substring(2) : e;
+    }
+
+    private static boolean etagMatches(String ifNoneMatchHeader, String currentEtag) {
+        if (ifNoneMatchHeader == null || ifNoneMatchHeader.isBlank()) {
+            return false;
+        }
+        String value = ifNoneMatchHeader.trim();
+        if (value.equals("*")) {
+            return true;
+        }
+
+        String[] parts = value.split(",");
+        for (String part : parts) {
+            if (part != null && opaqueTag(part) != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

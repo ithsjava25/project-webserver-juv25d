@@ -1,6 +1,5 @@
 package org.juv25d.filter;
 
-import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
@@ -8,13 +7,18 @@ import org.juv25d.logging.ServerLogging;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-@Global(order = 1)
-public class LoggingFilter implements Filter {
+public class TimingFilter implements Filter {
+
     private static final Logger logger = ServerLogging.getLogger();
 
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
-        logger.info(req.method() + " " + req.path());
+        long start = System.nanoTime();
+
         chain.doFilter(req, res);
+
+        long durationMs = (System.nanoTime() - start) / 1_000_000;
+        logger.info(req.method() + " " + req.path() + " took " + durationMs + " ms");
+
     }
 }

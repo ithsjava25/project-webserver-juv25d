@@ -9,5 +9,10 @@ public record HttpRequest(
         String httpVersion,
         Map<String, String> headers,
         byte[] body,
-        String remoteIp
-) {}
+        String remoteIp,
+        long creationTimeNanos
+) {
+    public HttpRequest(String method, String path, String queryString, String httpVersion, Map<String, String> headers, byte[] body, String remoteIp) {
+        this(method, path, queryString, httpVersion, headers, body, remoteIp, System.nanoTime());
+    }
+}

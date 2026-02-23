@@ -86,9 +86,10 @@ public class ArchitectureTest {
                     .or(simpleName("DefaultConnectionHandlerFactory"))
                     .or(simpleName("Pipeline"))
                     .or(simpleName("App")) // App handles bootstrapping and wiring of the Pipeline during startup. This should stay.
-                    .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
+                    .or(simpleName("Server")) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
+                    .or(simpleName("Bootstrap")))
             .as("Pipeline access rule")
-            .because("Pipeline should only be accessed by ConnectionHandler")
+            .because("Pipeline should only be accessed by ConnectionHandler, App, Server, Bootstrap during setup")
             .check(importedClasses);
     }
 

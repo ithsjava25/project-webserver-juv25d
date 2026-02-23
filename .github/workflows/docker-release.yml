@@ -1,8 +1,8 @@
 name: Publish Docker Image
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   publish:
@@ -33,7 +33,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository_owner }}/project-webserver-juv25d
-          tags: type=ref,name=short
+          tags: type=ref,event=tag
           labels: org.opencontainers.image.source=${{ github.repository }}
 
       - name: Build and push Docker image

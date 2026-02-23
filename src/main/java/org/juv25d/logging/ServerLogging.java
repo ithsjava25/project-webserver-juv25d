@@ -1,9 +1,10 @@
 package org.juv25d.logging;
 
+import org.juv25d.util.ConfigLoader;
+
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 public class ServerLogging {
     private static final Logger logger =
@@ -18,13 +19,13 @@ public class ServerLogging {
 
         if (logger.getHandlers().length == 0) {
             ConsoleHandler handler = new ConsoleHandler();
-            handler.setFormatter(new SimpleFormatter());
+            handler.setFormatter(new ServerLogFormatter());
             logger.addHandler(handler);
         }
 
         String levelName = System.getProperty(
             "log.level",
-            System.getenv().getOrDefault("LOG_LEVEL", "INFO")
+            System.getenv().getOrDefault("LOG_LEVEL", ConfigLoader.getInstance().getLogLevel())
         );
 
         try {

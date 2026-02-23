@@ -2,6 +2,11 @@ package org.juv25d.http;
 
 import java.util.*;
 
+/**
+ * Represents an HTTP Response.
+ * Changed to be mutable to allow Filters and Plugins in the Pipeline
+ * to modify status, headers, and body during processing.
+ */
 public class HttpResponse {
 
     private int statusCode;
@@ -10,45 +15,42 @@ public class HttpResponse {
     private byte[] body;
 
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
-        Objects.requireNonNull(statusText, "statusText must not be null");
-        Objects.requireNonNull(headers, "headers must not be null");
-        Objects.requireNonNull(body, "body must not be null");
         this.statusCode = statusCode;
-        this.statusText = statusText;
-        this.headers = new LinkedHashMap<>(headers);
-        this.body = body.clone();
+        this.statusText = Objects.requireNonNull(statusText, "statusText must not be null");
+        this.headers = new LinkedHashMap<>(headers != null ? headers : Map.of());
+        this.body = body != null ? body.clone() : new byte[0];
     }
 
-    public int statusCode(){
+    public int statusCode() {
         return statusCode;
     }
 
-    public String statusText(){
+    public void setStatusCode(int statusCode) {
+        this.statusCode = statusCode;
+    }
+
+    public String statusText() {
         return statusText;
+    }
+
+    public void setStatusText(String statusText) {
+        Objects.requireNonNull(statusText, "statusText must not be null");
+        this.statusText = statusText;
     }
 
     public Map<String, String> headers() {
         return headers;
     }
 
-    public byte[] body(){
-        return body.clone();
-    }
-
     public void setHeader(String name, String value) {
-        Objects.requireNonNull(name, "name must not be null");
-        Objects.requireNonNull(value, "value must not be null");
-        this.headers.put(name, value);
+        headers.put(name, value);
     }
 
-    public void setStatus(int statusCode, String statusText) {
-        Objects.requireNonNull(statusText, "statusText must not be null");
-        this.statusCode = statusCode;
-        this.statusText = statusText;
+    public byte[] body() {
+        return body != null ? body.clone() : new byte[0];
     }
 
     public void setBody(byte[] body) {
-        Objects.requireNonNull(body, "body must not be null");
-        this.body = body.clone();
+        this.body = body != null ? body.clone() : new byte[0];
     }
 }

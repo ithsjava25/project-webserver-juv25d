@@ -1,0 +1,15 @@
+server:
+  port: 8080
+  root-dir: static
+  proxy:
+    routes:
+      - base-route: /api/test
+        upstream-url: https://jsonplaceholder.typicode.com
+
+logging:
+  level: INFO
+
+rate-limiting:
+  enabled: true
+  requests-per-minute: 60
+  burst-capacity: 100

@@ -3,6 +3,7 @@ package org.juv25d.filter;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.plugin.Plugin;
+import org.juv25d.router.SimpleRouter; // New import
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -33,19 +34,22 @@ class FilterChainImplTest {
         };
 
         Plugin plugin = (req, res) -> calls.add("plugin");
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", plugin); // Register the plugin with a path
 
         FilterChainImpl chain = new FilterChainImpl(
             List.of(f1, f2),
-            plugin
+            router // Pass the router
         );
 
         HttpRequest req = new HttpRequest(
             "GET",
             "/",
-            null,
+            null, // queryString
             "HTTP/1.1",
             Map.of(),
-            new byte[0]
+            new byte[0],
+            "UNKNOWN" // remoteIp
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
@@ -72,14 +76,22 @@ class FilterChainImplTest {
         };
 
         Plugin plugin = (req, res) -> calls.add("plugin");
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", plugin); // Register the plugin with a path
 
         FilterChainImpl chain = new FilterChainImpl(
             List.of(blockingFilter),
-            plugin
+            router // Pass the router
         );
 
         HttpRequest req = new HttpRequest(
-            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
+            "GET",
+            "/",
+            null, // queryString
+            "HTTP/1.1",
+            Map.of(),
+            new byte[0],
+            "UNKNOWN" // remoteIp
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));
@@ -93,14 +105,22 @@ class FilterChainImplTest {
         List<String> calls = new ArrayList<>();
 
         Plugin plugin = (req, res) -> calls.add("plugin");
+        SimpleRouter router = new SimpleRouter();
+        router.registerPlugin("/", plugin); // Register the plugin with a path
 
         FilterChainImpl chain = new FilterChainImpl(
             List.of(),
-            plugin
+            router // Pass the router
         );
 
         HttpRequest req = new HttpRequest(
-            "GET", "/", null, "HTTP/1.1", Map.of(), new byte[0]
+            "GET",
+            "/",
+            null, // queryString
+            "HTTP/1.1",
+            Map.of(),
+            new byte[0],
+            "UNKNOWN" // remoteIp
         );
 
         chain.doFilter(req, new HttpResponse(200, "OK", new HashMap<>(), new byte[0]));

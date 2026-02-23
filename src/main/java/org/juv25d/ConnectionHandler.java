@@ -25,12 +25,24 @@ public class ConnectionHandler implements Runnable {
 
     @Override
     public void run() {
+        String connectionId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        org.juv25d.logging.LogContext.setConnectionId(connectionId);
         try (socket) {
             var in = socket.getInputStream();
             var out = socket.getOutputStream();
 
-            HttpRequest request = httpParser.parse(in);
-            logger.info("Handling request: " + request.method() + " " + request.path());
+            HttpRequest parsed = httpParser.parse(in);
+            String remoteIp = socket.getInetAddress().getHostAddress();
+
+            HttpRequest request = new HttpRequest(
+                parsed.method(),
+                parsed.path(),
+                parsed.queryString(),
+                parsed.httpVersion(),
+                parsed.headers(),
+                parsed.body(),
+                remoteIp
+            );
 
             HttpResponse response = new HttpResponse(
                 200,
@@ -39,13 +51,15 @@ public class ConnectionHandler implements Runnable {
                 new byte[0]
             );
 
-            var chain = pipeline.createChain();
+            var chain = pipeline.createChain(request);
             chain.doFilter(request, response);
 
             HttpResponseWriter.write(out, response);
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error while handling request", e);
+        } finally {
+            org.juv25d.logging.LogContext.clear();
         }
     }
 }

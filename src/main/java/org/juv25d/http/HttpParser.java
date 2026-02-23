@@ -2,10 +2,13 @@ package org.juv25d.http;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class HttpParser {
+
+    private static final String CONTENT_LENGTH = "Content-Length";
+
     public HttpRequest parse(InputStream in) throws IOException {
 
         String requestLine = readLine(in);
@@ -32,32 +35,32 @@ public class HttpParser {
             path = fullPath;
         }
 
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         String line;
         while ((line = readLine(in)) != null && !line.isEmpty()) {
             int colon = line.indexOf(':');
-            if (colon < 0) {
+            if (colon <= 0) {
                 throw new IOException("Malformed header line: " + line);
             }
-            String key = line.substring(0, colon).trim().toLowerCase();
+            String key = line.substring(0, colon).trim();
             String value = line.substring(colon + 1).trim();
             headers.put(key, value);
         }
 
         byte[] body = new byte[0];
-        if (headers.containsKey("content-length")) {
+        if (headers.containsKey(CONTENT_LENGTH)) {
             int length;
             try {
-                length = Integer.parseInt(headers.get("content-length"));
+                length = Integer.parseInt(headers.get(CONTENT_LENGTH));
             } catch (NumberFormatException e) {
-                throw new IOException("Invalid Content-Length: " + headers.get("content-length"), e);
+                throw new IOException("Invalid Content-Length: " + headers.get(CONTENT_LENGTH), e);
             }
             if (length < 0) {
                 throw new IOException("Negative Content-Length: " + length);
             }
             body = in.readNBytes(length);
         }
-        return new HttpRequest(method, path, query, version, headers, body);
+        return new HttpRequest(method, path, query, version, headers, body, "UNKNOWN");
     }
 
     private String readLine(InputStream in) throws IOException {

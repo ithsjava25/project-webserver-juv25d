@@ -3,6 +3,7 @@ package org.juv25d.logging;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.juv25d.util.ConfigLoader;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -119,4 +120,23 @@ class ServerLoggingTest {
         }
     }
 
+    @Test
+    @DisplayName("Logger should fall back to logging.level from application-properties.yml")
+    void logger_shouldUseLogLevelFromApplicationProperties() {
+        String configLogLevel = ConfigLoader.getInstance().getLogLevel();
+
+        try {
+            System.clearProperty("log.level");
+
+            Level expectedLevel = Level.parse(configLogLevel.toUpperCase());
+
+            Logger testLogger = Logger.getLogger("test.logger");
+            ServerLogging.configure(testLogger);
+
+            assertEquals(expectedLevel, testLogger.getLevel());
+
+        } finally {
+            System.clearProperty("log.level");
+        }
+    }
 }

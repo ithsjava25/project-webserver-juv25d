@@ -11,10 +11,12 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPac
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
 
 /**
- * These tests ensure that classes only depend on other classes according to the intended architecture.
- * They enforce strict boundaries between components and prevent unintended coupling or dependency violations.
+ * This system follows a specific lifecycle where an HTTP request is processed through specialized layers.
+ * To maintain a clean architecture, the core principle is that lower layers must never depend on higher layers.
+ * While the flow is not strictly linear—for instance, filters must call the chain to proceed—these rules ensure that
+ * dependencies only move in authorized directions and that components do not "skip" steps unnecessarily
  *
- * The request lifecycle is designed to follow this strict flow:
+ * The request lifecycle is designed to follow this strict flow: (Runtime Flow)
  *
  * Client
  * ↓
@@ -34,7 +36,9 @@ import static com.tngtech.archunit.core.domain.JavaClass.Predicates.simpleName;
  * ↓
  * Client
  *
- * Each component has a clearly defined responsibility and must not violate the intended direction of dependencies.
+ * Note: This describes the runtime execution flow, not direct code dependencies.
+ * Dependencies are allowed for bootstrapping and controlled object creation,
+ * but must never violate the downward lifecycle direction.
  */
 
 @AnalyzeClasses(
@@ -44,6 +48,10 @@ importOptions = ImportOption.Predefined.DoNotIncludeTests.class)
 public class ArchitectureTest {
 
 
+    /**
+     *  This rule ensures that only the Server and its associated factories can initiate a ConnectionHandler.
+     *  This prevents other parts of the application from accidentally manipulating direct client connections.
+     */
     @ArchTest
     static final ArchRule connectionHandlerAccessRule =
         ArchRuleDefinition.classes()
@@ -56,6 +64,11 @@ public class ArchitectureTest {
             .as("ConnectionHandler access rule")
             .because("connectionHandler should only be accessed by server");
 
+
+    /**
+     * Only the network layer (ConnectionHandler) or the application's startup class (App) may interact with the Pipeline.
+     * This guarantees that the execution chain remains intact and is not modified during an active request.
+     */
     @ArchTest
     static final ArchRule pipelineAccessRule =
         ArchRuleDefinition.classes()
@@ -66,9 +79,14 @@ public class ArchitectureTest {
                     .or(simpleName("Pipeline"))
                     .or(simpleName("App")) // App handles bootstrapping and wiring of the Pipeline during startup. This should stay.
                     .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?
-                    .as("Pipeline access rule")
-                    .because("Pipeline should only be accessed by ConnectionHandler");
+            .as("Pipeline access rule")
+            .because("Pipeline should only be accessed by ConnectionHandler");
 
+
+    /**
+     * The FilterChain is created by the Pipeline and triggered by the ConnectionHandler.
+     * This rule also allows individual filters to access the chain.
+     */
     @ArchTest
     static final ArchRule filterChainRule =
         ArchRuleDefinition.classes()
@@ -78,10 +96,15 @@ public class ArchitectureTest {
                     .or(simpleName("FilterChain"))
                     .or(simpleName("FilterChainImpl"))
                     .or(resideInAPackage("..filter.."))
-                    .or(simpleName("ConnectionHandler"))) // TODO This needs to be accessed because connectionhandler creates doFilter()
-                    .as("FilterChain access rule")
-                    .because("FilterChain should only be accessed by Pipeline");
+                    .or(simpleName("ConnectionHandler"))) //This needs to be accessed because connectionhandler creates doFilter()
+            .as("FilterChain access rule")
+            .because("FilterChain should only be accessed by Pipeline");
 
+
+    /**
+     * The Router should only be accessed by the FilterChain to determine which plugin to execute,
+     * or by App and Pipeline during the system's bootstrapping phase.
+     */
     @ArchTest
     static final ArchRule routerRule =
         ArchRuleDefinition.classes()
@@ -90,11 +113,27 @@ public class ArchitectureTest {
                 simpleName("FilterChain")
                     .or(simpleName("FilterChainImpl"))
                     .or(simpleName("Router"))
-                    .or(simpleName("Pipeline")) //TODO Pipeline injects router
-                    .or(simpleName("App"))) //TODO App Creates router
-                    .as("Router access rule")
-                    .because("Router should only be accessed by FilterChain");
+                    .or(simpleName("Pipeline")) //Pipeline injects router
+                    .or(simpleName("App"))) //App Creates router
+            .as("Router access rule")
+            .because("Router should only be accessed by FilterChain");
 
+
+    /**
+     * Plugins must only be instantiated by App at startup and subsequently called by the router or
+     * the execution chain (FilterChainImpl).
+     */
+    @ArchTest
+    static final ArchRule pluginRule =
+        ArchRuleDefinition.classes()
+            .that().resideInAPackage("..plugin..")
+            .should().onlyBeAccessed().byClassesThat(
+                resideInAPackage("..router..")
+                    .or(resideInAPackage("..plugin.."))
+                    .or(simpleName("App")) //App creates plugin
+                    .or(simpleName("FilterChainImpl"))) //FilterChainImpl calls the plugin after the router has decided which one to run.
+            .as("Plugin access rule")
+            .because("Plugins should only be managed by the Router or during startup");
 }
 
 

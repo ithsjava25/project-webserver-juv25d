@@ -14,6 +14,13 @@ public class HttpResponse {
     private Map<String, String> headers;
     private byte[] body;
 
+    public HttpResponse() {
+        this.statusCode = 200;
+        this.statusText = "OK";
+        this.headers = new LinkedHashMap<>();
+        this.body = new byte[0];
+    }
+
     public HttpResponse(int statusCode, String statusText, Map<String, String> headers, byte[] body) {
         this.statusCode = statusCode;
         this.statusText = Objects.requireNonNull(statusText, "statusText must not be null");

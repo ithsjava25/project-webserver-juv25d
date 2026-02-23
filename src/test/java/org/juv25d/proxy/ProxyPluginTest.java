@@ -63,5 +63,30 @@ class ProxyPluginTest {
 
         assertEquals(404, res.statusCode());
     }
+
+    @DisplayName("returns 200 with response body")
+    @Test
+    void successfulResponse() throws IOException {
+        this.proxyRoute = new ProxyRoute("/api", "https://jsonplaceholder.typicode.com");
+        this.proxyPlugin = new ProxyPlugin(proxyRoute);
+
+        HttpRequest req = new HttpRequest(
+            "GET",
+            "/api/posts",
+            null,
+            "HTTP/1.1",
+            Map.of("Content-Type", "application/json"),
+            new byte[0],
+            "127.0.0.1"
+        );
+
+        HttpResponse res = new HttpResponse();
+
+        proxyPlugin.handle(req, res);
+
+        assertEquals(200, res.statusCode());
+        assertNotNull(res.body());
+        assertTrue(res.body().length > 0);
+    }
 }
 

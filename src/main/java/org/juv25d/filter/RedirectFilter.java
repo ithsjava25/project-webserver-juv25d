@@ -29,7 +29,7 @@ import java.util.logging.Logger;
  * pipeline.addFilter(new RedirectFilter(rules));
  * </pre>
  */
-@Global(order = 4)
+@Global(order = 5)
 public class RedirectFilter implements Filter {
     private final List<RedirectRule> rules;
     private final Logger logger;

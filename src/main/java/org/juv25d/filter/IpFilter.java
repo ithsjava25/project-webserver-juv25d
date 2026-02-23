@@ -29,8 +29,9 @@ public class IpFilter implements Filter {
 
     public IpFilter() {
         IpFilterConfig config = new IpFilterConfig();
-        this.whitelist = config.whitelist();
-        this.blacklist = config.blacklist();
+        this.whitelist.addAll(config.whitelist());
+        this.blacklist.addAll(config.blacklist());
+        this.allowByDefault = config.allowByDefault();
     }
 
     @Override

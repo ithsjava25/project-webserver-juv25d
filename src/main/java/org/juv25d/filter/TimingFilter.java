@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
@@ -7,6 +8,7 @@ import org.juv25d.logging.ServerLogging;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@Global(order = 3)
 public class TimingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();

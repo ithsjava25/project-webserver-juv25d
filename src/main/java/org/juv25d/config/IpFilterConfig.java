@@ -11,4 +11,10 @@ public class IpFilterConfig {
     public Set<String> blacklist() {
         return Set.of();
     }
+
+    private final boolean allowByDefault = true;
+
+    public boolean allowByDefault() {
+        return allowByDefault;
+    }
 }

@@ -20,7 +20,7 @@ import java.util.logging.Logger;
  * A filter that implements rate limiting for incoming HTTP requests.
  * It uses a token bucket algorithm via Bucket4J to limit the number of requests per client IP.
  */
-@Global(order = 3)
+@Global(order = 4)
 public class RateLimitingFilter implements Filter {
 
     private static final Logger logger = ServerLogging.getLogger();

@@ -34,7 +34,7 @@ public class RateLimitingFilter implements Filter {
      * Constructs a new RateLimitingFilter.
      *
      * @param requestsPerMinute the number of requests allowed per minute for each IP
-     * @param burstCapacity the maximum number of requests that can be handled in a burst
+     * @param burstCapacity     the maximum number of requests that can be handled in a burst
      * @throws IllegalArgumentException if requestsPerMinute or burstCapacity is not positive
      */
     public RateLimitingFilter(long requestsPerMinute, long burstCapacity) {
@@ -56,7 +56,7 @@ public class RateLimitingFilter implements Filter {
     }
 
     /**
-     * Applies the rate limiting logic to the incoming request.
+     * Applies the rate-limiting logic to the incoming request.
      * If the rate limit is exceeded, a 429 Too Many Requests response is sent.
      *
      * @param req   the HTTP request
@@ -109,12 +109,35 @@ public class RateLimitingFilter implements Filter {
     }
 
     private void sendTooManyRequests(HttpResponse res, String ip) {
-        byte[] body = ("429 Too Many Requests: Rate limit exceeded for IP " + ip + "\n")
-            .getBytes(StandardCharsets.UTF_8);
+        String html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>429 Too Many Requests</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        max-width: 600px;
+                        margin: 100px auto;
+                        text-align: center;
+                    }
+                    h1 { color: #e74c3c; }
+                    p { color: #666; }
+                </style>
+            </head>
+            <body>
+                <h1>429 - Too Many Requests</h1>
+                <p>You've exceeded the rate limit. Please wait a moment and try again.</p>
+            </body>
+            </html>
+            """;
+
+        byte[] body = html.getBytes(StandardCharsets.UTF_8);
 
         res.setStatusCode(429);
         res.setStatusText("Too Many Requests");
-        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
         res.setHeader("Retry-After", "60");
         res.setBody(body);

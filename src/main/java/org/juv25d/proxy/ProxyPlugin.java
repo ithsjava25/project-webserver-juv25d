@@ -28,6 +28,11 @@ public class ProxyPlugin implements Plugin {
         this.httpClient = HttpClient.newHttpClient();
     }
 
+    public ProxyPlugin(ProxyRoute proxyRoute, HttpClient httpClient) {
+        this.proxyRoute = proxyRoute;
+        this.httpClient = httpClient;
+    }
+
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
         String baseRoute = proxyRoute.getBaseRoute();

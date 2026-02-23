@@ -87,6 +87,16 @@ public class ProxyPlugin implements Plugin {
             logger.info(String.format("Successful proxy %s %s -> %s (upstream: %d %s)",
                 req.method(), req.path(), upstreamUrl, res.statusCode(), res.statusText()));
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            res.setStatusCode(500);
+            res.setStatusText(String.valueOf(
+                HttpStatus.getStatusFromCode(res.statusCode()).getDescription()
+            ));
+
+            logger.warning(String.format("Request interrupted while proxying %s %s -> %s",
+                req.method(), req.path(), upstreamUrl));
+
         } catch (ConnectException e) {
             res.setStatusCode(502);
             res.setStatusText(String.valueOf(

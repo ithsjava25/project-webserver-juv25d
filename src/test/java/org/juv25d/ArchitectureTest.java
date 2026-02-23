@@ -83,6 +83,7 @@ public class ArchitectureTest {
             .should().onlyBeAccessed().byClassesThat(
                 simpleName("ConnectionHandler")
                     .or(simpleName("ConnectionHandlerFactory"))
+                    .or(simpleName("DefaultConnectionHandlerFactory"))
                     .or(simpleName("Pipeline"))
                     .or(simpleName("App")) // App handles bootstrapping and wiring of the Pipeline during startup. This should stay.
                     .or(simpleName("Server"))) //TODO right now server creates pipeline. Shold this be handled by connectionHandler instead to keep the strict flow?

@@ -1,42 +1,59 @@
 package org.juv25d.filter;
 
+import org.juv25d.config.IpFilterConfig;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.Set;
-
 @Global(order = 2)
 public class IpFilter implements Filter {
 
-    private final Set<String> whitelist;
-    private final Set<String> blacklist;
+    private final Set<String> whitelist = new HashSet<>();
+    private final Set<String> blacklist = new HashSet<>();
 
-    public IpFilter(Set<String> whitelist, Set<String> blacklist) {
-        this.whitelist = whitelist;
-        this.blacklist = blacklist;
+    private final boolean allowByDefault;
+
+    public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
+        if (whitelist != null) {
+            this.whitelist.addAll(whitelist);
+        }
+        if (blacklist != null) {
+            this.blacklist.addAll(blacklist);
+        }
+        this.allowByDefault = allowByDefault;
+    }
+
+    public IpFilter() {
+        IpFilterConfig config = new IpFilterConfig();
+        this.whitelist.addAll(config.whitelist());
+        this.blacklist.addAll(config.blacklist());
+        this.allowByDefault = config.allowByDefault();
     }
 
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
         String clientIp = getClientIp(req);
 
-        boolean allowed;
-        if (whitelist != null && !whitelist.isEmpty()) {
-            allowed = whitelist.contains(clientIp);
-        } else if (blacklist != null && !blacklist.isEmpty()){
-            allowed = !blacklist.contains(clientIp);
+        if (isAllowed(clientIp)) {
+            chain.doFilter(req, res);
         } else {
-            allowed = true;
-        }
-
-        if(!allowed){
             forbidden(res, clientIp);
-            return;
         }
-        chain.doFilter(req, res);
+    }
+
+    public boolean isAllowed(String ip) {
+
+        if (whitelist.contains(ip) && blacklist.contains(ip)) return allowByDefault;
+
+        if (whitelist.contains(ip)) return true;
+
+        if (blacklist.contains(ip)) return false;
+
+        return allowByDefault;
     }
 
     private String getClientIp(HttpRequest req){

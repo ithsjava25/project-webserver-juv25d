@@ -26,7 +26,6 @@ class LoggingFilterTest {
 
     @Test
     void logsHttpMethodAndPath() throws IOException {
-
         LoggingFilter filter = new LoggingFilter();
         HttpRequest req = mock(HttpRequest.class);
         HttpResponse res = mock(HttpResponse.class);
@@ -35,17 +34,28 @@ class LoggingFilterTest {
         when(req.method()).thenReturn("GET");
         when(req.path()).thenReturn("/test");
 
-        var originalOut = System.out;
-        var out = new java.io.ByteArrayOutputStream();
-        System.setOut(new java.io.PrintStream(out));
+        java.util.logging.Logger logger = org.juv25d.logging.ServerLogging.getLogger();
+        java.util.List<java.util.logging.LogRecord> records = new java.util.ArrayList<>();
+        java.util.logging.Handler handler = new java.util.logging.Handler() {
+            @Override
+            public void publish(java.util.logging.LogRecord record) {
+                records.add(record);
+            }
+            @Override
+            public void flush() {}
+            @Override
+            public void close() throws SecurityException {}
+        };
+        logger.addHandler(handler);
 
         try {
             filter.doFilter(req, res, chain);
 
-            String output = out.toString();
-            assertTrue(output.contains("GET /test"), "Output should contain logged method and path");
+            boolean found = records.stream()
+                .anyMatch(r -> r.getMessage().contains("GET /test"));
+            assertTrue(found, "Logger should have captured the method and path");
         } finally {
-            System.setOut(originalOut);
+            logger.removeHandler(handler);
         }
     }
 }

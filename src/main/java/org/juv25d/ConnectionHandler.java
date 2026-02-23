@@ -25,6 +25,8 @@ public class ConnectionHandler implements Runnable {
 
     @Override
     public void run() {
+        String connectionId = java.util.UUID.randomUUID().toString().substring(0, 8);
+        org.juv25d.logging.LogContext.setConnectionId(connectionId);
         try (socket) {
             var in = socket.getInputStream();
             var out = socket.getOutputStream();
@@ -56,6 +58,8 @@ public class ConnectionHandler implements Runnable {
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error while handling request", e);
+        } finally {
+            org.juv25d.logging.LogContext.clear();
         }
     }
 }

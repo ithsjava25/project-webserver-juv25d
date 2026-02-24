@@ -59,9 +59,9 @@ public class Container {
 
     /**
      * Registers a pre-created instance as a bean.
-     * <p>
+     *
      * This is typically used for:
-     * <p>
+     *
      * Configuration objects
      * External dependencies
      * Manually constructed services
@@ -76,7 +76,7 @@ public class Container {
 
     /**
      * Binds an interface (or abstraction) to a concrete implementation.
-     * <p>
+     *
      * When the abstraction is requested, the container will resolve
      * the specified implementation instead.
      *
@@ -101,9 +101,9 @@ public class Container {
 
     /**
      * Creates a new instance of a class using constructor injection.
-     * <p>
+     *
      * The constructor is selected based on:
-     * <p>
+     *
      * {@code @Inject} annotation (highest priority)
      * Largest resolvable constructor<
      *
@@ -128,9 +128,9 @@ public class Container {
 
     /**
      * Resolves a type into a fully constructed instance.
-     * <p>
+     *
      * This method:
-     * <p>
+     *
      * Returns existing beans if available.
      * Resolves interface bindings.
      * Detects circular dependencies per thread.
@@ -212,9 +212,9 @@ public class Container {
 
     /**
      * Selects the most appropriate constructor for instantiation.
-     * <p>
+     *
      * Selection rules:
-     * <p>
+     *
      * If exactly one constructor is annotated with {@code @Inject}, use it
      * Otherwise, choose the largest constructor whose parameters can all be resolved
      *

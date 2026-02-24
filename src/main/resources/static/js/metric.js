@@ -2,7 +2,7 @@ async function loadHealth() {
     try {
         const res = await fetch("/metric");
         if (res.status === 429) {
-            globalThis.location.href = "/rate-limited";
+            globalThis.location.href = "/";
             return;
         }
         if (!res.ok) {

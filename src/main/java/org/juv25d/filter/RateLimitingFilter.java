@@ -183,6 +183,7 @@ public class RateLimitingFilter implements Filter {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
         res.setHeader("Retry-After", "60");
+        res.setHeader("Cache-Control", "no-store");
         res.setBody(body);
     }
 

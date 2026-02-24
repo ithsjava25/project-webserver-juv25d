@@ -18,6 +18,7 @@ import java.io.IOException;
  * <p>This filter is typically used when the server is running behind a
  * reverse proxy or load balancer.</p>
  */
+// Order is set to default / 0 until the filter order is finalized.
 @Global(order = 0)
 public class ForwardedHeaderFilter implements Filter {
 

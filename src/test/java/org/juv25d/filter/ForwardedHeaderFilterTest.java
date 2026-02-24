@@ -61,4 +61,21 @@ class ForwardedHeaderFilterTest {
         assertEquals("123.0.0.1", captor.getValue().remoteIp());
     }
 
+    @Test
+    void shouldPassOnRequest_ifHeaderIsBlank() throws IOException {
+        // Arrange
+        ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
+        Mockito.when(req.remoteIp()).thenReturn("123.0.0.1");
+        Mockito.when(req.headers()).thenReturn(Map.of("X-Forwarded-For", ""));
+
+        ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
+
+        // Act
+        filter.doFilter(req, res, chain);
+
+        // Assert
+        verify(chain).doFilter(captor.capture(), Mockito.eq(res));
+        assertEquals("123.0.0.1", captor.getValue().remoteIp());
+    }
+
 }

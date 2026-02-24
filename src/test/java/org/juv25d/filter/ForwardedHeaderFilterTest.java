@@ -25,12 +25,12 @@ class ForwardedHeaderFilterTest {
     @Mock
     private FilterChain chain;
 
-    private final String expectedForwardedHeader = "127.0.0.1, 83.2.0.12";
     private final String expectedRemoteIp = "127.0.0.1";
 
     @Test
     void shouldSetRemoteIp_fromForwardedHeader() throws IOException {
         // Arrange
+        String expectedForwardedHeader = "127.0.0.1, 83.2.0.12";
         ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
         Mockito.when(req.headers()).thenReturn(Map.of("X-Forwarded-For", expectedForwardedHeader));
 
@@ -48,7 +48,7 @@ class ForwardedHeaderFilterTest {
     void shouldPassOnRequest_ifHeaderNotPresent() throws IOException {
         // Arrange
         ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
-        Mockito.when(req.remoteIp()).thenReturn("123.0.0.1");
+        Mockito.when(req.remoteIp()).thenReturn(expectedRemoteIp);
         Mockito.when(req.headers()).thenReturn(Map.of());
 
         ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
@@ -58,14 +58,14 @@ class ForwardedHeaderFilterTest {
 
         // Assert
         verify(chain).doFilter(captor.capture(), Mockito.eq(res));
-        assertEquals("123.0.0.1", captor.getValue().remoteIp());
+        assertEquals(expectedRemoteIp, captor.getValue().remoteIp());
     }
 
     @Test
     void shouldPassOnRequest_ifHeaderIsBlank() throws IOException {
         // Arrange
         ForwardedHeaderFilter filter = new ForwardedHeaderFilter();
-        Mockito.when(req.remoteIp()).thenReturn("123.0.0.1");
+        Mockito.when(req.remoteIp()).thenReturn(expectedRemoteIp);
         Mockito.when(req.headers()).thenReturn(Map.of("X-Forwarded-For", ""));
 
         ArgumentCaptor<HttpRequest> captor = ArgumentCaptor.forClass(HttpRequest.class);
@@ -75,7 +75,6 @@ class ForwardedHeaderFilterTest {
 
         // Assert
         verify(chain).doFilter(captor.capture(), Mockito.eq(res));
-        assertEquals("123.0.0.1", captor.getValue().remoteIp());
+        assertEquals(expectedRemoteIp, captor.getValue().remoteIp());
     }
-
 }

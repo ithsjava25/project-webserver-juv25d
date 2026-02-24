@@ -28,8 +28,7 @@ public class App {
         Server server = new Server(
             config.getPort(),
             logger,
-            handlerFactory,
-            pipeline
+            handlerFactory
         );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

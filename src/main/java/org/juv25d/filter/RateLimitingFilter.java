@@ -91,7 +91,10 @@ public class RateLimitingFilter implements Filter {
      */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
-        if (!enabled) {chain.doFilter(req, res);return;}
+        if (!enabled) {
+            chain.doFilter(req, res);
+            return;
+        }
 
         String clientIp = getClientIp(req);
 
@@ -101,7 +104,7 @@ public class RateLimitingFilter implements Filter {
             chain.doFilter(req, res);
         } else {
             logRateLimitExceeded(clientIp, req.method(), req.path());
-            sendTooManyRequests(res, clientIp);
+            sendTooManyRequests(res);
         }
     }
 
@@ -135,29 +138,42 @@ public class RateLimitingFilter implements Filter {
         ));
     }
 
-    private void sendTooManyRequests(HttpResponse res, String ip) {
+    private void sendTooManyRequests(HttpResponse res) {
         String html = """
             <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>429 Too Many Requests</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        max-width: 600px;
-                        margin: 100px auto;
-                        text-align: center;
-                    }
-                    h1 { color: #e74c3c; }
-                    p { color: #666; }
-                </style>
-            </head>
-            <body>
-                <h1>429 - Too Many Requests</h1>
-                <p>You've exceeded the rate limit. Please wait a moment and try again.</p>
-            </body>
-            </html>
+                   <html>
+                   <head>
+                       <meta charset="UTF-8">
+                       <title>429 Too Many Requests</title>
+                       <style>
+                           body {
+                               font-family: Arial, sans-serif;
+                               max-width: 600px;
+                               margin: 100px auto;
+                               text-align: center;
+                           }
+                           h1 { color: #e74c3c; }
+                           p { color: #666; }
+                       </style>
+                   </head>
+                   <body>
+                   <h1>429 - Too Many Requests</h1>
+                   <p>You've exceeded the rate limit. Please wait a moment and try again.</p>
+                   <p>You will be able to retry in <span id="countdown">60</span> seconds.</p>
+                   <script>
+                       let seconds = 60;
+                       const el = document.getElementById('countdown');
+                       const timer = setInterval(() => {
+                           seconds--;
+                           el.textContent = seconds;
+                           if (seconds <= 0) {
+                               clearInterval(timer);
+                               window.location.href = '/';
+                           }
+                       }, 1000);
+                   </script>
+                   </body>
+                   </html>
             """;
 
         byte[] body = html.getBytes(StandardCharsets.UTF_8);

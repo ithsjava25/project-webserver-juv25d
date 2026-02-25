@@ -17,7 +17,7 @@ public class DefaultConnectionHandlerFactory implements ConnectionHandlerFactory
     }
 
     @Override
-    public Runnable create(Socket socket, Pipeline pipeline) {
-        return new ConnectionHandler(socket, httpParser, logger, pipeline);
+    public Runnable create(Socket socket) {
+        return new ConnectionHandler(socket, httpParser, logger, this.pipeline);
     }
 }

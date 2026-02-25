@@ -1,3 +1,5 @@
 target/
 /.idea/
 /META-INF
+
+.DS_Store

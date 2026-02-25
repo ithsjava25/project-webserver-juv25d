@@ -6,12 +6,14 @@ COPY pom.xml pom.xml
 RUN mvn dependency:go-offline -B
 
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -Dmaven.shade.skip=true
+RUN mvn dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime
 
 FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /app
 
-# might need to update this later when we have our explicit class names
-COPY --from=build /app/target/app.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY --from=build /app/target/deps/     libs/
+COPY --from=build /app/target/classes/  classes/
+
+ENTRYPOINT ["java", "-cp", "classes:libs/*","org.juv25d.App"]

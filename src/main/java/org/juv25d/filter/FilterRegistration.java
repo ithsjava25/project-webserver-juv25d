@@ -1,7 +1,6 @@
-package org.juv25d;
+package org.juv25d.filter;
 
 import org.jspecify.annotations.Nullable;
-import org.juv25d.filter.Filter;
 
 public record FilterRegistration(Filter filter, int order, @Nullable String pattern)
     implements Comparable<FilterRegistration> {

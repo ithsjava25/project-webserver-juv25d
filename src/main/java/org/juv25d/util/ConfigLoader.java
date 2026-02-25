@@ -1,9 +1,13 @@
 package org.juv25d.util;
 
 import org.jspecify.annotations.Nullable;
+import org.juv25d.proxy.ProxyRoute;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
@@ -15,10 +19,16 @@ public class ConfigLoader {
     private long requestsPerMinute;
     private long burstCapacity;
     private boolean rateLimitingEnabled;
+    private List<ProxyRoute> proxyRoutes = new ArrayList<>();
 
     private ConfigLoader() {
-        loadConfiguration();
-    }
+        loadConfiguration(getClass().getClassLoader()
+            .getResourceAsStream("application-properties.yml")); }
+
+    // new constructor for testing
+    ConfigLoader(InputStream input) {
+        loadConfiguration(input); }
+
 
     public static synchronized ConfigLoader getInstance() {
         if (instance == null) {
@@ -27,42 +37,74 @@ public class ConfigLoader {
         return instance;
     }
 
-    private void loadConfiguration() {
+    private void loadConfiguration(InputStream input) {
         Yaml yaml = new Yaml();
 
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application-properties.yml")) {
-            if (input == null) {
-                throw new IllegalArgumentException("Did not find application-properties.yml");
-            }
+        if (input == null) {
+            throw new IllegalArgumentException("Did not find application-properties.yml");
+        }
+        try (input) {
 
             Map<String, Object> config = yaml.load(input);
+            if (config == null) config = Map.of();
+
+            // defaults always
+            this.port = 8080;
+            this.rootDirectory = "static";
+            this.logLevel = "INFO";
 
             // server
-            Map<String, Object> serverConfig = (Map<String, Object>) config.get("server");
-            if (serverConfig != null) {
-                this.port = (Integer) serverConfig.getOrDefault("port", 8080);
-                this.rootDirectory = (String) serverConfig.getOrDefault("root-dir", "static");
+            Object serverObj = config.get("server");
+            Map<String, Object> serverConfig = asStringObjectMap(serverObj);
+            if (serverConfig != null && serverObj != null) {
+                Object portValue = serverConfig.get("port");
+                if (portValue instanceof Number n) this.port = n.intValue();
+
+                Object root = serverConfig.get("root-dir");
+                if (root != null) this.rootDirectory = String.valueOf(root);
+
+                // proxy routes
+                Object proxyObj = serverConfig.get("proxy");
+                Map<String, Object> proxyConfig = asStringObjectMap(proxyObj);
+                if (proxyConfig != null && proxyObj != null) {
+                    List<Map<String, Object>> routes = (List<Map<String, Object>>) proxyConfig.get("routes");
+                    if (routes != null) {
+                        for (Map<String, Object> route : routes) {
+                            String baseRoute = String.valueOf(route.get("base-route"));
+                            String upstreamUrl = String.valueOf(route.get("upstream-url"));
+                            this.proxyRoutes.add(new ProxyRoute(baseRoute, upstreamUrl));
+                        }
+                    }
+                }
             }
 
             // logging
-            Map<String, Object> loggingConfig = (Map<String, Object>) config.get("logging");
-            if (loggingConfig != null) {
-                this.logLevel = (String) loggingConfig.getOrDefault("level", "INFO");
+            Object loggingObj = config.get("logging");
+            Map<String, Object> loggingConfig = asStringObjectMap(loggingObj);
+            if (loggingConfig != null && loggingObj != null) {
+                Object level = loggingConfig.get("level");
+                if (level != null) this.logLevel = String.valueOf(level);
             }
 
             // rate-limiting
-            Map<String, Object> rateLimitingConfig = (Map<String, Object>) config.get("rate-limiting");
-            if (rateLimitingConfig != null) {
-                this.rateLimitingEnabled = (Boolean) rateLimitingConfig.getOrDefault("enabled", true);
-                this.requestsPerMinute = ((Number) rateLimitingConfig.getOrDefault("requests-per-minute", 60L)).longValue();
-                this.burstCapacity = ((Number) rateLimitingConfig.getOrDefault("burst-capacity", 100L)).longValue();
-            } else {
-                // rate-limiting is disabled if not present in the config file.
-                this.rateLimitingEnabled = false;
+            // defaults (consistent pattern)
+            this.rateLimitingEnabled = false;
+
+            Object rateLimitObj = config.get("rate-limiting");
+            Map<String, Object> rateLimitingConfig = asStringObjectMap(rateLimitObj);
+            if (rateLimitingConfig != null && rateLimitObj != null) {
+                this.rateLimitingEnabled =
+                    Boolean.parseBoolean(String.valueOf(rateLimitingConfig.getOrDefault("enabled", false)));
+
+                this.requestsPerMinute =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("requests-per-minute", 60L)));
+
+                this.burstCapacity =
+                    Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load application config");
+            throw new RuntimeException("Failed to load application config", e);
         }
     }
 
@@ -78,6 +120,13 @@ public class ConfigLoader {
         return rootDirectory;
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> asStringObjectMap(Object value) {
+        if (value instanceof Map<?, ?> map) {
+            return (Map<String, Object>) map;
+        }
+        return Collections.emptyMap();
+    }
     public long getRequestsPerMinute() {
         return requestsPerMinute;
     }
@@ -88,5 +137,9 @@ public class ConfigLoader {
 
     public boolean isRateLimitingEnabled() {
         return rateLimitingEnabled;
+    }
+
+    public List<ProxyRoute> getProxyRoutes() {
+        return Collections.unmodifiableList(proxyRoutes);
     }
 }

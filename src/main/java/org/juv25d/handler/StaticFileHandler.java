@@ -166,8 +166,7 @@ public class StaticFileHandler {
         }
     }
 
-    @Nullable
-    private static String getHeaderIgnoreCase(Map<String, String> headers, String name) {
+    @Nullable private static String getHeaderIgnoreCase(Map<String, String> headers, String name) {
        if (headers == null || headers.isEmpty() || name == null) {
            return null;
        }
@@ -200,8 +199,7 @@ public class StaticFileHandler {
         return new String(out);
     }
 
-    @Nullable
-    private static String opaqueTag(@Nullable String etag) {
+    @Nullable private static String opaqueTag(@Nullable String etag) {
         if (etag == null) return null;
         String e = etag.trim();
         return e.startsWith("W/") ? e.substring(2) : e;

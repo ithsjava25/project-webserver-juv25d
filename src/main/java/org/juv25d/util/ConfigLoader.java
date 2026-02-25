@@ -11,8 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ConfigLoader {
-    @Nullable
-    private static ConfigLoader instance;
+    @Nullable private static ConfigLoader instance;
     private int port;
     private String logLevel = "INFO";
     private String rootDirectory = "static";

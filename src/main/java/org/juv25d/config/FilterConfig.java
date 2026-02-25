@@ -11,8 +11,7 @@ public class FilterConfig {
         this.params = params;
     }
 
-    @Nullable
-    public String get(String key) {
+    @Nullable public String get(String key) {
         return params.get(key);
     }
 }

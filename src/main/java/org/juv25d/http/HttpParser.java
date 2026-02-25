@@ -64,8 +64,7 @@ public class HttpParser {
         return new HttpRequest(method, path, query, version, headers, body, "UNKNOWN");
     }
 
-    @Nullable
-    private String readLine(InputStream in) throws IOException {
+    @Nullable private String readLine(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
         int b;
         while ((b = in.read()) != -1) {

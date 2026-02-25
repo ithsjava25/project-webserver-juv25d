@@ -32,6 +32,7 @@ public class App {
         );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            pipeline.stop();
             logger.info("Server shutting down...");
         }));
 

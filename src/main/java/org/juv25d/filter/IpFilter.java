@@ -9,6 +9,23 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+
+/**
+ * Global IP-based request filter.
+ *
+ * <p>The filter runs early in the request pipeline and determines whether a request
+ * should be allowed to continue based on the client's IP address.</p>
+ *
+ * <p>Decision rules:</p>
+ * <ul>
+ *     <li>If an IP is present in the whitelist, it is allowed.</li>
+ *     <li>If an IP is present in the blacklist, it is denied.</li>
+ *     <li>If an IP is present in both lists, {@code allowByDefault} is used.</li>
+ *     <li>If an IP is present in neither list, {@code allowByDefault} is used.</li>
+ * </ul>
+ *
+ * <p>The default constructor loads configuration from {@link IpFilterConfig}.</p>
+ */
 @Global(order = 2)
 public class IpFilter implements Filter {
 
@@ -16,6 +33,14 @@ public class IpFilter implements Filter {
     private final Set<String> blacklist = new HashSet<>();
 
     private final boolean allowByDefault;
+
+    /**
+     * Creates an {@code IpFilter} with explicit configuration.
+     *
+     * @param whitelist IP addresses that should be allowed (may be {@code null})
+     * @param blacklist IP addresses that should be denied (may be {@code null})
+     * @param allowByDefault fallback decision when an IP is not listed, or listed in both sets
+     */
 
     public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
         if (whitelist != null) {
@@ -26,6 +51,10 @@ public class IpFilter implements Filter {
         }
         this.allowByDefault = allowByDefault;
     }
+
+    /**
+     * Creates an {@code IpFilter} using configuration loaded from {@link IpFilterConfig}
+     */
 
     public IpFilter() {
         IpFilterConfig config = new IpFilterConfig();
@@ -45,8 +74,16 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Evaluates whether the given IP address should be allowed.
+     *
+     * @param ip client IP address
+     * @return {@code true} if the request is allowed, {@code false} otherwise
+     */
+
     public boolean isAllowed(String ip) {
 
+        // If an IP exists in both lists, fall back to allowByDefault
         if (whitelist.contains(ip) && blacklist.contains(ip)) return allowByDefault;
 
         if (whitelist.contains(ip)) return true;

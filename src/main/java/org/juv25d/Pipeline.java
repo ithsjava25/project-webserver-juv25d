@@ -22,4 +22,8 @@ public class Pipeline {
         List<Filter> filters = matcher.match(request);
         return new FilterChainImpl(filters, router);
     }
+
+    public void stop() {
+        matcher.destroy();
+    }
 }

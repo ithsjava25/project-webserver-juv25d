@@ -218,7 +218,8 @@ public class StaticFileHandler {
 
         String[] parts = value.split(",");
         for (String part : parts) {
-            if (part != null && opaqueTag(part) != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
+            String tag = opaqueTag(part);
+            if (part != null && tag != null && tag.equals(opaqueTag(currentEtag))) {
                 return true;
             }
         }

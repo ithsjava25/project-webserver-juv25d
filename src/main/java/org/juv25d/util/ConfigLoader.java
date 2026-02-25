@@ -55,8 +55,8 @@ public class ConfigLoader {
 
             // server
             Object serverObj = config.get("server");
-            Map<String, Object> serverConfig = asStringObjectMap(serverObj);
-            if (serverConfig != null && serverObj != null) {
+            if (serverObj != null) {
+                Map<String, Object> serverConfig = asStringObjectMap(serverObj);
                 Object portValue = serverConfig.get("port");
                 if (portValue instanceof Number n) this.port = n.intValue();
 
@@ -65,8 +65,8 @@ public class ConfigLoader {
 
                 // proxy routes
                 Object proxyObj = serverConfig.get("proxy");
-                Map<String, Object> proxyConfig = asStringObjectMap(proxyObj);
-                if (proxyConfig != null && proxyObj != null) {
+                if (proxyObj != null) {
+                    Map<String, Object> proxyConfig = asStringObjectMap(proxyObj);
                     List<Map<String, Object>> routes = (List<Map<String, Object>>) proxyConfig.get("routes");
                     if (routes != null) {
                         for (Map<String, Object> route : routes) {
@@ -80,8 +80,8 @@ public class ConfigLoader {
 
             // logging
             Object loggingObj = config.get("logging");
-            Map<String, Object> loggingConfig = asStringObjectMap(loggingObj);
-            if (loggingConfig != null && loggingObj != null) {
+            if (loggingObj != null) {
+                Map<String, Object> loggingConfig = asStringObjectMap(loggingObj);
                 Object level = loggingConfig.get("level");
                 if (level != null) this.logLevel = String.valueOf(level);
             }
@@ -91,8 +91,8 @@ public class ConfigLoader {
             this.rateLimitingEnabled = false;
 
             Object rateLimitObj = config.get("rate-limiting");
-            Map<String, Object> rateLimitingConfig = asStringObjectMap(rateLimitObj);
-            if (rateLimitingConfig != null && rateLimitObj != null) {
+            if (rateLimitObj != null) {
+                Map<String, Object> rateLimitingConfig = asStringObjectMap(rateLimitObj);
                 this.rateLimitingEnabled =
                     Boolean.parseBoolean(String.valueOf(rateLimitingConfig.getOrDefault("enabled", false)));
 
@@ -121,7 +121,7 @@ public class ConfigLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> asStringObjectMap(Object value) {
+    private static Map<String, Object> asStringObjectMap(@Nullable Object value) {
         if (value instanceof Map<?, ?> map) {
             return (Map<String, Object>) map;
         }

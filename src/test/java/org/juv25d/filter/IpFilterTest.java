@@ -1,24 +1,48 @@
 package org.juv25d.filter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class IpFilterTest {
 
-    HttpRequest req = mock(HttpRequest.class);
-    HttpResponse res = new HttpResponse();
-    FilterChain chain  = mock(FilterChain.class);
+    HttpRequest req;
+    HttpResponse res;
+    FilterChain chain;
+
+    @BeforeEach
+    void setUp() {
+        req = mock(HttpRequest.class);
+        when(req.headers()).thenReturn(Map.of());
+        when(req.remoteIp()).thenReturn("127.0.0.1");
+
+        res = new HttpResponse();
+        chain = mock(FilterChain.class);
+    }
 
     @Test
     void whitelist_allowsIp() throws IOException {
         IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false);
 
-        when(req.remoteIp()).thenReturn("127.0.0.1");
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertEquals(200, res.statusCode());
+    }
+
+    @Test
+    void whitelist_allowsIpInRange() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("127.0.0.0/24"), null, false);
 
         filter.doFilter(req, res, chain);
 
@@ -30,21 +54,27 @@ class IpFilterTest {
     void blacklist_blocksIp() throws IOException {
         IpFilter filter = new IpFilter(null, Set.of("127.0.0.1"), true);
 
-        when(req.remoteIp()).thenReturn("127.0.0.1");
+        filter.doFilter(req, res, chain);
+        verify(chain, never()).doFilter(req, res);
+
+        assertEquals(403, res.statusCode());
+        assertEquals("Forbidden", res.statusText());
+    }
+
+    @Test
+    void blacklist_blocksIpInRange() throws IOException {
+        IpFilter filter = new IpFilter(null, Set.of("127.0.0.0/24"), true);
 
         filter.doFilter(req, res, chain);
         verify(chain, never()).doFilter(req, res);
 
         assertEquals(403, res.statusCode());
         assertEquals("Forbidden", res.statusText());
-
     }
 
     @Test
-    void allowsIP_inBothList_defaultTrue() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.1"), true);
-
-        when(req.remoteIp()).thenReturn("127.0.0.1");
+    void whitelist_overrides_blacklist() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.0/24"), false);
 
         filter.doFilter(req, res, chain);
 
@@ -53,15 +83,174 @@ class IpFilterTest {
     }
 
     @Test
-    void blocksIP_inNeitherList_defaultFalse() throws IOException {
-        IpFilter filter = new IpFilter(null, null, false);
-
-        when(req.remoteIp()).thenReturn("127.0.0.1");
+    void mixedIpAndSubnet_bothWork() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1", "192.168.0.0/16"), null, false);
 
         filter.doFilter(req, res, chain);
-        verify(chain, never()).doFilter(req, res);
+        verify(chain).doFilter(req, res);
 
+        when(req.remoteIp()).thenReturn("192.168.5.100");
+        filter.doFilter(req, res, chain);
+        verify(chain, times(2)).doFilter(req, res);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void Ip_inNeitherList_followsDefault(boolean allowByDefault) throws IOException {
+        IpFilter filter = new IpFilter(null, null, allowByDefault);
+
+        filter.doFilter(req, res, chain);
+
+        if(allowByDefault) {
+            verify(chain).doFilter(req, res);
+            assertEquals(200, res.statusCode());
+        }
+        else  {
+            verify(chain, never()).doFilter(req, res);
+            assertEquals(403, res.statusCode());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
+    void addIpOrRange_whitelist(String ipOrCidr) throws IOException {
+        IpFilter filter = new IpFilter(null, null, false);
+        filter.addToWhitelist(ipOrCidr);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertEquals(200, res.statusCode());
+
+        assertTrue((filter.getWhitelistIps().contains(ipOrCidr)) || filter.getWhitelistSubnets().contains(ipOrCidr));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
+    void addIpOrRange_blacklist(String ipOrCidr) throws IOException {
+        IpFilter filter = new IpFilter(null, null, false);
+        filter.addToBlacklist(ipOrCidr);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(req, res);
         assertEquals(403, res.statusCode());
-        assertEquals("Forbidden", res.statusText());
+
+        assertTrue((filter.getBlacklistIps().contains(ipOrCidr)) || filter.getBlacklistSubnets().contains(ipOrCidr));
+    }
+
+    @Test
+    void doesNotAddDuplicates() {
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1", "127.0.0.0/24"), null, false);
+
+        filter.addToWhitelist("127.0.0.1");
+        filter.addToWhitelist("127.0.0.0/24"); // Add same CIDR twice
+
+        assertEquals(1, filter.getWhitelistIps().size());
+        assertEquals(1, filter.getWhitelistSubnets().size());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
+    void removeIpOrRange_whitelist(String ipOrCidr) throws IOException {
+        IpFilter filter = new IpFilter(Set.of(ipOrCidr), null, false);
+        filter.removeFromWhitelist(ipOrCidr);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(req, res);
+        assertEquals(403, res.statusCode());
+
+        assertFalse((filter.getWhitelistIps().contains(ipOrCidr)) || filter.getWhitelistSubnets().contains(ipOrCidr));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
+    void removeIpOrRange_blacklist(String ipOrCidr) throws IOException {
+        IpFilter filter = new IpFilter(null, Set.of(ipOrCidr), true);
+        filter.removeFromBlacklist(ipOrCidr);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertEquals(200, res.statusCode());
+
+        assertFalse((filter.getBlacklistIps().contains(ipOrCidr)) || filter.getBlacklistSubnets().contains(ipOrCidr));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void nullOrBlankIp_blocked(String ip) throws IOException {
+        IpFilter filter = new IpFilter(null, null, true);
+
+        when(req.remoteIp()).thenReturn(ip);
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(req, res);
+        assertEquals(403, res.statusCode());
+    }
+
+    @Test
+    void invalidCidr_loggedAndIgnored() {
+        IpFilter filter = new IpFilter(null, null, false);
+
+        filter.addToWhitelist("not-a-cidr/99");
+
+        assertEquals(0, filter.getWhitelistSubnets().size());
+    }
+
+    @Test
+    void get_returnsImmutableCopy() {
+        IpFilter filter = new IpFilter(null, null, false);
+
+        assertThrows(UnsupportedOperationException.class, () ->
+            filter.getWhitelistIps().add("test"));
+        assertThrows(UnsupportedOperationException.class, () ->
+            filter.getWhitelistSubnets().add("test"));
+        assertThrows(UnsupportedOperationException.class, () ->
+            filter.getBlacklistIps().add("test"));
+        assertThrows(UnsupportedOperationException.class, () ->
+            filter.getBlacklistSubnets().add("test"));
+    }
+
+    @Test
+    void xForwardedFor_takesFirstIp() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+
+        when(req.headers()).thenReturn(Map.of("X-Forwarded-For", "1.2.3.4, 5.6.7.8"));
+        when(req.remoteIp()).thenReturn("5.6.7.8");
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        assertEquals(200, res.statusCode());
+    }
+
+    @Test
+    void xRealIp_overridesRemoteIp() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+
+        when(req.headers()).thenReturn(Map.of("X-Real-IP", "1.2.3.4"));
+        when(req.remoteIp()).thenReturn("5.6.7.8");
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+    }
+
+    @Test
+    void xForwardedFor_priorityOverXRealIp() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+
+        when(req.headers()).thenReturn(Map.of(
+            "X-Forwarded-For", "1.2.3.4",
+            "X-Real-IP", "5.6.7.8"
+        ));
+        when(req.remoteIp()).thenReturn("9.9.9.9");
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
     }
 }

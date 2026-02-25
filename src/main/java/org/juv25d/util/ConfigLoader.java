@@ -4,10 +4,7 @@ import org.juv25d.proxy.ProxyRoute;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ConfigLoader {
     private static ConfigLoader instance;
@@ -17,6 +14,7 @@ public class ConfigLoader {
     private long requestsPerMinute;
     private long burstCapacity;
     private boolean rateLimitingEnabled;
+    private List<String> trustedProxies;
     private List<ProxyRoute> proxyRoutes = new ArrayList<>();
 
     private ConfigLoader() {
@@ -50,6 +48,7 @@ public class ConfigLoader {
             this.port = 8080;
             this.rootDirectory = "static";
             this.logLevel = "INFO";
+            this.trustedProxies = List.of();
 
             // server
             Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
@@ -59,6 +58,13 @@ public class ConfigLoader {
 
                 Object root = serverConfig.get("root-dir");
                 if (root != null) this.rootDirectory = String.valueOf(root);
+
+                Object trustedProxiesValue = serverConfig.get("trusted-proxies");
+                if (trustedProxiesValue instanceof List<?> list) {
+                    this.trustedProxies = list.stream()
+                        .map(String::valueOf)
+                        .toList();
+                }
 
                 // proxy routes
                 Map<String, Object> proxyConfig = asStringObjectMap(serverConfig.get("proxy"));
@@ -123,6 +129,10 @@ public class ConfigLoader {
     }
     public long getRequestsPerMinute() {
         return requestsPerMinute;
+    }
+
+    public List<String> getTrustedProxies() {
+        return trustedProxies;
     }
 
     public long getBurstCapacity() {

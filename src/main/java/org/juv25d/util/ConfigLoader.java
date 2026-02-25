@@ -19,11 +19,13 @@ public class ConfigLoader {
 
     private ConfigLoader() {
         loadConfiguration(getClass().getClassLoader()
-            .getResourceAsStream("application-properties.yml")); }
+            .getResourceAsStream("application-properties.yml"));
+    }
 
     // new constructor for testing
     ConfigLoader(InputStream input) {
-        loadConfiguration(input); }
+        loadConfiguration(input);
+    }
 
 
     public static synchronized ConfigLoader getInstance() {
@@ -62,7 +64,10 @@ public class ConfigLoader {
                 Object trustedProxiesValue = serverConfig.get("trusted-proxies");
                 if (trustedProxiesValue instanceof List<?> list) {
                     this.trustedProxies = list.stream()
+                        .filter(Objects::nonNull)
                         .map(String::valueOf)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
                         .toList();
                 }
 
@@ -127,6 +132,7 @@ public class ConfigLoader {
         }
         return Collections.emptyMap();
     }
+
     public long getRequestsPerMinute() {
         return requestsPerMinute;
     }

@@ -106,9 +106,9 @@ public class ArchitectureTest {
                     .or(simpleName("FilterChain"))
                     .or(simpleName("FilterChainImpl"))
                     .or(resideInAPackage("..filter.."))
-                    .or(simpleName("ConnectionHandler"))) //This needs to be accessed because connectionhandler creates doFilter()
+                    .or(simpleName("ConnectionHandler"))) //This needs to be accessed because ConnectionHandler creates doFilter()
             .as("FilterChain access rule")
-            .because("FilterChain should only be accessed by Pipeline")
+            .because("FilterChain should only be accessed by Pipeline, ConnectionHandler")
             .check(importedClasses);
     }
 
@@ -128,7 +128,7 @@ public class ArchitectureTest {
                     .or(simpleName("Pipeline")) //Pipeline injects router
                     .or(simpleName("App"))) //App Creates router
             .as("Router access rule")
-            .because("Router should only be accessed by FilterChain")
+            .because("Router should only be accessed by FilterChain, Pipeline, App")
             .check(importedClasses);
     }
 
@@ -147,7 +147,24 @@ public class ArchitectureTest {
                     .or(simpleName("App")) //App creates plugin
                     .or(simpleName("FilterChainImpl"))) //FilterChainImpl calls the plugin after the router has decided which one to run.
             .as("Plugin access rule")
-            .because("Plugins should only be managed by the Router or during startup")
+            .because("Plugins should only be managed by the Router, App, FilterChainImpl")
+            .check(importedClasses);
+    }
+
+    /**
+     * The HttpResponseWriter is the final step in the request lifecycle, responsible for delivering the response to the client.
+     * This rule ensures that only the ConnectionHandler accesses it, guaranteeing controlled delivery and architectural integrity.
+     */
+    @Test
+    void httpResponseWriterAccessRule() {
+        ArchRuleDefinition.classes()
+            .that().haveSimpleName("HttpResponseWriter")
+            .should().onlyBeAccessed().byClassesThat(
+                simpleName("ConnectionHandler")
+                    .or(simpleName("HttpResponseWriter")))
+            .as("HttpResponseWriter access rule")
+            .because("HttpResponseWriter is the final step in the lifecycle and should" +
+                "only be used by ConnectionHandler to ensure controlled delivery")
             .check(importedClasses);
     }
 }

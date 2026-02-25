@@ -9,8 +9,7 @@ public class LogContext {
         connectionId.set(id);
     }
 
-    @Nullable
-    public static String getConnectionId() {
+    @Nullable public static String getConnectionId() {
         return connectionId.get();
     }
 

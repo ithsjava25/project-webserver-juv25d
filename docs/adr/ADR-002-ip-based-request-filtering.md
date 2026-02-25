@@ -10,11 +10,11 @@
 ## Context
 
 We want to restrict access to the HTTP server based on the client IP address.
-This should happen early in the request, before any rout/handler/static file logic.
+This should happen early in the request, before any route/handler/static file logic.
 
 The initial implementation should be simple, easy to configure and safe to use during group development.
 
---
+---
 
 ## Decision
 
@@ -28,7 +28,7 @@ The filter supports three modes:
 
 The initial implementation uses **exact IP address matching**.
 
---
+---
 
 ## Rationale
 
@@ -37,10 +37,10 @@ The design prioritizes:
 - simple configuration
 - low friction for development environments
 
-Whitelist and blacklist are intentionally treated as separate configurations approaches.
+Whitelist and blacklist are intentionally treated as separate configuration approaches.
 Using both simultaneously can be ambiguous, so the project can either document precedence rules or enforce a single-mode configuration in future iterations.
 
---
+---
 
 ## Consequences
 
@@ -51,7 +51,7 @@ Using both simultaneously can be ambiguous, so the project can either document p
 
 ### Trade-offs
 - Exact IP matching only.
-- Potential ambiguous if both lists are configured
+- Potential ambiguity if both lists are configured
 
 ---
 
@@ -63,6 +63,3 @@ Using both simultaneously can be ambiguous, so the project can either document p
 **Status:** considered for future refinement if the team wants stricter validation
 
 ---
-
-
-

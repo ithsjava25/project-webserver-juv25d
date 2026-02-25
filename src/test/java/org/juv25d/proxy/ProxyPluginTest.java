@@ -29,7 +29,9 @@ class ProxyPluginTest {
 
     @Nested
     class IntegrationTests {
+        @org.jspecify.annotations.Nullable
         private ProxyRoute proxyRoute;
+        @org.jspecify.annotations.Nullable
         private ProxyPlugin proxyPlugin;
 
         @DisplayName("should handle the request to an invalid upstream and return 502")

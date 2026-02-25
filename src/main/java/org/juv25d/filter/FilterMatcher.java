@@ -42,4 +42,8 @@ public class FilterMatcher {
 
         return false;
     }
+
+    public void destroy() {
+        registry.shutdown();
+    }
 }

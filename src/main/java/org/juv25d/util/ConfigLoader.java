@@ -122,6 +122,12 @@ public class ConfigLoader {
                     Long.parseLong(String.valueOf(bodySizeConfig.getOrDefault("max-size-mb", 10L)));
             }
 
+            if (this.maxBodySizeMb <= 0) {
+                throw new IllegalArgumentException(
+                    "request-body-size.max-size-mb must be greater than 0, got: " + this.maxBodySizeMb
+                );
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to load application config", e);
         }

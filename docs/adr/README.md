@@ -47,6 +47,7 @@ An ADR can have one of the following statuses:
 | ADR | Title | Status | Date |
 |-----|-------|--------|------|
 | [001](ADR-001-static-file-serving-architecture.md) | Static File Serving Architecture | Accepted | 2026-02-11 |
+| [002](ADR-002-ip-based-request-filtering.md) | IP-based Request Filtering | Accepted | 2026-02-25 |
 
 ---
 

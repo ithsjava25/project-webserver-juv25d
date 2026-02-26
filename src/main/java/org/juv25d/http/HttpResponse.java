@@ -11,7 +11,7 @@ public class HttpResponse {
 
     private int statusCode;
     private String statusText;
-    private final Map<String, String> headers;
+    private Map<String, String> headers;
     private byte[] body;
 
     public HttpResponse() {
@@ -47,6 +47,18 @@ public class HttpResponse {
 
     public Map<String, String> headers() {
         return headers;
+    }
+
+    public String getHeader(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (var entry : headers.entrySet()) {
+            if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     public void setHeader(String name, String value) {

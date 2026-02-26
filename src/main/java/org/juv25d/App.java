@@ -7,6 +7,7 @@ import org.juv25d.http.HttpParser;
 import org.juv25d.router.SimpleRouter;
 import org.juv25d.util.ConfigLoader;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class App {
@@ -32,7 +33,15 @@ public class App {
         );
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Server shutting down...");
+            logger.info("Shutting down...");
+            try {
+                pipeline.stop();
+                logger.info("Shutdown successful");
+            }catch (Exception ex){
+                logger.log(Level.SEVERE, "Error stopping server", ex);
+            }finally {
+                logger.info("Shutdown hook finished");
+            }
         }));
 
         server.start();

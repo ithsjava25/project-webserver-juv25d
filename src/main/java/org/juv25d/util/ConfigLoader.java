@@ -3,10 +3,9 @@ package org.juv25d.util;
 import org.jspecify.annotations.Nullable;
 import org.juv25d.proxy.ProxyRoute;
 import org.yaml.snakeyaml.Yaml;
-
 import java.io.InputStream;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 public class ConfigLoader {
     @Nullable private static ConfigLoader instance;

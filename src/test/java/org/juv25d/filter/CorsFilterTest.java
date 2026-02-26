@@ -59,7 +59,9 @@ public class CorsFilterTest {
         assertEquals(204, res.statusCode());
         assertEquals("No Content", res.statusText());
         assertEquals("http://localhost:3000", res.getHeader("Access-Control-Allow-Origin"));
-        assertTrue(res.getHeader("Access-Control-Allow-Methods").contains("GET"));
+        String methods = res.getHeader("Access-Control-Allow-Methods");
+        assertNotNull(methods);
+        assertTrue(methods.contains("GET"));
         assertEquals("Content-Type", res.getHeader("Access-Control-Allow-Headers"));
         assertArrayEquals(new byte[0], res.body());
     }

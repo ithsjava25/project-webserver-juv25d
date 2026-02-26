@@ -54,6 +54,21 @@ public class BodySizeFilterTest {
 
     }
 
+    @Test
+    void shouldAllowRequest_whenMethodIsPut() throws IOException {
+        // TODO: implementera filter
+    }
+
+    @Test
+    void shouldAllowRequest_whenMethodIsPatch() throws IOException {
+        // TODO: implementera filter
+    }
+
+    @Test
+    void shouldBlockRequest_whenContentLengthInvalid() throws IOException {
+        // TODO: implementera filter
+    }
+
 
 
 

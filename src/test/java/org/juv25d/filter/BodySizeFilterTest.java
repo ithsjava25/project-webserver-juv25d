@@ -119,7 +119,29 @@ public class BodySizeFilterTest {
         verify(res).setStatusCode(413);
     }
 
+    @Test
+    void shouldBlockRequest_whenContentLengthNegative() throws IOException {
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "-1"));
 
+        filter.doFilter(req, res, chain);
+
+        verifyNoInteractions(chain);
+        verify(res).setStatusCode(413);
+    }
+
+    @Test
+    void shouldAllowRequest_whenContentLengthHeaderLowercase() throws IOException {
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("content-length", "5"));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
+        verifyNoInteractions(res);
+    }
 
 
 

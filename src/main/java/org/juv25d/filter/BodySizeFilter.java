@@ -10,6 +10,7 @@ import org.juv25d.logging.ServerLogging;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.logging.Logger;
 
 @Global(order = 1)
@@ -50,7 +51,11 @@ public class BodySizeFilter implements Filter{
         }
 
         if (shouldCheckBodySize(req)) {
-            String contentLength = req.headers().get("Content-Length");
+            String contentLength = req.headers().entrySet().stream()
+                .filter(e -> e.getKey().equalsIgnoreCase("Content-Length"))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
 
             if (contentLength == null) {
                 logMissingContentLength(req);

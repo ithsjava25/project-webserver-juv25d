@@ -25,8 +25,8 @@ public class BodySizeFilter implements Filter{
         if (maxSizeMb <= 0) {
             throw new IllegalArgumentException("maxSizeMb must be positive");
         }
-        this.maxSizeBytes = maxSizeMb * 1024 * 1024;
         this.enabled = true;
+        this.maxSizeBytes = toBytes(maxSizeMb);
 
         logger.info("BodySizeFilter initialized with max size: " + maxSizeMb + " MB");
     }
@@ -34,7 +34,7 @@ public class BodySizeFilter implements Filter{
     public BodySizeFilter() {
         BodySizeConfig config = new BodySizeConfig();
         this.enabled = config.isEnabled();
-        this.maxSizeBytes = config.getMaxSizeMb() * 1024 * 1024;
+        this.maxSizeBytes = toBytes(config.getMaxSizeMb());
     }
 
 
@@ -52,7 +52,7 @@ public class BodySizeFilter implements Filter{
 
         if (shouldCheckBodySize(req)) {
             String contentLength = req.headers().entrySet().stream()
-                .filter(e -> e.getKey().equalsIgnoreCase("Content-Length"))
+                .filter(e -> e.getKey() != null && e.getKey().equalsIgnoreCase("Content-Length"))
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
@@ -133,4 +133,14 @@ public class BodySizeFilter implements Filter{
         res.setBody(body);
     }
 
+    private long toBytes(long maxSizeMb) {
+        if (maxSizeMb <= 0) {
+            throw new IllegalArgumentException("maxSizeMb must be positive");
+        }
+        try {
+            return Math.multiplyExact(maxSizeMb, 1024L * 1024L);
+        } catch (ArithmeticException e) {
+            throw new IllegalArgumentException("maxSizeMb is too large: " + maxSizeMb, e);
+        }
+    }
 }

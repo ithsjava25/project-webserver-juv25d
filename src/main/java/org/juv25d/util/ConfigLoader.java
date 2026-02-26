@@ -13,7 +13,9 @@ public class ConfigLoader {
     private String rootDirectory;
     private long requestsPerMinute;
     private long burstCapacity;
+    private long maxBodySizeMb;
     private boolean rateLimitingEnabled;
+    private boolean requestBodySizeEnabled;
     private List<String> trustedProxies;
     private List<ProxyRoute> proxyRoutes = new ArrayList<>();
 

@@ -25,23 +25,55 @@ public class BodySizeFilterTest {
     private HttpResponse res;
 
     @Test
-    void shouldAllowRequest_whenBodySizeIsWithingLimit() throws IOException {
-        // TODO: Implement filter and test
+    void shouldAllowRequest_whenBodySizeIsWithinLimit() throws IOException {
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "1048576"));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
+        verifyNoMoreInteractions(chain);
+        verifyNoInteractions(res);
     }
 
     @Test
     void shouldBlockRequest_whenBodySizeExceedsLimit() throws IOException {
-        // TODO: Implement filter and test
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "20971520"));
+
+        filter.doFilter(req, res, chain);
+
+        verifyNoInteractions(chain);
+        verify(res).setStatusCode(413);
+        verify(res).setStatusText("Payload Too Large");
+        verify(res).setHeader("Content-Type", "text/plain; charset=utf-8");
+        verify(res).setHeader(eq("Content-Length"), any());
+        verify(res).setBody(any());
     }
 
     @Test
     void shouldAllowRequest_whenMethodHasNoBody() throws IOException {
-        // TODO: Implement filter and test
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("GET");
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
+        verifyNoMoreInteractions(res);
     }
 
     @Test
     void shouldBlockRequest_whenMethodHasBodyButSizeIsZero() throws IOException {
-        // TODO: Implement filter and test
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of());
+
+        filter.doFilter(req, res, chain);
+
+        verifyNoInteractions(chain);
+        verify(res).setStatusCode(413);
     }
 
     @Test
@@ -56,17 +88,36 @@ public class BodySizeFilterTest {
 
     @Test
     void shouldAllowRequest_whenMethodIsPut() throws IOException {
-        // TODO: implementera filter
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("PUT");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "1048576"));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
     }
 
     @Test
     void shouldAllowRequest_whenMethodIsPatch() throws IOException {
-        // TODO: implementera filter
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("PATCH");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "1048576"));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
     }
 
     @Test
     void shouldBlockRequest_whenContentLengthInvalid() throws IOException {
-        // TODO: implementera filter
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("Content-Length", "invalid"));
+
+        filter.doFilter(req, res, chain);
+
+        verifyNoInteractions(chain);
+        verify(res).setStatusCode(413);
     }
 
 

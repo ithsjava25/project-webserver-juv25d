@@ -114,7 +114,7 @@ public class ConfigLoader {
             this.requestBodySizeEnabled = false;
             this.maxBodySizeMb = 10L;
 
-            Map<String, Object> bodySizeConfig = asStringObjectMap(config.get("body-size"));
+            Map<String, Object> bodySizeConfig = asStringObjectMap(config.get("request-body-size"));
             if (bodySizeConfig != null) {
                 this.requestBodySizeEnabled =
                     Boolean.parseBoolean(String.valueOf(bodySizeConfig.getOrDefault("enabled", false)));

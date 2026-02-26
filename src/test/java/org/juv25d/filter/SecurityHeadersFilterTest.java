@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class SecurityHeadersFilterTest {
@@ -44,14 +44,17 @@ class SecurityHeadersFilterTest {
     void shouldAddHeadersEvenIfChainThrowsException() throws IOException {
 
         HttpResponse response = new HttpResponse(200, "OK", new HashMap<>(), new byte[0]);
-
         doThrow(new IOException("Server Error")).when(mockChain).doFilter(any(), any());
-        try {
-            filter.doFilter(mockRequest, response, mockChain);
-        } catch (IOException e) {
 
-        }
+        assertThrows(IOException.class, () -> filter.doFilter(mockRequest, response, mockChain));
 
-        assertEquals("DENY", response.headers().get("X-Frame-Options"));
+        assertAll("Verify all security headers are present even after exception",
+            () -> assertEquals("nosniff", response.headers().get("X-Content-Type-Options")),
+            () -> assertEquals("DENY", response.headers().get("X-Frame-Options")),
+            () -> assertEquals("0", response.headers().get("X-XSS-Protection")),
+            () -> assertEquals("no-referrer", response.headers().get("Referrer-Policy"))
+
+        );
+
     }
 }

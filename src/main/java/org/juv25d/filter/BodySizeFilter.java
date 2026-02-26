@@ -57,38 +57,36 @@ public class BodySizeFilter implements Filter{
                 .findFirst()
                 .orElse(null);
 
-            if (contentLength != null) {
-                contentLength = contentLength.trim();
-            }
-
-            if (contentLength == null || contentLength.isEmpty()) {
+            if (contentLength == null || contentLength.trim().isEmpty()) {
                 logMissingContentLength(req);
-                sendPayloadTooLarge(res, "Missing Content-Length header");
+                sendError(res, HttpStatus.LENGTH_REQUIRED, "Content-Length header is required for this method");
                 return;
             }
 
             try {
-                long bodySize = Long.parseLong(contentLength);
+                long bodySize = Long.parseLong(contentLength.trim());
 
                 if (bodySize < 0) {
                     logInvalidContentLength(req, contentLength);
-                    sendPayloadTooLarge(res, "Invalid Content-Length: " + contentLength);
+                    sendError(res, HttpStatus.BAD_REQUEST, "Invalid Content-Length: " + contentLength);
                     return;
                 }
+
                 if (bodySize > maxSizeBytes) {
                     logBodySizeExceeded(req, bodySize);
-                    sendPayloadTooLarge(res, "Body size " + bodySize + " bytes exceeds maximum " + maxSizeBytes + " bytes");
+                    sendError(res, HttpStatus.PAYLOAD_TOO_LARGE, "Body size " + bodySize + " exceeds maximum " + maxSizeBytes);
                     return;
                 }
             } catch (NumberFormatException e) {
                 logInvalidContentLength(req, contentLength);
-                sendPayloadTooLarge(res, "Invalid Content-Length: " + contentLength);
+                sendError(res, HttpStatus.BAD_REQUEST, "Invalid Content-Length format: " + contentLength);
                 return;
             }
         }
 
         chain.doFilter(req, res);
     }
+
 
     @Override
     public void destroy() {
@@ -121,13 +119,13 @@ public class BodySizeFilter implements Filter{
         ));
     }
 
-    private void sendPayloadTooLarge(HttpResponse res, String message) {
-        byte[] body = (HttpStatus.PAYLOAD_TOO_LARGE.getCode() + " "
-            + HttpStatus.PAYLOAD_TOO_LARGE.getDescription() + ": " + message + "\n")
+    private void sendError(HttpResponse res, HttpStatus status, String message) {
+        byte[] body = (status.getCode() + " "
+            + status.getDescription() + ": " + message + "\n")
             .getBytes(StandardCharsets.UTF_8);
 
-        res.setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE.getCode());
-        res.setStatusText(HttpStatus.PAYLOAD_TOO_LARGE.getDescription());
+        res.setStatusCode(status.getCode());
+        res.setStatusText(status.getDescription());
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
         res.setBody(body);

@@ -1,5 +1,6 @@
 package org.juv25d.util;
 
+import org.jspecify.annotations.Nullable;
 import org.juv25d.proxy.ProxyRoute;
 import org.yaml.snakeyaml.Yaml;
 
@@ -7,10 +8,10 @@ import java.io.InputStream;
 import java.util.*;
 
 public class ConfigLoader {
-    private static ConfigLoader instance;
+    @Nullable private static ConfigLoader instance;
     private int port;
-    private String logLevel;
-    private String rootDirectory;
+    private String logLevel = "INFO";
+    private String rootDirectory = "static";
     private long requestsPerMinute;
     private long burstCapacity;
     private boolean rateLimitingEnabled;
@@ -53,8 +54,9 @@ public class ConfigLoader {
             this.trustedProxies = List.of();
 
             // server
-            Map<String, Object> serverConfig = asStringObjectMap(config.get("server"));
-            if (serverConfig != null) {
+            Object serverObj = config.get("server");
+            if (serverObj != null) {
+                Map<String, Object> serverConfig = asStringObjectMap(serverObj);
                 Object portValue = serverConfig.get("port");
                 if (portValue instanceof Number n) this.port = n.intValue();
 
@@ -72,8 +74,9 @@ public class ConfigLoader {
                 }
 
                 // proxy routes
-                Map<String, Object> proxyConfig = asStringObjectMap(serverConfig.get("proxy"));
-                if (proxyConfig != null) {
+                Object proxyObj = serverConfig.get("proxy");
+                if (proxyObj != null) {
+                    Map<String, Object> proxyConfig = asStringObjectMap(proxyObj);
                     List<Map<String, Object>> routes = (List<Map<String, Object>>) proxyConfig.get("routes");
                     if (routes != null) {
                         for (Map<String, Object> route : routes) {
@@ -86,8 +89,9 @@ public class ConfigLoader {
             }
 
             // logging
-            Map<String, Object> loggingConfig = asStringObjectMap(config.get("logging"));
-            if (loggingConfig != null) {
+            Object loggingObj = config.get("logging");
+            if (loggingObj != null) {
+                Map<String, Object> loggingConfig = asStringObjectMap(loggingObj);
                 Object level = loggingConfig.get("level");
                 if (level != null) this.logLevel = String.valueOf(level);
             }
@@ -96,8 +100,9 @@ public class ConfigLoader {
             // defaults (consistent pattern)
             this.rateLimitingEnabled = false;
 
-            Map<String, Object> rateLimitingConfig = asStringObjectMap(config.get("rate-limiting"));
-            if (rateLimitingConfig != null) {
+            Object rateLimitObj = config.get("rate-limiting");
+            if (rateLimitObj != null) {
+                Map<String, Object> rateLimitingConfig = asStringObjectMap(rateLimitObj);
                 this.rateLimitingEnabled =
                     Boolean.parseBoolean(String.valueOf(rateLimitingConfig.getOrDefault("enabled", false)));
 
@@ -126,7 +131,7 @@ public class ConfigLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> asStringObjectMap(Object value) {
+    private static Map<String, Object> asStringObjectMap(@Nullable Object value) {
         if (value instanceof Map<?, ?> map) {
             return (Map<String, Object>) map;
         }

@@ -63,7 +63,8 @@ public class CorsFilter implements Filter {
         chain.doFilter(req, res);
     }
 
-    private String header(Map<String, String> headers, String key) {
+    @org.jspecify.annotations.Nullable private String header(Map<String, String> headers, @org.jspecify.annotations.Nullable String key) {
+        if (key == null) return null;
         for (var entry : headers.entrySet()) {
             if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(key)) {
                 return entry.getValue();

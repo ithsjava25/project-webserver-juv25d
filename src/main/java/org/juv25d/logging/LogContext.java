@@ -1,5 +1,7 @@
 package org.juv25d.logging;
 
+import org.jspecify.annotations.Nullable;
+
 public class LogContext {
     private static final ThreadLocal<String> connectionId = new ThreadLocal<>();
 
@@ -7,7 +9,7 @@ public class LogContext {
         connectionId.set(id);
     }
 
-    public static String getConnectionId() {
+    @Nullable public static String getConnectionId() {
         return connectionId.get();
     }
 

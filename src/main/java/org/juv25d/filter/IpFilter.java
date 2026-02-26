@@ -5,6 +5,8 @@ import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -17,7 +19,7 @@ public class IpFilter implements Filter {
 
     private final boolean allowByDefault;
 
-    public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
+    public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault) {
         if (whitelist != null) {
             this.whitelist.addAll(whitelist);
         }

@@ -18,7 +18,7 @@ public class ServerLogFormatter extends Formatter {
 
         StringBuilder sb = new StringBuilder(
                 String.format("%s %s%s: %s%n",
-                        ZonedDateTime.now(ZoneId.systemDefault()).format(dtf),
+                        ZonedDateTime.ofInstant(record.getInstant(), ZoneId.systemDefault()).format(dtf),
                         record.getLevel(),
                         idPart,
                         formatMessage(record)));

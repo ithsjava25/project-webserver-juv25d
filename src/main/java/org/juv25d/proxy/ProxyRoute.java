@@ -1,5 +1,7 @@
 package org.juv25d.proxy;
 
+import org.jspecify.annotations.Nullable;
+
 /*
  * Maps a baseRoute with its respective proxy upstream target URL.
  * The mappings are initialized in ConfigLoader.java when reading them from
@@ -18,7 +20,7 @@ public class ProxyRoute {
         this.upstreamUrl = upstreamUrl;
     }
 
-    public String buildUrl(String targetPath, String query) {
+    public String buildUrl(String targetPath, @Nullable String query) {
         String url = upstreamUrl + targetPath;
         if (query != null && !query.isEmpty()) url += "?" + query;
 

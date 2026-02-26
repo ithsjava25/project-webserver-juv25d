@@ -32,7 +32,8 @@ public class ConnectionHandler implements Runnable {
             var out = socket.getOutputStream();
 
             HttpRequest parsed = httpParser.parse(in);
-            String remoteIp = socket.getInetAddress().getHostAddress();
+            java.net.InetAddress inetAddress = socket.getInetAddress();
+            String remoteIp = (inetAddress != null) ? inetAddress.getHostAddress() : "UNKNOWN";
 
             HttpRequest request = new HttpRequest(
                 parsed.method(),

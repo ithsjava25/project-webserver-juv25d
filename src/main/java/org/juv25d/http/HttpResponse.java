@@ -49,7 +49,7 @@ public class HttpResponse {
         return headers;
     }
 
-    public String getHeader(String name) {
+    @org.jspecify.annotations.Nullable public String getHeader(@org.jspecify.annotations.Nullable String name) {
         if (name == null) {
             return null;
         }

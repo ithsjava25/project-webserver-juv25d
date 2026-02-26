@@ -78,10 +78,10 @@ class ConfigLoaderTest {
      */
 
     @Test
+    @SuppressWarnings("NullAway")
     void throwsWhenYamlMissing() {
         assertThrows(RuntimeException.class, () ->
-            new ConfigLoader(null));
-    }
+            new ConfigLoader((java.io.InputStream) null) ); }
 
     @Test
     void shouldThrowWhenYamlIsMalformed() {
@@ -91,9 +91,7 @@ class ConfigLoaderTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
             () -> new ConfigLoader(input));
 
-        assertTrue(ex.getMessage().contains("Failed to load application config"));
+        String msg = ex.getMessage();
+        assertTrue(msg != null && msg.contains("Failed to load application config"));
     }
 }
-
-
-

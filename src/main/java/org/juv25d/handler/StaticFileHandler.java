@@ -4,6 +4,8 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -164,7 +166,7 @@ public class StaticFileHandler {
         }
     }
 
-    private static String getHeaderIgnoreCase(Map<String, String> headers, String name) {
+    @Nullable private static String getHeaderIgnoreCase(Map<String, String> headers, String name) {
        if (headers == null || headers.isEmpty() || name == null) {
            return null;
        }
@@ -197,13 +199,13 @@ public class StaticFileHandler {
         return new String(out);
     }
 
-    private static String opaqueTag(String etag) {
+    @Nullable private static String opaqueTag(@Nullable String etag) {
         if (etag == null) return null;
         String e = etag.trim();
         return e.startsWith("W/") ? e.substring(2) : e;
     }
 
-    private static boolean etagMatches(String ifNoneMatchHeader, String currentEtag) {
+    private static boolean etagMatches(@Nullable String ifNoneMatchHeader, String currentEtag) {
         if (ifNoneMatchHeader == null || ifNoneMatchHeader.isBlank()) {
             return false;
         }
@@ -214,7 +216,8 @@ public class StaticFileHandler {
 
         String[] parts = value.split(",");
         for (String part : parts) {
-            if (part != null && opaqueTag(part) != null && opaqueTag(part).equals(opaqueTag(currentEtag))) {
+            String tag = opaqueTag(part);
+            if (part != null && tag != null && tag.equals(opaqueTag(currentEtag))) {
                 return true;
             }
         }

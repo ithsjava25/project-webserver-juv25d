@@ -2,6 +2,7 @@ package org.juv25d.handler;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Resolves MIME types based on file extensions.
@@ -52,7 +53,7 @@ public class MimeTypeResolver {
      * @return the MIME type (e.g., "text/html", "text/css")
      *         or "application/octet-stream" if unknown
      */
-    public static String getMimeType(String filename) {
+    public static String getMimeType(@Nullable String filename) {
         if (filename == null || filename.isEmpty()) {
             return "application/octet-stream";
         }

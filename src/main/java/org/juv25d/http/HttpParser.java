@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.TreeMap;
+import org.jspecify.annotations.Nullable;
 
 public class HttpParser {
 
@@ -63,7 +64,7 @@ public class HttpParser {
         return new HttpRequest(method, path, query, version, headers, body, "UNKNOWN");
     }
 
-    private String readLine(InputStream in) throws IOException {
+    @Nullable private String readLine(InputStream in) throws IOException {
         StringBuilder sb = new StringBuilder();
         int b;
         while ((b = in.read()) != -1) {

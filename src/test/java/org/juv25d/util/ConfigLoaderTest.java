@@ -5,11 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConfigLoaderTest {
-
 
     /**
      * Verifies that ConfigLoader correctly reads and assigns configuration values when provided
@@ -20,16 +20,18 @@ class ConfigLoaderTest {
     @Test
     void loadsValuesFromYaml() {
         String yaml = """
-                server:
-                  port: 9090
-                  root-dir: "public"
-                logging:
-                  level: "DEBUG"
-                rate-limiting:
-                  enabled: true
-                  requests-per-minute: 20
-                  burst-capacity: 10
-                """;
+            server:
+              port: 9090
+              root-dir: "public"
+              trusted-proxies:
+                - 1.1.1.1
+            logging:
+              level: "DEBUG"
+            rate-limiting:
+              enabled: true
+              requests-per-minute: 20
+              burst-capacity: 10
+            """;
 
         ConfigLoader loader = new ConfigLoader(
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))
@@ -37,6 +39,7 @@ class ConfigLoaderTest {
 
         assertEquals(9090, loader.getPort());
         assertEquals("public", loader.getRootDirectory());
+        assertEquals("1.1.1.1", loader.getTrustedProxies().getFirst());
         assertEquals("DEBUG", loader.getLogLevel());
         assertTrue(loader.isRateLimitingEnabled());
         assertEquals(20, loader.getRequestsPerMinute());
@@ -52,10 +55,10 @@ class ConfigLoaderTest {
     @Test
     void usesDefaultsWhenServerKeysMissing() {
         String yaml = """
-        server: {}
-        logging: {}
-        rate-limiting: {}
-        """;
+            server: {}
+            logging: {}
+            rate-limiting: {}
+            """;
 
         ConfigLoader loader = new ConfigLoader(
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))
@@ -65,8 +68,8 @@ class ConfigLoaderTest {
         assertEquals("static", loader.getRootDirectory());
         assertEquals("INFO", loader.getLogLevel());
         assertFalse(loader.isRateLimitingEnabled());
+        assertEquals(List.of(), loader.getTrustedProxies());
     }
-
 
     /**
      * Confirms that ConfigLoader fails predictably when no YAML configuration is provided.
@@ -74,9 +77,11 @@ class ConfigLoaderTest {
      * cannot operate without configuration data.
      */
 
-    @Test void throwsWhenYamlMissing() {
+    @Test
+    @SuppressWarnings("NullAway")
+    void throwsWhenYamlMissing() {
         assertThrows(RuntimeException.class, () ->
-            new ConfigLoader(null) ); }
+            new ConfigLoader((java.io.InputStream) null) ); }
 
     @Test
     void shouldThrowWhenYamlIsMalformed() {
@@ -86,9 +91,7 @@ class ConfigLoaderTest {
         RuntimeException ex = assertThrows(RuntimeException.class,
             () -> new ConfigLoader(input));
 
-        assertTrue(ex.getMessage().contains("Failed to load application config"));
+        String msg = ex.getMessage();
+        assertTrue(msg != null && msg.contains("Failed to load application config"));
     }
 }
-
-
-

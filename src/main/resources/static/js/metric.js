@@ -1,9 +1,13 @@
 async function loadHealth() {
     try {
         const res = await fetch("/metric");
+        if (res.status === 429) {
+            globalThis.location.href = "/";
+            return;
+        }
         if (!res.ok) {
             throw new Error(`HTTP ${res.status}`)
-        };
+        }
         const data = await res.json();
 
         document.getElementById("local-time").textContent = data.localTime;

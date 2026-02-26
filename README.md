@@ -47,6 +47,8 @@ Pipeline
   ↓
 FilterChain
   ↓
+Router
+  ↓
 Plugin
   ↓
 HttpResponseWriter

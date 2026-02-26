@@ -7,6 +7,8 @@ import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -39,7 +41,7 @@ public class IpFilter implements Filter {
      *
      * @throws IllegalArgumentException if any CIDR notation is invalid
      * */
-    public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
+    public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault) {
         if (whitelist != null) {
             for (String entry : whitelist) {
                 addToWhitelist(entry);

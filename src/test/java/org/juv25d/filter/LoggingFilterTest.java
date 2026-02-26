@@ -35,14 +35,19 @@ class LoggingFilterTest {
         when(req.path()).thenReturn("/test");
 
         java.util.logging.Logger logger = org.juv25d.logging.ServerLogging.getLogger();
+        java.util.logging.Level originalLevel = logger.getLevel();
+        logger.setLevel(java.util.logging.Level.INFO);
+
         java.util.List<java.util.logging.LogRecord> records = new java.util.ArrayList<>();
         java.util.logging.Handler handler = new java.util.logging.Handler() {
             @Override
             public void publish(java.util.logging.LogRecord record) {
                 records.add(record);
             }
+
             @Override
             public void flush() {}
+
             @Override
             public void close() throws SecurityException {}
         };
@@ -51,10 +56,12 @@ class LoggingFilterTest {
         try {
             filter.doFilter(req, res, chain);
 
+            java.util.logging.SimpleFormatter formatter = new java.util.logging.SimpleFormatter();
             boolean found = records.stream()
-                .anyMatch(r -> r.getMessage().contains("GET /test"));
+                .anyMatch(r -> formatter.formatMessage(r).contains("GET /test"));
             assertTrue(found, "Logger should have captured the method and path");
         } finally {
+            logger.setLevel(originalLevel);
             logger.removeHandler(handler);
         }
     }

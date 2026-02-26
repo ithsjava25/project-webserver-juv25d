@@ -59,6 +59,12 @@ public class BodySizeFilter implements Filter{
 
             try {
                 long bodySize = Long.parseLong(contentLength);
+
+                if (bodySize < 0) {
+                    logInvalidContentLength(req, contentLength);
+                    sendPayloadTooLarge(res, "Invalid Content-Length: " + contentLength);
+                    return;
+                }
                 if (bodySize > maxSizeBytes) {
                     logBodySizeExceeded(req, bodySize);
                     sendPayloadTooLarge(res, "Body size " + bodySize + " bytes exceeds maximum " + maxSizeBytes + " bytes");

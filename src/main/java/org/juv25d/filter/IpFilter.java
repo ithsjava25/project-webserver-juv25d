@@ -14,6 +14,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
+/**
+ * IP-based access control filter that allows or denies HTTP requests based on client IP addresses.
+ */
 @Global(order = 2)
 public class IpFilter implements Filter {
 
@@ -27,6 +30,15 @@ public class IpFilter implements Filter {
 
     private final boolean allowByDefault;
 
+    /**
+     * Constructs an IP filter with specified whitelist, blacklist, and default policy.
+     *
+     * @param whitelist     set of IPs/CIDR ranges to always allow (can be null)
+     * @param blacklist     set of IPs/CIDR ranges to always block (can be null)
+     * @param allowByDefault whether to allow IPs not in either list
+     *
+     * @throws IllegalArgumentException if any CIDR notation is invalid
+     * */
     public IpFilter(Set<String> whitelist, Set<String> blacklist,  boolean allowByDefault) {
         if (whitelist != null) {
             for (String entry : whitelist) {
@@ -41,6 +53,9 @@ public class IpFilter implements Filter {
         this.allowByDefault = allowByDefault;
     }
 
+    /**
+     * Constructs an IP filter using configuration from {@link IpFilterConfig}.
+     */
     public IpFilter() {
         IpFilterConfig config = new IpFilterConfig();
         for (String entry : config.whitelist()) {
@@ -52,6 +67,11 @@ public class IpFilter implements Filter {
         this.allowByDefault = config.allowByDefault();
     }
 
+    /**
+     * Adds an IP address or CIDR range to the whitelist.
+     *
+     * @param ipOrCidr IP address (e.g., "192.168.1.1") or CIDR range (e.g., "10.0.0.0/8")
+     */
     public void addToWhitelist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
 
@@ -68,6 +88,11 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Adds an IP address or CIDR range to the blacklist.
+     *
+     * @param ipOrCidr IP address (e.g., "192.168.1.1") or CIDR range (e.g., "10.0.0.0/8")
+     */
     public void addToBlacklist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
 
@@ -84,6 +109,18 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Removes an IP address or CIDR range from the whitelist.
+     * <p>
+     * The entry must match exactly (same format and value) to be removed.
+     * Removing a CIDR range does not affect individual IPs within that range that were
+     * added separately.
+     *
+     * @param ipOrCidr IP address or CIDR range to remove (must match exactly)
+     * <p>
+     * {@link #getWhitelistIps()}
+     * {@link #getWhitelistSubnets()}
+     */
     public void removeFromWhitelist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
 
@@ -94,6 +131,18 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Removes an IP address or CIDR range from the blacklist.
+     * <p>
+     * The entry must match exactly (same format and value) to be removed.
+     * Removing a CIDR range does not affect individual IPs within that range that were
+     * added separately.
+     *
+     * @param ipOrCidr IP address or CIDR range to remove (must match exactly)
+     * <p>
+     * {@link #getBlacklistIps()}
+     * {@link #getBlacklistSubnets()}
+     */
     public void removeFromBlacklist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
 
@@ -104,6 +153,21 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Filters an HTTP request based on the client's IP address.
+     * <p>
+     * <strong>Decision Logic:</strong>
+     * <ol>
+     *   <li>If IP is in whitelist → Allow (even if also in blacklist)</li>
+     *   <li>If IP is in blacklist → Block</li>
+     *   <li>Otherwise → Use default policy (allowByDefault)</li>
+     * </ol>
+     *
+     * @param req   the HTTP request
+     * @param res   the HTTP response
+     * @param chain the filter chain to continue if allowed
+     * @throws IOException if an I/O error occurs during filtering
+     */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
         try {
@@ -121,6 +185,20 @@ public class IpFilter implements Filter {
         }
     }
 
+    /**
+     * Checks if an IP address should be allowed.
+     * <p>
+     * <strong>Decision Logic:</strong>
+     * <ol>
+     *   <li>Null or blank IPs → Deny</li>
+     *   <li>Whitelist (exact or subnet match) → Allow</li>
+     *   <li>Blacklist (exact or subnet match) → Deny</li>
+     *   <li>Not in either list → Use default policy</li>
+     * </ol>
+     *
+     * @param ip the IP address to check
+     * @return true if the IP should be allowed, false otherwise
+     */
     public boolean isAllowed(String ip) {
         if (ip == null || ip.isBlank()) {
             logger.finer("Null or blank IP address, denying access");
@@ -135,6 +213,13 @@ public class IpFilter implements Filter {
         return allowByDefault;
     }
 
+    /**
+     * Checks if an IP address falls within any of the given subnets.
+     *
+     * @param ip      the IP address to check
+     * @param subnets map of CIDR notations to SubnetUtils instances
+     * @return true if the IP is within any subnet, false otherwise
+     */
     private boolean isInSubnets(String ip, Map<String, SubnetUtils> subnets) {
         for (SubnetUtils subnet : subnets.values()) {
             try {
@@ -148,6 +233,12 @@ public class IpFilter implements Filter {
         return false;
     }
 
+    /**
+     * Extracts the client's IP address from the request, considering proxy headers.
+     *
+     * @param req the HTTP request
+     * @return the client's IP address
+     */
     private String getClientIp(HttpRequest req) {
         Map<String, String> headers = req.headers();
 
@@ -164,6 +255,12 @@ public class IpFilter implements Filter {
         return req.remoteIp();
     }
 
+    /**
+     * Sends a 403 Forbidden response to the client.
+     *
+     * @param res the HTTP response
+     * @param ip  the blocked IP address
+     */
     private void forbidden(HttpResponse res, String ip) {
         byte[] body = ("403 Forbidden: IP not allowed (" + ip + ")\n")
             .getBytes(StandardCharsets.UTF_8);
@@ -175,22 +272,47 @@ public class IpFilter implements Filter {
         res.setBody(body);
     }
 
+    /**
+     * Returns an immutable copy of the exact IP whitelist (excludes subnets).
+     *
+     * @return immutable set of whitelisted IP addresses
+     */
     public Set<String> getWhitelistIps() {
         return Set.copyOf(whitelist);
     }
 
+    /**
+     * Returns an immutable copy of the exact IP blacklist (excludes subnets).
+     *
+     * @return immutable set of blacklisted IP addresses
+     */
     public Set<String> getBlacklistIps() {
         return Set.copyOf(blacklist);
     }
 
+    /**
+     * Returns an immutable copy of the whitelisted CIDR ranges.
+     *
+     * @return immutable set of whitelisted CIDR notations (e.g., "10.0.0.0/8")
+     */
     public Set<String> getWhitelistSubnets() {
         return Set.copyOf(whitelistSubnets.keySet());
     }
 
+    /**
+     * Returns an immutable copy of the blacklisted CIDR ranges.
+     *
+     * @return immutable set of blacklisted CIDR notations (e.g., "192.168.0.0/16")
+     */
     public Set<String> getBlacklistSubnets() {
         return Set.copyOf(blacklistSubnets.keySet());
     }
 
+    /**
+     * Returns the default policy for IPs not in either list.
+     *
+     * @return true if unknown IPs are allowed, false if denied
+     */
     public boolean getAllowByDefault() {
         return allowByDefault;
     }

@@ -1,5 +1,6 @@
 package org.juv25d.filter;
 
+import org.juv25d.http.HttpStatus;
 import org.juv25d.config.BodySizeConfig;
 import org.juv25d.config.FilterConfig;
 import org.juv25d.filter.annotation.Global;
@@ -112,11 +113,12 @@ public class BodySizeFilter implements Filter{
     }
 
     private void sendPayloadTooLarge(HttpResponse res, String message) {
-        byte[] body = ("413 Payload Too Large: " + message + "\n")
+        byte[] body = (HttpStatus.PAYLOAD_TOO_LARGE.getCode() + " "
+            + HttpStatus.PAYLOAD_TOO_LARGE.getDescription() + ": " + message + "\n")
             .getBytes(StandardCharsets.UTF_8);
 
-        res.setStatusCode(413);
-        res.setStatusText("Payload Too Large");
+        res.setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE.getCode());
+        res.setStatusText(HttpStatus.PAYLOAD_TOO_LARGE.getDescription());
         res.setHeader("Content-Type", "text/plain; charset=utf-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
         res.setBody(body);

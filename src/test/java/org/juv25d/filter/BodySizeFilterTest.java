@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
+import org.juv25d.http.HttpStatus;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,7 +46,7 @@ public class BodySizeFilterTest {
         filter.doFilter(req, res, chain);
 
         verifyNoInteractions(chain);
-        verify(res).setStatusCode(413);
+        verify(res).setStatusCode(HttpStatus.PAYLOAD_TOO_LARGE.getCode());
         verify(res).setStatusText("Payload Too Large");
         verify(res).setHeader("Content-Type", "text/plain; charset=utf-8");
         verify(res).setHeader(eq("Content-Length"), any());
@@ -72,7 +73,7 @@ public class BodySizeFilterTest {
         filter.doFilter(req, res, chain);
 
         verifyNoInteractions(chain);
-        verify(res).setStatusCode(413);
+        verify(res).setStatusCode(HttpStatus.LENGTH_REQUIRED.getCode());
     }
 
     @Test
@@ -116,7 +117,7 @@ public class BodySizeFilterTest {
         filter.doFilter(req, res, chain);
 
         verifyNoInteractions(chain);
-        verify(res).setStatusCode(413);
+        verify(res).setStatusCode(HttpStatus.BAD_REQUEST.getCode());
     }
 
     @Test
@@ -128,7 +129,7 @@ public class BodySizeFilterTest {
         filter.doFilter(req, res, chain);
 
         verifyNoInteractions(chain);
-        verify(res).setStatusCode(413);
+        verify(res).setStatusCode(400);
     }
 
     @Test

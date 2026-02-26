@@ -57,7 +57,11 @@ public class BodySizeFilter implements Filter{
                 .findFirst()
                 .orElse(null);
 
-            if (contentLength == null) {
+            if (contentLength != null) {
+                contentLength = contentLength.trim();
+            }
+
+            if (contentLength == null || contentLength.isEmpty()) {
                 logMissingContentLength(req);
                 sendPayloadTooLarge(res, "Missing Content-Length header");
                 return;

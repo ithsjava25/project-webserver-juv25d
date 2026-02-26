@@ -143,6 +143,18 @@ public class BodySizeFilterTest {
         verifyNoInteractions(res);
     }
 
+    @Test
+    void shouldAllowRequest_whenContentLengthHasSurroundingWhitespace() throws IOException {
+        BodySizeFilter filter = new BodySizeFilter(10);
+        when(req.method()).thenReturn("POST");
+        when(req.headers()).thenReturn(Map.of("Content-Length", " 5 "));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, times(1)).doFilter(req, res);
+        verifyNoInteractions(res);
+    }
+
 
 
 }

@@ -14,7 +14,11 @@ public class IpFilterConfig {
 
     private final boolean allowByDefault = true;
 
+    private final boolean trustProxyHeaders = false;
+
     public boolean allowByDefault() {
         return allowByDefault;
     }
+
+    public boolean trustProxyHeaders() {return trustProxyHeaders;}
 }

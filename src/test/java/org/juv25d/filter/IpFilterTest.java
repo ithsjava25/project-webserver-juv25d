@@ -34,7 +34,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Allow ip only in whitelist")
     void whitelist_allowsIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false, false);
 
         filter.doFilter(req, res, chain);
 
@@ -45,7 +45,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Allow ip from CIDR range only in whitelist")
     void whitelist_allowsIpInRange() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.0/24"), null, false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.0/24"), null, false, false);
 
         filter.doFilter(req, res, chain);
 
@@ -56,7 +56,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Block ip only in blacklist")
     void blacklist_blocksIp() throws IOException {
-        IpFilter filter = new IpFilter(null, Set.of("127.0.0.1"), true);
+        IpFilter filter = new IpFilter(null, Set.of("127.0.0.1"), true, false);
 
         filter.doFilter(req, res, chain);
         verify(chain, never()).doFilter(req, res);
@@ -68,7 +68,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Block ip from CIDR range only in blacklist")
     void blacklist_blocksIpInRange() throws IOException {
-        IpFilter filter = new IpFilter(null, Set.of("127.0.0.0/24"), true);
+        IpFilter filter = new IpFilter(null, Set.of("127.0.0.0/24"), true, false);
 
         filter.doFilter(req, res, chain);
         verify(chain, never()).doFilter(req, res);
@@ -80,7 +80,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Allow ip in both list (whitelist prio)")
     void whitelist_overrides_blacklist() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.0/24"), false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), Set.of("127.0.0.0/24"), false, false);
 
         filter.doFilter(req, res, chain);
 
@@ -92,7 +92,7 @@ class IpFilterTest {
     @ValueSource(booleans = {true, false})
     @DisplayName("Follow default when ip in neither list")
     void Ip_inNeitherList_followsDefault(boolean allowByDefault) throws IOException {
-        IpFilter filter = new IpFilter(null, null, allowByDefault);
+        IpFilter filter = new IpFilter(null, null, allowByDefault, false);
 
         filter.doFilter(req, res, chain);
 
@@ -110,7 +110,7 @@ class IpFilterTest {
     @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
     @DisplayName("Allow IP or CIDR range added in existing filter")
     void addIpOrRange_whitelist(String ipOrCidr) throws IOException {
-        IpFilter filter = new IpFilter(null, null, false);
+        IpFilter filter = new IpFilter(null, null, false, false);
         filter.addToWhitelist(ipOrCidr);
 
         filter.doFilter(req, res, chain);
@@ -125,7 +125,7 @@ class IpFilterTest {
     @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
     @DisplayName("Block IP or CIDR range added in existing filter")
     void addIpOrRange_blacklist(String ipOrCidr) throws IOException {
-        IpFilter filter = new IpFilter(null, null, false);
+        IpFilter filter = new IpFilter(null, null, false, false);
         filter.addToBlacklist(ipOrCidr);
 
         filter.doFilter(req, res, chain);
@@ -139,7 +139,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Adding IP or CIDR range already in filter doesn't create duplicates")
     void doesNotAddDuplicates() {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1", "127.0.0.0/24"), null, false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1", "127.0.0.0/24"), null, false, false);
 
         filter.addToWhitelist("127.0.0.1");
         filter.addToWhitelist("127.0.0.0/24");
@@ -152,7 +152,7 @@ class IpFilterTest {
     @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
     @DisplayName("Fall back on blacklist/default after removing IP or CIDR range from whitelist")
     void removeIpOrRange_whitelist(String ipOrCidr) throws IOException {
-        IpFilter filter = new IpFilter(Set.of(ipOrCidr), null, false);
+        IpFilter filter = new IpFilter(Set.of(ipOrCidr), null, false, false);
         filter.removeFromWhitelist(ipOrCidr);
 
         filter.doFilter(req, res, chain);
@@ -165,9 +165,9 @@ class IpFilterTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"127.0.0.1", "127.0.0.0/24"})
-    @DisplayName("Fall back on whitelist/default after removing IP or CIDR range from whitelist")
+    @DisplayName("Fall back on whitelist/default after removing IP or CIDR range from blacklist")
     void removeIpOrRange_blacklist(String ipOrCidr) throws IOException {
-        IpFilter filter = new IpFilter(null, Set.of(ipOrCidr), true);
+        IpFilter filter = new IpFilter(null, Set.of(ipOrCidr), true, false);
         filter.removeFromBlacklist(ipOrCidr);
 
         filter.doFilter(req, res, chain);
@@ -182,7 +182,7 @@ class IpFilterTest {
     @NullAndEmptySource
     @DisplayName("Block null or empty IP")
     void nullOrBlankIp_blocked(String ip) throws IOException {
-        IpFilter filter = new IpFilter(null, null, true);
+        IpFilter filter = new IpFilter(null, null, true, false);
 
         when(req.remoteIp()).thenReturn(ip);
 
@@ -195,7 +195,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Ignore incorrectly formatted CIDR range")
     void invalidCidr_loggedAndIgnored() {
-        IpFilter filter = new IpFilter(null, null, false);
+        IpFilter filter = new IpFilter(null, null, false, false);
 
         filter.addToWhitelist("not-a-cidr/99");
 
@@ -205,7 +205,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Get methods return immutable copies")
     void get_returnsImmutableCopy() {
-        IpFilter filter = new IpFilter(null, null, false);
+        IpFilter filter = new IpFilter(null, null, false, false);
 
         assertThrows(UnsupportedOperationException.class, () ->
             filter.getWhitelistIps().add("test"));
@@ -218,9 +218,22 @@ class IpFilterTest {
     }
 
     @Test
+    @DisplayName("Use clientIp when not trusting proxies")
+    void ignoreXForwarded_whenTrustProxyHeadersFalse() throws IOException {
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false, false);
+
+        when(req.headers()).thenReturn(Map.of("X-Forwarded-For", "1.2.3.4"));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain, never()).doFilter(req, res);
+        assertEquals(403, res.statusCode());
+    }
+
+    @Test
     @DisplayName("Evaluates original client IP from X-Forwarded-For when proxied")
     void xForwardedFor_takesFirstIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false, true);
 
         when(req.headers()).thenReturn(Map.of("X-Forwarded-For", "1.2.3.4, 5.6.7.8"));
         when(req.remoteIp()).thenReturn("5.6.7.8");
@@ -234,7 +247,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Uses X-Real-IP header when X-Forwarded-For is absent")
     void xRealIp_overridesRemoteIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false, true);
 
         when(req.headers()).thenReturn(Map.of("X-Real-IP", "1.2.3.4"));
         when(req.remoteIp()).thenReturn("5.6.7.8");
@@ -247,7 +260,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Prioritizes X-Forwarded-For over X-Real-IP when both present")
     void xForwardedFor_priorityOverXRealIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false);
+        IpFilter filter = new IpFilter(Set.of("1.2.3.4"), null, false, true);
 
         when(req.headers()).thenReturn(Map.of(
             "X-Forwarded-For", "1.2.3.4",

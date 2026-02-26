@@ -31,6 +31,7 @@ public class IpFilter implements Filter {
     private final Map<String, SubnetUtils> blacklistSubnets = new ConcurrentHashMap<>();
 
     private final boolean allowByDefault;
+    private final boolean trustProxyHeaders;
 
     /**
      * Constructs an IP filter with specified whitelist, blacklist, and default policy.
@@ -38,10 +39,9 @@ public class IpFilter implements Filter {
      * @param whitelist     set of IPs/CIDR ranges to always allow (can be null)
      * @param blacklist     set of IPs/CIDR ranges to always block (can be null)
      * @param allowByDefault whether to allow IPs not in either list
-     *
-     * @throws IllegalArgumentException if any CIDR notation is invalid
+     * @param trustProxyHeaders whether to trust proxy headers when extracting IP from request
      * */
-    public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault) {
+    public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault, boolean trustProxyHeaders) {
         if (whitelist != null) {
             for (String entry : whitelist) {
                 addToWhitelist(entry);
@@ -53,6 +53,7 @@ public class IpFilter implements Filter {
             }
         }
         this.allowByDefault = allowByDefault;
+        this.trustProxyHeaders = trustProxyHeaders;
     }
 
     /**
@@ -67,6 +68,7 @@ public class IpFilter implements Filter {
             addToBlacklist(entry);
         }
         this.allowByDefault = config.allowByDefault();
+        this.trustProxyHeaders = config.trustProxyHeaders();
     }
 
     /**
@@ -76,6 +78,7 @@ public class IpFilter implements Filter {
      */
     public void addToWhitelist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
+        ipOrCidr = ipOrCidr.trim();
 
         if (ipOrCidr.contains("/")) {
             try {
@@ -97,6 +100,7 @@ public class IpFilter implements Filter {
      */
     public void addToBlacklist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
+        ipOrCidr = ipOrCidr.trim();
 
         if (ipOrCidr.contains("/")) {
             try {
@@ -125,6 +129,7 @@ public class IpFilter implements Filter {
      */
     public void removeFromWhitelist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
+        ipOrCidr = ipOrCidr.trim();
 
         if (ipOrCidr.contains("/")) {
             whitelistSubnets.remove(ipOrCidr);
@@ -147,6 +152,7 @@ public class IpFilter implements Filter {
      */
     public void removeFromBlacklist(String ipOrCidr) {
         if (ipOrCidr == null || ipOrCidr.isBlank()) return;
+        ipOrCidr = ipOrCidr.trim();
 
         if (ipOrCidr.contains("/")) {
             blacklistSubnets.remove(ipOrCidr);
@@ -172,18 +178,13 @@ public class IpFilter implements Filter {
      */
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
-        try {
-            String clientIp = getClientIp(req);
+        String clientIp = getClientIp(req);
 
-            if (isAllowed(clientIp)) {
-                chain.doFilter(req, res);
-            } else {
-                logger.fine("IP blocked: " + clientIp);
-                forbidden(res, clientIp);
-            }
-        } catch (Exception e) {
-            logger.severe("Error in IP filter: " + e.getMessage());
-            forbidden(res, "error");
+        if (isAllowed(clientIp)) {
+            chain.doFilter(req, res);
+        } else {
+            logger.fine("IP blocked: " + clientIp);
+            forbidden(res, clientIp);
         }
     }
 
@@ -236,12 +237,28 @@ public class IpFilter implements Filter {
     }
 
     /**
-     * Extracts the client's IP address from the request, considering proxy headers.
+     * Extracts the client's IP address from the request.
+     * <p>
+     * <strong>Security Note:</strong> Proxy headers (X-Forwarded-For, X-Real-IP) can be
+     * spoofed by clients. Only enable {@code trustProxyHeaders} when deployed behind a
+     * trusted reverse proxy or load balancer that strips/overwrites these headers.
+     * <p>
+     * When {@code trustProxyHeaders = true}, checks headers in this order:
+     * <ol>
+     *   <li>{@code X-Forwarded-For} - takes first IP in comma-separated list</li>
+     *   <li>{@code X-Real-IP} - single IP value</li>
+     *   <li>Direct connection IP from {@code req.remoteIp()}</li>
+     * </ol>
+     * When {@code trustProxyHeaders = false}, always uses {@code req.remoteIp()}.
      *
      * @param req the HTTP request
      * @return the client's IP address
      */
     private String getClientIp(HttpRequest req) {
+        if (!trustProxyHeaders) {
+            return req.remoteIp();
+        }
+
         Map<String, String> headers = req.headers();
 
         String ip = headers.get("X-Forwarded-For");
@@ -317,5 +334,14 @@ public class IpFilter implements Filter {
      */
     public boolean getAllowByDefault() {
         return allowByDefault;
+    }
+
+    /**
+     * Returns the default policy for trusting proxy headers.
+     *
+     * @return true if proxy headers are trusted, false if not
+     */
+    public boolean getTrustProxyHeaders() {
+        return trustProxyHeaders;
     }
 }

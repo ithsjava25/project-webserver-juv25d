@@ -15,3 +15,14 @@ rate-limiting:
   enabled: true
   requests-per-minute: 60
   burst-capacity: 100
+
+cors:
+  allowed-origins:
+    - http://localhost:3000
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS

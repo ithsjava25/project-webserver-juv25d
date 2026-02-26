@@ -6,6 +6,7 @@ import org.yaml.snakeyaml.Yaml;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConfigLoader {
     @Nullable private static ConfigLoader instance;
@@ -17,6 +18,8 @@ public class ConfigLoader {
     private boolean rateLimitingEnabled;
     private List<String> trustedProxies;
     private List<ProxyRoute> proxyRoutes = new ArrayList<>();
+    private List <String> allowedOrigins = List.of();
+    private List <String> allowedMethods = List.of();
 
     private ConfigLoader() {
         loadConfiguration(getClass().getClassLoader()
@@ -52,11 +55,14 @@ public class ConfigLoader {
             this.rootDirectory = "static";
             this.logLevel = "INFO";
             this.trustedProxies = List.of();
+            this.allowedOrigins = List.of();
+            this.allowedMethods = List.of();
 
             // server
             Object serverObj = config.get("server");
             if (serverObj != null) {
                 Map<String, Object> serverConfig = asStringObjectMap(serverObj);
+
                 Object portValue = serverConfig.get("port");
                 if (portValue instanceof Number n) this.port = n.intValue();
 
@@ -113,6 +119,27 @@ public class ConfigLoader {
                     Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
             }
 
+            //Cors
+            Object corsObj = config.get("cors");
+            if (corsObj != null) {
+                Map<String, Object> corsConfig = asStringObjectMap(corsObj);
+
+                Object origins = corsConfig.get("allowed-origins");
+                if (origins instanceof List<?> list) {
+                    this.allowedOrigins = list.stream()
+                        .map(String::valueOf)
+                        .toList();
+                }
+
+                Object methods = corsConfig.get("allowed-methods");
+                if (methods instanceof List<?> methodList) {
+                    this.allowedMethods = methodList.stream()
+                        .map(String::valueOf)
+                        .toList();
+                } else {
+                    this.allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+                }
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load application config", e);
         }
@@ -157,4 +184,12 @@ public class ConfigLoader {
     public List<ProxyRoute> getProxyRoutes() {
         return Collections.unmodifiableList(proxyRoutes);
     }
+
+    public List<String> getAllowedOrigins() {
+        return allowedOrigins;
+    }
+    public List<String> getAllowedMethods() {
+        return allowedMethods;
+    }
+
 }

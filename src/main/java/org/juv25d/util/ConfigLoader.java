@@ -55,7 +55,7 @@ public class ConfigLoader {
             this.logLevel = "INFO";
             this.trustedProxies = List.of();
             this.allowedOrigins = List.of();
-            this.allowedMethods = List.of();
+            this.allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
 
             // server
             Object serverObj = config.get("server");
@@ -132,9 +132,12 @@ public class ConfigLoader {
 
                 Object methods = corsConfig.get("allowed-methods");
                 if (methods instanceof List<?> methodList) {
-                    this.allowedMethods = methodList.stream()
+                    List <String> parsedMethods = methodList.stream()
                         .map(String::valueOf)
                         .toList();
+                    if (!parsedMethods.isEmpty()) {
+                        this.allowedMethods = parsedMethods;
+                    }
                 } else {
                     this.allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
                 }

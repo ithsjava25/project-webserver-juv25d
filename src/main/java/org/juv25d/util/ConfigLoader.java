@@ -110,6 +110,18 @@ public class ConfigLoader {
                     Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
             }
 
+            // request body size
+            this.requestBodySizeEnabled = false;
+            this.maxBodySizeMb = 10L;
+
+            Map<String, Object> bodySizeConfig = asStringObjectMap(config.get("body-size"));
+            if (bodySizeConfig != null) {
+                this.requestBodySizeEnabled =
+                    Boolean.parseBoolean(String.valueOf(bodySizeConfig.getOrDefault("enabled", false)));
+                this.maxBodySizeMb =
+                    Long.parseLong(String.valueOf(bodySizeConfig.getOrDefault("max-size-mb", 10L)));
+            }
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to load application config", e);
         }
@@ -149,6 +161,14 @@ public class ConfigLoader {
 
     public boolean isRateLimitingEnabled() {
         return rateLimitingEnabled;
+    }
+
+    public boolean isBodySizeEnabled() {
+        return requestBodySizeEnabled;
+    }
+
+    public long getMaxBodySizeMb() {
+        return maxBodySizeMb;
     }
 
     public List<ProxyRoute> getProxyRoutes() {

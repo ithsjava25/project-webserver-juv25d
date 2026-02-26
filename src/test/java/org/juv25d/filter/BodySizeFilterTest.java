@@ -64,7 +64,7 @@ public class BodySizeFilterTest {
     }
 
     @Test
-    void shouldBlockRequest_whenMethodHasBodyButSizeIsZero() throws IOException {
+    void shouldBlockRequest_whenContentLengthMissing() throws IOException {
         BodySizeFilter filter = new BodySizeFilter(10);
         when(req.method()).thenReturn("POST");
         when(req.headers()).thenReturn(Map.of());

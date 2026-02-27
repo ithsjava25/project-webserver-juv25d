@@ -11,10 +11,13 @@ public class HttpResponseWriter {
     }
 
     // This method should be called by SocketServer/ConnectionHandler later
-    public static void write(OutputStream out, HttpResponse response) throws IOException {
+    public static void write(OutputStream out, String method, HttpResponse response) throws IOException {
         writeStatusLine(out, response);
         writeHeaders(out, response.headers(), response.body());
-        writeBody(out, response.body());
+        if(!"HEAD".equalsIgnoreCase(method)) {
+            writeBody(out, response.body());
+        }
+
         out.flush();
     }
 
@@ -45,6 +48,7 @@ public class HttpResponseWriter {
 
 
     private static void writeBody(OutputStream out, byte[] body) throws IOException {
-        out.write(body);
+        if(body != null && body.length > 0) {
+            out.write(body);}
     }
 }

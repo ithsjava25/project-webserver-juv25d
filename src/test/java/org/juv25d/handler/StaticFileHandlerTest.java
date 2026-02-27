@@ -139,7 +139,7 @@ class StaticFileHandlerTest {
     }
 
     @Test
-    void shouldReturn405ForNonGetRequest() {
+    void shouldReturn405ForPostRequest() {
         HttpRequest request = createRequest("POST", "/index.html");
         HttpResponse response = StaticFileHandler.handle(request);
 
@@ -204,5 +204,40 @@ class StaticFileHandlerTest {
             new byte[0],
             "UNKNOWN"
         );
+    }
+
+    @Test
+    void shouldReturn200AndHeadersForHeadRequest() {
+        // Arrange
+        HttpRequest request = createRequest("HEAD", "/index.html");
+
+        // Act
+        HttpResponse response = StaticFileHandler.handle(request);
+
+        // Assert
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.headers()).containsKey("Content-Type");
+        assertThat(response.headers()).containsKey("ETag");
+
+        // Eftersom din HttpResponseWriter räknar ut Content-Length vid utskrift,
+        // kollar vi här att bodyn finns i objektet så att writern KAN räkna ut längden.
+        assertThat(response.body()).isNotEmpty();
+
+        // Om du vill vara helt säker på att längden är rätt:
+        int expectedLength = response.body().length;
+        assertThat(expectedLength).isGreaterThan(0);
+    }
+
+    @Test
+    void shouldReturn404ForHeadRequestOnMissingFile() {
+        // Arrange
+        HttpRequest request = createRequest("HEAD", "/nonexistent.html");
+
+        // Act
+        HttpResponse response = StaticFileHandler.handle(request);
+
+        // Assert
+        assertThat(response.statusCode()).isEqualTo(404);
+        assertThat(response.body()).isNotEmpty();
     }
 }

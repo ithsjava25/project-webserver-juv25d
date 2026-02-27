@@ -10,11 +10,13 @@ import java.util.*;
 public class ConfigLoader {
     @Nullable private static ConfigLoader instance;
     private int port;
+    private int minCompressSize;
     private String logLevel = "INFO";
     private String rootDirectory = "static";
     private long requestsPerMinute;
     private long burstCapacity;
     private boolean rateLimitingEnabled;
+    private boolean compressionEnabled;
     private List<String> trustedProxies;
     private List<ProxyRoute> proxyRoutes = new ArrayList<>();
 

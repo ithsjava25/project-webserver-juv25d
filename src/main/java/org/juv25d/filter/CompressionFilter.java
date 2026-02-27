@@ -5,9 +5,13 @@ import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.logging.ServerLogging;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 @Global(order = 10)
@@ -38,4 +42,12 @@ public class CompressionFilter {
             .anyMatch(e -> e.equalsIgnoreCase("gzip"));
     }
 
+    private byte [] compress(byte [] data) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        GZIPOutputStream gzipstream = new GZIPOutputStream(byteStream);
+
+        gzipstream.write(data);
+        gzipstream.close();
+        return byteStream.toByteArray();
+    }
 }

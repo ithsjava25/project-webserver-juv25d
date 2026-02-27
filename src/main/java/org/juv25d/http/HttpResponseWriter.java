@@ -40,7 +40,8 @@ public class HttpResponseWriter {
             }
         }
 
-        String contentLength = "Content-Length: " + body.length + "\r\n";
+        int length = (body != null) ? body.length : 0;
+        String contentLength = "Content-Length: " + length + "\r\n";
         out.write(contentLength.getBytes(StandardCharsets.UTF_8));
 
         out.write("\r\n".getBytes(StandardCharsets.UTF_8));

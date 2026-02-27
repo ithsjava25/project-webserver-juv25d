@@ -73,4 +73,19 @@ public class CompressionFilterTest {
         verify(res).setHeader("Content-Encoding", "gzip");
         verify(res).setHeader("Vary", "Accept-Encoding");
     }
+
+    @Test
+    void shouldNotCompress_whenBodyIsSmallerThanThreshold() throws IOException {
+        CompressionFilter filter = new CompressionFilter(true, 1024);
+        when(req.headers()).thenReturn(Map.of(
+            "Accept-Encoding", "gzip"
+        ));
+
+        when(res.body()).thenReturn("small".getBytes());
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        verify(res, never()).setBody(any());
+    }
 }

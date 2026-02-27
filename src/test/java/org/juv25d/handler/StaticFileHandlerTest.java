@@ -219,11 +219,8 @@ class StaticFileHandlerTest {
         assertThat(response.headers()).containsKey("Content-Type");
         assertThat(response.headers()).containsKey("ETag");
 
-        // Eftersom din HttpResponseWriter räknar ut Content-Length vid utskrift,
-        // kollar vi här att bodyn finns i objektet så att writern KAN räkna ut längden.
         assertThat(response.body()).isNotEmpty();
 
-        // Om du vill vara helt säker på att längden är rätt:
         int expectedLength = response.body().length;
         assertThat(expectedLength).isGreaterThan(0);
     }

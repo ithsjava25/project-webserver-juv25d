@@ -8,9 +8,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.util.Map;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CompressionFilterTest {
@@ -30,5 +30,16 @@ public class CompressionFilterTest {
 
         verify(chain).doFilter(req, res);
         verifyNoMoreInteractions(res);
+    }
+
+    @Test
+    void shouldNotCompress_whenNoAcceptEncoding() throws IOException {
+        CompressionFilter filter = new CompressionFilter(true, 1024);
+        when(req.headers()).thenReturn(Map.of());
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        verify(res, never()).setBody(any());
     }
 }

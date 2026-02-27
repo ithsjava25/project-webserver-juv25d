@@ -44,18 +44,7 @@ public class IpFilter implements Filter {
      * @param allowByDefault whether to allow IPs not in either list
      * */
     public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault) {
-        if (whitelist != null) {
-            for (String entry : whitelist) {
-                addToWhitelist(entry);
-            }
-        }
-        if (blacklist != null) {
-            for (String entry : blacklist) {
-                addToBlacklist(entry);
-            }
-        }
-        this.allowByDefault = allowByDefault;
-        this.trustProxyHeaders = false;
+        this(whitelist, blacklist, allowByDefault, false);
     }
 
     /**

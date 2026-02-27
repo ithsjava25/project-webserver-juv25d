@@ -34,7 +34,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Allow ip only in whitelist")
     void whitelist_allowsIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false, false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false);
 
         filter.doFilter(req, res, chain);
 
@@ -91,7 +91,7 @@ class IpFilterTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     @DisplayName("Follow default when ip in neither list")
-    void Ip_inNeitherList_followsDefault(boolean allowByDefault) throws IOException {
+    void ip_inNeitherList_followsDefault(boolean allowByDefault) throws IOException {
         IpFilter filter = new IpFilter(null, null, allowByDefault);
 
         filter.doFilter(req, res, chain);

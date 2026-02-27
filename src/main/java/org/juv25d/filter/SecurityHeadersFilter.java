@@ -28,8 +28,8 @@ public class SecurityHeadersFilter implements Filter {
         }
 
     private void applyDefaultHeader(HttpResponse res, String headerName, String defaultValue) {
-        // Kontrollera om headern saknas eller är tom
-        if (res.getHeader(headerName) == null) {
+        String existing = res.getHeader(headerName);
+        if (existing == null || existing.isEmpty()) {
             res.setHeader(headerName, defaultValue);
         }
     }

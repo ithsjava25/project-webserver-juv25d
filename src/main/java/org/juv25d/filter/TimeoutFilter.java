@@ -21,6 +21,16 @@ public class TimeoutFilter implements Filter {
 
     private static final ExecutorService executor =
         Executors.newCachedThreadPool();
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            executor.shutdownNow();
+            try {
+                executor.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }));
+    }
 
     private static final Logger logger = ServerLogging.getLogger();
 

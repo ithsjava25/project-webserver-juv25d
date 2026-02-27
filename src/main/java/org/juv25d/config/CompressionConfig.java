@@ -1,12 +1,15 @@
 package org.juv25d.config;
 
+import org.juv25d.util.ConfigLoader;
+
 public class CompressionConfig {
     private final boolean enabled;
     private final int minCompressSize;
 
     public CompressionConfig() {
-        this.enabled = false;
-        this.minCompressSize = 1024;
+        ConfigLoader config = ConfigLoader.getInstance();
+        this.enabled = config.isCompressionEnabled();
+        this.minCompressSize = config.getMinCompressSize();
     }
 
     public boolean isEnabled() {

@@ -54,6 +54,8 @@ public class ConfigLoader {
             this.rootDirectory = "static";
             this.logLevel = "INFO";
             this.trustedProxies = List.of();
+            this.compressionEnabled = false;
+            this.minCompressSize = 1024;
 
             // server
             Object serverObj = config.get("server");
@@ -113,6 +115,16 @@ public class ConfigLoader {
 
                 this.burstCapacity =
                     Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
+            }
+
+            Object compressionObj = config.get("compression");
+            if (compressionObj != null) {
+                Map<String, Object> compressionConfig = asStringObjectMap(compressionObj);
+                this.compressionEnabled =
+                    Boolean.parseBoolean(String.valueOf(compressionConfig.getOrDefault("enabled", false)));
+
+                this.minCompressSize =
+                    Integer.parseInt(String.valueOf(compressionConfig.getOrDefault("min-compress-size", 1024)));
             }
 
         } catch (Exception e) {

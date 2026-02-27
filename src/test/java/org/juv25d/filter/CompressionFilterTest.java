@@ -42,4 +42,17 @@ public class CompressionFilterTest {
         verify(chain).doFilter(req, res);
         verify(res, never()).setBody(any());
     }
+
+    @Test
+    void shouldNotCompress_whenAcceptEncodingIsNotGzip() throws IOException {
+        CompressionFilter filter = new CompressionFilter(true, 1024);
+        when(req.headers()).thenReturn(Map.of(
+            "Accept-Encoding", "deflate, br"
+        ));
+
+        filter.doFilter(req, res, chain);
+
+        verify(chain).doFilter(req, res);
+        verify(res, never()).setBody(any());
+    }
 }

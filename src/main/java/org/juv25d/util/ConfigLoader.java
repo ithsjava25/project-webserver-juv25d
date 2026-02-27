@@ -171,4 +171,12 @@ public class ConfigLoader {
     public List<ProxyRoute> getProxyRoutes() {
         return Collections.unmodifiableList(proxyRoutes);
     }
+
+    public boolean isCompressionEnabled() {
+        return compressionEnabled;
+    }
+
+    public int getMinCompressSize() {
+        return minCompressSize;
+    }
 }

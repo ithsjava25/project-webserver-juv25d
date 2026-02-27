@@ -42,7 +42,13 @@ public class CompressionFilter implements Filter{
         byte[] compressed = compress(body);
         res.setBody(compressed);
         res.setHeader("Content-Encoding", "gzip");
-        res.setHeader("Vary", "Accept-Encoding");
+
+        String existingVary = res.getHeader("Vary");
+        if (existingVary != null && !existingVary.isEmpty()) {
+            res.setHeader("Vary", existingVary + ", Accept-Encoding");
+        } else {
+            res.setHeader("Vary", "Accept-Encoding");
+        }
 
         LOGGER.info("Compressed " + body.length + " bytes to " + compressed.length + " bytes");
     }

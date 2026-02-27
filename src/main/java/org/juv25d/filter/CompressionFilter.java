@@ -3,23 +3,49 @@ package org.juv25d.filter;
 import org.juv25d.config.CompressionConfig;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
+import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 
 @Global(order = 10)
-public class CompressionFilter {
+public class CompressionFilter implements Filter{
     private static final Logger LOGGER = ServerLogging.getLogger();
 
     private final boolean enabled;
     private final int minCompressSize;
+
+    @Override
+    public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
+        if (!enabled) {
+            chain.doFilter(req, res);
+            return;
+        }
+
+        if (!acceptsGzip(req)) {
+            chain.doFilter(req, res);
+            return;
+        }
+
+        chain.doFilter(req, res);
+
+        byte[] body = res.body();
+        if (body.length < minCompressSize) {
+            return;
+        }
+
+        byte[] compressed = compress(body);
+        res.setBody(compressed);
+        res.setHeader("Content-Encoding", "gzip");
+        res.setHeader("Vary", "Accept-Encoding");
+
+        LOGGER.info("Compressed " + body.length + " bytes to " + compressed.length + " bytes");
+    }
 
     public CompressionFilter() {
         CompressionConfig config = new CompressionConfig();

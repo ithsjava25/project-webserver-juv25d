@@ -123,23 +123,31 @@ public class ConfigLoader {
             if (corsObj != null) {
                 Map<String, Object> corsConfig = asStringObjectMap(corsObj);
 
+                //Allowed-origins
                 Object origins = corsConfig.get("allowed-origins");
                 if (origins instanceof List<?> list) {
                     this.allowedOrigins = list.stream()
+                        .filter(Objects::nonNull)
                         .map(String::valueOf)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
                         .toList();
                 }
 
+                //Allowed-methods
                 Object methods = corsConfig.get("allowed-methods");
                 if (methods instanceof List<?> methodList) {
                     List <String> parsedMethods = methodList.stream()
+                        .filter(Objects::nonNull)
                         .map(String::valueOf)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(s -> s.toUpperCase(Locale.ROOT))
                         .toList();
-                    if (!parsedMethods.isEmpty()) {
-                        this.allowedMethods = parsedMethods;
-                    }
-                } else {
-                    this.allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
+
+                    this.allowedMethods = parsedMethods.isEmpty()
+                        ? List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                        : parsedMethods;
                 }
             }
         } catch (Exception e) {

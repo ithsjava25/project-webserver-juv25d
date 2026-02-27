@@ -35,7 +35,7 @@ public class IpFilter implements Filter {
 
     /**
      * Constructs an IP filter with specified whitelist, blacklist, and default policy.
-     * This constructor sets {@code trustProxyHeaders = true}
+     * This constructor sets {@code trustProxyHeaders = false}
      * <p>
      * To specify proxy trusting use {@link #IpFilter(Set, Set, boolean, boolean)}
      *

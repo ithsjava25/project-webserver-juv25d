@@ -185,4 +185,8 @@ public class ConfigLoader {
     public List<ProxyRoute> getProxyRoutes() {
         return Collections.unmodifiableList(proxyRoutes);
     }
+
+    public long getTimeoutMs(int i) {
+        return 0;
+    }
 }

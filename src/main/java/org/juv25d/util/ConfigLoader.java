@@ -125,7 +125,7 @@ public class ConfigLoader {
 
                 int parsedMinCompressSize =
                     Integer.parseInt(String.valueOf(compressionConfig.getOrDefault("min-compress-size", 1024)));
-                this.minCompressSize = Math.max(0, parsedMinCompressSize);
+                this.minCompressSize = Math.max(100, parsedMinCompressSize);
             }
 
         } catch (Exception e) {

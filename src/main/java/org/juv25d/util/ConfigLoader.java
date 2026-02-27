@@ -123,8 +123,9 @@ public class ConfigLoader {
                 this.compressionEnabled =
                     Boolean.parseBoolean(String.valueOf(compressionConfig.getOrDefault("enabled", false)));
 
-                this.minCompressSize =
+                int parsedMinCompressSize =
                     Integer.parseInt(String.valueOf(compressionConfig.getOrDefault("min-compress-size", 1024)));
+                this.minCompressSize = Math.max(0, parsedMinCompressSize);
             }
 
         } catch (Exception e) {

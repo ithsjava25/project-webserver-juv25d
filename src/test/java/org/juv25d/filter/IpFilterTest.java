@@ -34,7 +34,7 @@ class IpFilterTest {
     @Test
     @DisplayName("Allow ip only in whitelist")
     void whitelist_allowsIp() throws IOException {
-        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false);
+        IpFilter filter = new IpFilter(Set.of("127.0.0.1"), null, false, false);
 
         filter.doFilter(req, res, chain);
 

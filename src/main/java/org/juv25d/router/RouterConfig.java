@@ -8,7 +8,7 @@ import org.juv25d.plugin.StaticFilesPlugin;
 import org.juv25d.proxy.ProxyPlugin;
 import org.juv25d.proxy.ProxyRoute;
 import org.juv25d.util.ConfigLoader;
-
+import org.juv25d.plugin.SlowPlugin;
 public class RouterConfig {
 
     @Inject
@@ -21,6 +21,7 @@ public class RouterConfig {
 
         router.registerPlugin("/metric", new MetricPlugin());
         router.registerPlugin("/health", new HealthCheckPlugin());
+        router.registerPlugin("/slow", new SlowPlugin());
         router.registerPlugin("/", new StaticFilesPlugin());
         router.registerPlugin("/*", new StaticFilesPlugin());
         router.registerPlugin("/notfound", new NotFoundPlugin());

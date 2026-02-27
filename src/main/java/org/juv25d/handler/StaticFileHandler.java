@@ -47,8 +47,8 @@ public class StaticFileHandler {
     public static HttpResponse handle(HttpRequest request) {
         String path = request.path();
 
-        // Only handle GET requests
-        if (!request.method().equalsIgnoreCase("GET")) {
+        // Only handle GET & HEAD requests
+        if (!request.method().equalsIgnoreCase("GET") && !request.method().equalsIgnoreCase("HEAD")) {
             return createErrorResponse(405, "Method Not Allowed");
         }
 

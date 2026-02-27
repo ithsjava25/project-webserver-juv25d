@@ -19,13 +19,21 @@ public class SecurityHeadersFilter implements Filter {
             chain.doFilter(req, res);
         } finally {
 
-                res.setHeader("X-Content-Type-Options", "nosniff");
-                res.setHeader("X-Frame-Options", "DENY");
-                res.setHeader("X-XSS-Protection", "0");
-                res.setHeader("Referrer-Policy", "no-referrer");
+                applyDefaultHeader(res, "X-Content-Type-Options", "nosniff" );
+                applyDefaultHeader(res, "X-Frame-Options", "DENY" );
+                applyDefaultHeader(res, "X-XSS-Protection", "0" );
+                applyDefaultHeader(res, "Referrer-Policy", "no-referrer" );
 
             }
         }
+
+    private void applyDefaultHeader(HttpResponse res, String headerName, String defaultValue) {
+        String existing = res.getHeader(headerName);
+        if (existing == null || existing.isEmpty()) {
+            res.setHeader(headerName, defaultValue);
+        }
+    }
+
     }
 
 

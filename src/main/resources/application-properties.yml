@@ -19,3 +19,7 @@ rate-limiting:
 compression:
   enabled: true
   min-compress-size: 1024
+  
+request-body-size:
+  enabled: true
+  max-size-mb: 10

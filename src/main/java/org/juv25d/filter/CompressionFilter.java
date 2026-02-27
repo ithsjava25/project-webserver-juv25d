@@ -9,6 +9,7 @@ import org.juv25d.logging.ServerLogging;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
 
@@ -65,12 +66,18 @@ public class CompressionFilter implements Filter{
     }
 
     private boolean acceptsGzip(HttpRequest req) {
-        String acceptEncoding = req.headers().get("Accept-Encoding");
+        String acceptEncoding = req.headers().entrySet().stream()
+            .filter(e -> e.getKey().equalsIgnoreCase("Accept-Encoding"))
+            .map(Map.Entry::getValue)
+            .findFirst()
+            .orElse(null);
+
         if (acceptEncoding == null || acceptEncoding.isEmpty()) {
             return false;
         }
         return Arrays.stream(acceptEncoding.split(","))
             .map(String::trim)
+            .map(e -> e.split(";")[0].trim())
             .anyMatch(e -> e.equalsIgnoreCase("gzip"));
     }
 

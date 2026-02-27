@@ -60,19 +60,16 @@ class SecurityHeadersFilterTest {
 
     @Test
     void shouldNotOverwriteExistingHeaders() throws IOException {
-        // 1. Skapa en response där en header redan är satt
+
         Map<String, String> headers = new HashMap<>();
-        headers.put("X-Frame-Options", "SAMEORIGIN"); // En annan policy än filtrets "DENY"
+        headers.put("X-Frame-Options", "SAMEORIGIN");
         HttpResponse response = new HttpResponse(200, "OK", headers, new byte[0]);
 
-        // 2. Kör filtret
         filter.doFilter(mockRequest, response, mockChain);
 
-        // 3. Verifiera beteendet (här antar vi att vi vill behålla "SAMEORIGIN")
         assertEquals("SAMEORIGIN", response.getHeader("X-Frame-Options"),
             "Filtret ska inte skriva över en redan satt header");
 
-        // Verifiera att de andra headers som saknades fortfarande läggs till
         assertEquals("nosniff", response.getHeader("X-Content-Type-Options"));
     }
 }

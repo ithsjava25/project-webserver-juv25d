@@ -4,7 +4,6 @@ import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
 import org.juv25d.logging.ServerLogging;
-import org.juv25d.util.ConfigLoader;
 
 import java.io.IOException;
 import java.util.concurrent.*;
@@ -13,11 +12,7 @@ import java.util.logging.Logger;
 @Global(order = 1)
 public class TimeoutFilter implements Filter {
 
-    private static final long TIMEOUT_MS;
-    static {
-        // Load from config, with 2000ms as default
-        TIMEOUT_MS = ConfigLoader.getInstance().getTimeoutMs(2000);
-    }
+    private static final long TIMEOUT_MS = 2000;
 
     private static final ExecutorService executor =
         Executors.newCachedThreadPool();

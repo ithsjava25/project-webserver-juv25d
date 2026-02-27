@@ -88,4 +88,20 @@ public class CompressionFilterTest {
         verify(chain).doFilter(req, res);
         verify(res, never()).setBody(any());
     }
+
+    @Test
+    void shouldCompress_whenAcceptEncodingIsUpperCase() throws IOException {
+        CompressionFilter filter = new CompressionFilter(true, 100);
+        when(req.headers()).thenReturn(Map.of(
+            "Accept-Encoding", "GZIP"
+        ));
+
+        byte[] body = "Hello, world!".repeat(100).getBytes();
+        when(res.body()).thenReturn(body);
+
+        filter.doFilter(req, res, chain);
+
+        verify(res).setBody(any(byte[].class));
+        verify(res).setHeader("Content-Encoding", "gzip");
+    }
 }

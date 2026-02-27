@@ -104,4 +104,19 @@ public class CompressionFilterTest {
         verify(res).setBody(any(byte[].class));
         verify(res).setHeader("Content-Encoding", "gzip");
     }
+
+    @Test
+    void shouldCompress_whenBodyIsExactlyThreshold() throws IOException {
+        CompressionFilter filter = new CompressionFilter(true, 5);
+        when(req.headers()).thenReturn(Map.of(
+            "Accept-Encoding", "gzip"
+        ));
+
+        when(res.body()).thenReturn("Hello".getBytes());
+
+        filter.doFilter(req, res, chain);
+
+        verify(res).setBody(any(byte[].class));
+        verify(res).setHeader("Content-Encoding", "gzip");
+    }
 }

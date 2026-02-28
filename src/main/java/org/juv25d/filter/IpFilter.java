@@ -35,6 +35,20 @@ public class IpFilter implements Filter {
 
     /**
      * Constructs an IP filter with specified whitelist, blacklist, and default policy.
+     * This constructor sets {@code trustProxyHeaders = false}
+     * <p>
+     * To specify proxy trusting use {@link #IpFilter(Set, Set, boolean, boolean)}
+     *
+     * @param whitelist     set of IPs/CIDR ranges to always allow (can be null)
+     * @param blacklist     set of IPs/CIDR ranges to always block (can be null)
+     * @param allowByDefault whether to allow IPs not in either list
+     * */
+    public IpFilter(@Nullable Set<String> whitelist, @Nullable Set<String> blacklist, boolean allowByDefault) {
+        this(whitelist, blacklist, allowByDefault, false);
+    }
+
+    /**
+     * Constructs an IP filter with specified whitelist, blacklist, and default policy.
      *
      * @param whitelist     set of IPs/CIDR ranges to always allow (can be null)
      * @param blacklist     set of IPs/CIDR ranges to always block (can be null)
@@ -261,17 +275,33 @@ public class IpFilter implements Filter {
 
         Map<String, String> headers = req.headers();
 
-        String ip = headers.get("X-Forwarded-For");
+        String ip = getHeaderIgnoreCase(headers, "X-Forwarded-For");
         if (ip != null && !ip.isBlank()) {
             return ip.split(",")[0].trim();
         }
 
-        ip = headers.get("X-Real-IP");
+        ip = getHeaderIgnoreCase(headers, "X-Real-IP");
         if (ip != null && !ip.isBlank()) {
             return ip.trim();
         }
 
         return req.remoteIp();
+    }
+
+    /**
+     * Retrieves a header value using case-insensitive name matching.
+     *
+     * @param headers the header map to search
+     * @param name    the header name
+     * @return the header value, or {@code null} if not found
+     */
+    private @Nullable String getHeaderIgnoreCase(Map<String, String> headers, String name) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            if (entry.getKey() != null && entry.getKey().equalsIgnoreCase(name)) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     /**

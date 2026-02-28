@@ -20,5 +20,7 @@ public class IpFilterConfig {
         return allowByDefault;
     }
 
-    public boolean trustProxyHeaders() {return trustProxyHeaders;}
+    public boolean trustProxyHeaders() {
+        return trustProxyHeaders;
+    }
 }

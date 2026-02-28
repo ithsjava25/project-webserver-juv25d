@@ -55,7 +55,7 @@ public class ConnectionHandler implements Runnable {
             var chain = pipeline.createChain(request);
             chain.doFilter(request, response);
 
-            HttpResponseWriter.write(out, response);
+            HttpResponseWriter.write(out, request.method(), response);
 
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error while handling request", e);

@@ -79,10 +79,28 @@ public class CompressionFilter implements Filter{
         if (acceptEncoding == null || acceptEncoding.isEmpty()) {
             return false;
         }
+        
         return Arrays.stream(acceptEncoding.split(","))
             .map(String::trim)
-            .map(e -> e.split(";")[0].trim())
-            .anyMatch(e -> e.equalsIgnoreCase("gzip"));
+            .filter(this::isGzipWithQualityAboveZero)
+            .anyMatch(e -> e.split(";")[0].trim().equalsIgnoreCase("gzip"));
+    }
+
+    private boolean isGzipWithQualityAboveZero(String encoding) {
+        String[] parts = encoding.split(";");
+        String name = parts[0].trim();
+        if (!name.equalsIgnoreCase("gzip")) return false;
+        
+        if (parts.length > 1) {
+            String q = parts[1].trim();
+            if (q.startsWith("q=")) {
+                try {
+                    double quality = Double.parseDouble(q.substring(2));
+                    return quality > 0;
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        return true;
     }
 
     private byte [] compress(byte [] data) throws IOException {

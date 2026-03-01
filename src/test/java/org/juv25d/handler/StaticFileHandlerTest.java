@@ -77,6 +77,86 @@ class StaticFileHandlerTest {
     }
 
     @Test
+    void shouldReturn412WhenIfMatchDoesNotMatch() {
+        HttpRequest first = createRequest("GET", "/index.html");
+        HttpResponse firstResponse = StaticFileHandler.handle(first);
+
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
+        String etag = firstResponse.headers().get("ETag");
+        assertThat(etag).isNotBlank();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("If-Match", "\"definitely-not-the-real-etag\"");
+
+        HttpRequest second = createRequest("GET", "/index.html", headers);
+        HttpResponse secondResponse = StaticFileHandler.handle(second);
+
+        assertThat(secondResponse.statusCode()).isEqualTo(412);
+        assertThat(secondResponse.statusText()).isEqualTo("Precondition Failed");
+        assertThat(secondResponse.headers()).containsEntry("ETag", etag);
+        assertThat(secondResponse.headers()).containsEntry("Cache-Control", "public, max-age=5");
+        assertThat(secondResponse.body()).isNotEmpty();
+    }
+
+    @Test
+    void shouldReturn200WhenIfMatchMatches() {
+        HttpRequest first = createRequest("GET", "/index.html");
+        HttpResponse firstResponse = StaticFileHandler.handle(first);
+
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
+        String etag = firstResponse.headers().get("ETag");
+        assertThat(etag).isNotBlank();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("If-Match", etag);
+
+        HttpRequest second = createRequest("GET", "/index.html", headers);
+        HttpResponse secondResponse = StaticFileHandler.handle(second);
+
+        assertThat(secondResponse.statusCode()).isEqualTo(200);
+        assertThat(secondResponse.statusText()).isEqualTo("OK");
+    }
+
+    @Test
+    void shouldPreferIfMatchOverIfNoneMatch() {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("If-Match", "\"nope\"");
+        headers.put("If-None-Match", "*");
+
+        HttpRequest request = createRequest("GET", "/index.html", headers);
+        HttpResponse response = StaticFileHandler.handle(request);
+
+        assertThat(response.statusCode()).isEqualTo(412);
+        assertThat(response.statusText()).isEqualTo("Precondition Failed");
+    }
+
+    @Test
+    void shouldReturn200WhenIfMatchMatchesEvenIfUnquoted() {
+        HttpRequest first = createRequest("GET", "/index.html");
+        HttpResponse firstResponse = StaticFileHandler.handle(first);
+
+        assertThat(firstResponse.statusCode()).isEqualTo(200);
+        String etag = requireHeader(firstResponse, "ETag");
+        assertThat(etag).isNotBlank();
+
+        String unquoted = etag.replace("\"", "");
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("If-Match", unquoted);
+
+        HttpRequest second = createRequest("GET", "/index.html", headers);
+        HttpResponse secondResponse = StaticFileHandler.handle(second);
+
+        assertThat(secondResponse.statusCode()).isEqualTo(200);
+        assertThat(secondResponse.statusText()).isEqualTo("OK");
+    }
+
+    private String requireHeader(HttpResponse response, String headerName) {
+        assertThat(response.headers()).containsKey(headerName);
+        return java.util.Objects.requireNonNull(response.headers().get(headerName));
+    }
+
+    @Test
     void shouldReturn404ForNonExistingFile() {
         HttpRequest request = createRequest("GET", "/nonexistent.html");
         HttpResponse response = StaticFileHandler.handle(request);

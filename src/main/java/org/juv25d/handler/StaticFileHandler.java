@@ -77,6 +77,40 @@ public class StaticFileHandler {
 
             String etag = computeStrongEtag(fileContent);
 
+            String ifMatch = getHeaderIgnoreCase(request.headers(), "If-Match");
+            if (ifMatch != null && !ifMatch.isBlank() && !etagMatches(ifMatch, etag)) {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "text/html; charset=utf-8");
+                headers.put("ETag", etag);
+                headers.put("Cache-Control", "public, max-age=" + MAX_AGE_SECONDS);
+
+                String html = """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>412 Precondition Failed</title>
+                        <style>
+                            body {
+                                font-family: Arial, sans-serif;
+                                max-width: 600px;
+                                margin: 100px auto;
+                                text-align: center;
+                            }
+                            h1 { color: #e67e22; }
+                        </style>
+                    </head>
+                    <body>
+                        <h1>412 - Precondition Failed</h1>
+                        <p>The requested resource did not match the supplied <code>If-Match</code> precondition.</p>
+                    </body>
+                    </html>
+                    """;
+
+                logger.info("If-Match precondition failed for " + resourcePath + " -> 412 Precondition Failed");
+                return new HttpResponse(412, "Precondition Failed", headers, html.getBytes(StandardCharsets.UTF_8));
+            }
+
             String ifNoneMatch = getHeaderIgnoreCase(request.headers(), "If-None-Match");
             if (etagMatches(ifNoneMatch, etag)) {
                 Map<String, String> headers = new HashMap<>();
@@ -202,7 +236,16 @@ public class StaticFileHandler {
     @Nullable private static String opaqueTag(@Nullable String etag) {
         if (etag == null) return null;
         String e = etag.trim();
-        return e.startsWith("W/") ? e.substring(2) : e;
+
+        if (e.startsWith("W/")) {
+            e = e.substring(2).trim();
+        }
+
+        if (e.length() >= 2 && e.startsWith("\"") && e.endsWith("\"")) {
+            e = e.substring(1, e.length() - 1);
+        }
+
+        return e;
     }
 
     private static boolean etagMatches(@Nullable String ifNoneMatchHeader, String currentEtag) {
@@ -214,10 +257,15 @@ public class StaticFileHandler {
             return true;
         }
 
+        String current = opaqueTag(currentEtag);
+        if (current == null) {
+            return false;
+        }
+
         String[] parts = value.split(",");
         for (String part : parts) {
             String tag = opaqueTag(part);
-            if (part != null && tag != null && tag.equals(opaqueTag(currentEtag))) {
+            if (tag != null && tag.equals(current)) {
                 return true;
             }
         }

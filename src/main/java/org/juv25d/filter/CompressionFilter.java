@@ -40,6 +40,10 @@ public class CompressionFilter implements Filter{
             return;
         }
 
+        if (res.getHeader("Content-Encoding") != null) {
+            return;
+        }
+
         byte[] compressed = compress(body);
         res.setBody(compressed);
         res.setHeader("Content-Encoding", "gzip");

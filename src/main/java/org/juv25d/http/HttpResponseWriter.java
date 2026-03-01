@@ -11,10 +11,13 @@ public class HttpResponseWriter {
     }
 
     // This method should be called by SocketServer/ConnectionHandler later
-    public static void write(OutputStream out, HttpResponse response) throws IOException {
+    public static void write(OutputStream out, String method, HttpResponse response) throws IOException {
         writeStatusLine(out, response);
         writeHeaders(out, response.headers(), response.body());
-        writeBody(out, response.body());
+        if(!"HEAD".equalsIgnoreCase(method)) {
+            writeBody(out, response.body());
+        }
+
         out.flush();
     }
 
@@ -37,7 +40,8 @@ public class HttpResponseWriter {
             }
         }
 
-        String contentLength = "Content-Length: " + body.length + "\r\n";
+        int length = (body != null) ? body.length : 0;
+        String contentLength = "Content-Length: " + length + "\r\n";
         out.write(contentLength.getBytes(StandardCharsets.UTF_8));
 
         out.write("\r\n".getBytes(StandardCharsets.UTF_8));
@@ -45,6 +49,7 @@ public class HttpResponseWriter {
 
 
     private static void writeBody(OutputStream out, byte[] body) throws IOException {
-        out.write(body);
+        if(body != null && body.length > 0) {
+            out.write(body);}
     }
 }

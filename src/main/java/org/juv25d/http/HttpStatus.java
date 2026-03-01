@@ -13,11 +13,14 @@ public enum HttpStatus {
     UNAUTHORIZED(401, "Unauthorized"),
     FORBIDDEN(403, "Forbidden"),
     NOT_FOUND(404, "Not Found"),
+    LENGTH_REQUIRED(411, "Length Required"),
+    PAYLOAD_TOO_LARGE(413, "Payload Too Large"),
     INTERNAL_SERVER_ERROR(500, "Internal Server Error"),
     NOT_IMPLEMENTED(501, "Not Implemented"),
     BAD_GATEWAY(502, "Bad Gateway"),
     GATEWAY_TIMEOUT(504, "Gateway Timeout"),
     UNKNOWN(-1, "Unknown Status");
+
 
     private final int code;
     private final String description;

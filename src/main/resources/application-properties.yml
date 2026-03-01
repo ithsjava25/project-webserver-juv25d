@@ -15,3 +15,7 @@ rate-limiting:
   enabled: true
   requests-per-minute: 60
   burst-capacity: 100
+
+request-body-size:
+  enabled: true
+  max-size-mb: 10

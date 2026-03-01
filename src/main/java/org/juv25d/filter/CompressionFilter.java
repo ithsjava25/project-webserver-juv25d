@@ -40,7 +40,8 @@ public class CompressionFilter implements Filter{
             return;
         }
 
-        if (res.getHeader("Content-Encoding") != null) {
+        String existingEncoding = res.getHeader("Content-Encoding");
+        if (existingEncoding != null && !existingEncoding.isBlank()) {
             return;
         }
 
@@ -49,10 +50,12 @@ public class CompressionFilter implements Filter{
         res.setHeader("Content-Encoding", "gzip");
 
         String existingVary = res.getHeader("Vary");
-        if (existingVary != null && !existingVary.isEmpty()) {
-            res.setHeader("Vary", existingVary + ", Accept-Encoding");
-        } else {
+        if (existingVary == null || existingVary.isBlank()) {
             res.setHeader("Vary", "Accept-Encoding");
+        } else if (Arrays.stream(existingVary.split(","))
+            .map(String::trim)
+            .noneMatch(v -> v.equalsIgnoreCase("Accept-Encoding"))) {
+            res.setHeader("Vary", existingVary + ", Accept-Encoding");
         }
 
         LOGGER.info("Compressed " + body.length + " bytes to " + compressed.length + " bytes");
@@ -105,10 +108,9 @@ public class CompressionFilter implements Filter{
 
     private byte [] compress(byte [] data) throws IOException {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        GZIPOutputStream gzipstream = new GZIPOutputStream(byteStream);
-
-        gzipstream.write(data);
-        gzipstream.close();
+        try (GZIPOutputStream gzipstream = new GZIPOutputStream(byteStream)) {
+            gzipstream.write(data);
+        }
         return byteStream.toByteArray();
     }
 }

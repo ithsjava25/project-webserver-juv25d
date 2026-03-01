@@ -79,7 +79,7 @@ public class CompressionFilter implements Filter{
         if (acceptEncoding == null || acceptEncoding.isEmpty()) {
             return false;
         }
-        
+
         return Arrays.stream(acceptEncoding.split(","))
             .map(String::trim)
             .filter(this::isGzipWithQualityAboveZero)
@@ -90,7 +90,7 @@ public class CompressionFilter implements Filter{
         String[] parts = encoding.split(";");
         String name = parts[0].trim();
         if (!name.equalsIgnoreCase("gzip")) return false;
-        
+
         if (parts.length > 1) {
             String q = parts[1].trim();
             if (q.startsWith("q=")) {

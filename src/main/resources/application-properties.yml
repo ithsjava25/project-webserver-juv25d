@@ -16,6 +16,16 @@ rate-limiting:
   requests-per-minute: 60
   burst-capacity: 100
 
+cors:
+  allowed-origins:
+    - http://localhost:3000
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
 request-body-size:
   enabled: true
   max-size-mb: 10

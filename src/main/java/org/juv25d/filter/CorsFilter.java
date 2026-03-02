@@ -2,20 +2,22 @@ package org.juv25d.filter;
 
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
-
+import org.juv25d.util.ConfigLoader;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class CorsFilter implements Filter {
 
-    // Whitelist, allow known origins:
-    private static final Set<String> ALLOWED_ORIGINS = Set.of(
-        "http://localhost:3000"
-    );
+    private final Set <String> allowedOrigins;
+    private final String allowedMethods;
 
-    // Supported methods
-    private static final String ALLOWED_METHODS = "GET, POST, PUT, PATCH, DELETE, OPTIONS";
+    public CorsFilter() {
+        ConfigLoader config = ConfigLoader.getInstance();
+        this.allowedOrigins = new HashSet<>(config.getAllowedOrigins());
+        this.allowedMethods = String.join(",", config.getAllowedMethods());
+    }
 
     @Override
     public void doFilter(HttpRequest req, HttpResponse res, FilterChain chain) throws IOException {
@@ -28,7 +30,7 @@ public class CorsFilter implements Filter {
         }
 
         // Origin exists but are not allowed, return no CORS headers
-        if (!ALLOWED_ORIGINS.contains(origin)) {
+        if (!allowedOrigins.contains(origin)) {
             chain.doFilter(req, res);
             return;
         }
@@ -44,7 +46,7 @@ public class CorsFilter implements Filter {
 
         // Preflight, OPTIONS
         if ("OPTIONS".equalsIgnoreCase(req.method())) {
-            res.setHeader("Access-Control-Allow-Methods", ALLOWED_METHODS);
+            res.setHeader("Access-Control-Allow-Methods", allowedMethods);
 
             // If browser requests specific headers, mirror
             String requestedHeaders = header(req.headers(), "Access-Control-Request-Headers");

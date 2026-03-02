@@ -5,8 +5,10 @@ WORKDIR /app
 COPY pom.xml pom.xml
 RUN mvn dependency:go-offline -B
 
+ARG GIT_COMMIT=unknown
+
 COPY src ./src
-RUN mvn clean package -DskipTests -Dmaven.shade.skip=true
+RUN mvn clean package -DskipTests -Dmaven.shade.skip=true -DbuildNumber=${GIT_COMMIT}
 RUN mvn dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime
 
 FROM eclipse-temurin:25-jre-alpine

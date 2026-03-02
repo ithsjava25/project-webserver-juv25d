@@ -20,6 +20,16 @@ compression:
   enabled: true
   min-compress-size: 1024
   
+cors:
+  allowed-origins:
+    - http://localhost:3000
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - OPTIONS
 request-body-size:
   enabled: true
   max-size-mb: 10

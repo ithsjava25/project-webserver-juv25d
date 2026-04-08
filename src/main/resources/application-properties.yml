@@ -16,6 +16,10 @@ rate-limiting:
   requests-per-minute: 60
   burst-capacity: 100
 
+compression:
+  enabled: true
+  min-compress-size: 1024
+  
 cors:
   allowed-origins:
     - http://localhost:3000

@@ -5,6 +5,7 @@ import org.juv25d.plugin.HealthCheckPlugin;
 import org.juv25d.plugin.MetricPlugin;
 import org.juv25d.plugin.NotFoundPlugin;
 import org.juv25d.plugin.StaticFilesPlugin;
+import org.juv25d.plugin.LoginPlugin;
 import org.juv25d.proxy.ProxyPlugin;
 import org.juv25d.proxy.ProxyRoute;
 import org.juv25d.util.ConfigLoader;
@@ -22,6 +23,8 @@ public class RouterConfig {
         router.registerPlugin("/metric", new MetricPlugin());
         router.registerPlugin("/health", new HealthCheckPlugin());
         router.registerPlugin("/slow", new SlowPlugin());
+        // Login endpoint: Enforce BasicAuth, then show a small page and redirect to "/" after 1s
+        router.registerPlugin("/login", new LoginPlugin());
         router.registerPlugin("/", new StaticFilesPlugin());
         router.registerPlugin("/*", new StaticFilesPlugin());
         router.registerPlugin("/notfound", new NotFoundPlugin());

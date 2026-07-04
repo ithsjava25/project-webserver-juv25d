@@ -25,6 +25,9 @@
         <ul>
             <li><a href="/index.html">Home</a></li>
             <li><a href="/readme.html">Read Me</a></li>
+            <li id="nav-logout" style="margin-left:auto; display:none">
+                <a class="btn-logout" href="/logout" title="Logga ut">Logga ut</a>
+            </li>
         </ul>
     </nav>
     <header>
@@ -60,5 +63,81 @@
 <script src="js/purify.min.js"></script>
 <script src="/js/app.js"></script>
 <script src="/js/metric.js"></script>
+<script>
+  (function(){
+    // Visa "Logga ut" bara när BasicAuth är aktiv och användaren är autentiserad
+    var el = document.getElementById('nav-logout');
+    if (!el) return;
+    // Bind klick-hanterare OMEDELBART för robusthet, oavsett auth-status.
+    // Detta säkerställer att knappen alltid fungerar även om /auth/status är långsamt
+    // eller om någon tidigare del av logiken fallerar.
+    try {
+      (function bindLogoutClickOnce(){
+        var btn0 = el.querySelector('a.btn-logout');
+        if (!btn0) return;
+        // Ta bort ev. tidigare lyssnare genom att klona noden (säkerställ singel-binding)
+        var clone = btn0.cloneNode(true);
+        btn0.parentNode.replaceChild(clone, btn0);
+        clone.addEventListener('click', function(ev){
+          ev.preventDefault();
+          // Rensa alla sessionStorage-nycklar som börjar med "auth:" omedelbart
+          try {
+            for (var i = sessionStorage.length - 1; i >= 0; i--) {
+              var k = sessionStorage.key(i);
+              if (k && k.indexOf('auth:') === 0) sessionStorage.removeItem(k);
+            }
+          } catch(e) { /* ignore */ }
+
+          // Navigera till en dedikerad utloggningssida som säkert hinner skicka
+          // alla nödvändiga bakgrundssignaler innan redirect tillbaka till "/".
+          try { window.location.href = '/logout-client.html'; } catch(e) { window.location.assign('/logout-client.html'); }
+        }, { once: true });
+      })();
+
+      // Hämta auth-status från en endpoint som ALDRIG svarar med 401,
+      // så att ingen Basic Auth-prompt visas på startsidan.
+      // Lägg till cache-buster för att undvika mellanlager/bfcache
+      fetch('/auth/status?ts=' + Date.now(), { method: 'GET', cache: 'no-store', redirect: 'manual' })
+        .then(function(res){
+          // Försök först läsa indikator-headers
+          var active = (res.headers.get('X-Auth-Active') || '').toLowerCase() === 'true';
+          var authed = (res.headers.get('X-Authenticated') || '').toLowerCase() === 'true';
+          // Läs bootId och session-markör för nuvarande uppstart
+          var bootId = res.headers.get('X-Boot-Id') || '';
+          var sessionKey = bootId ? ('auth:' + bootId) : '';
+          var sessionAuthed = false;
+          if (sessionKey) {
+            try { sessionAuthed = sessionStorage.getItem(sessionKey) === '1'; } catch(e) { /* ignore */ }
+          }
+          if (!active && !authed) {
+            // Läs JSON-respons som fallback/källa för sanning
+            return res.json().then(function(data){
+              active = !!data.active;
+              authed = !!data.authenticated;
+              return { active: active, authed: authed, sessionAuthed: sessionAuthed, bootId: bootId };
+            }).catch(function(){
+              return { active: active, authed: authed, sessionAuthed: sessionAuthed, bootId: bootId };
+            });
+          }
+          return { active: active, authed: authed, sessionAuthed: sessionAuthed, bootId: bootId };
+        })
+        .then(function(state){
+          if (!state) return;
+          // Om auth är aktiv och vi har en session-markör för denna boot, anta inloggad (utan prompt)
+          var isAuthed = !!state.authed || (!!state.active && !!state.sessionAuthed);
+          if (state.active && isAuthed) {
+            el.style.display = '';
+          } else {
+            el.style.display = 'none';
+          }
+
+          // Visning/döljning hanteras här, men klick-bindningen är redan gjord ovan
+        })
+        .catch(function(){ /* håll gömd vid fel */ });
+    } catch(e) {
+      /* håll gömd vid fel */
+    }
+  })();
+</script>
 </body>
 </html>

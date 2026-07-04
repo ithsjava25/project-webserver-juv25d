@@ -39,7 +39,7 @@ public class BasicAuthPlugin implements Plugin {
 
     private volatile Map<String, String> users = Collections.emptyMap();
     private volatile boolean active = false;
-    private volatile String realm = "Restricted";
+    // Realm genereras dynamiskt och kan roteras per utloggning/uppstart
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
@@ -47,6 +47,19 @@ public class BasicAuthPlugin implements Plugin {
 
         if (!active) {
             // No Users file found or empty -> do not enforce auth
+            // Expose auth state for UI logic
+            res.setHeader("X-Auth-Active", "false");
+            return;
+        }
+
+        // Expose that auth is active for all subsequent branches
+        res.setHeader("X-Auth-Active", "true");
+
+        // Gating: Om en ny realm-version har bumpats (t.ex. via /logout) men vi ännu
+        // inte skickat en 401-utmaning för den versionen, tvinga fram en 401 nu
+        // oavsett om klienten skickar Authorization preemptivt.
+        if (!org.juv25d.util.BootInfo.hasCurrentRealmBeenChallenged()) {
+            unauthorized(res);
             return;
         }
 
@@ -77,13 +90,30 @@ public class BasicAuthPlugin implements Plugin {
         String expected = users.get(username);
         if (expected == null || !Objects.equals(password, expected)) {
             unauthorized(res);
+            return;
         }
+
+        // Valid credentials -> mark as authenticated (leave status 200)
+        res.setHeader("X-Authenticated", "true");
     }
 
     private void unauthorized(HttpResponse res) {
         res.setStatusCode(HttpStatus.UNAUTHORIZED.getCode());
         res.setStatusText(HttpStatus.UNAUTHORIZED.getDescription());
-        res.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
+        // Använd ett dynamiskt realm som kan roteras (per logout) för att förhindra automatisk återanvändning
+        // av tidigare inmatade uppgifter från webbläsarens Basic Auth‑cache.
+        res.setHeader("WWW-Authenticate", "Basic realm=\"" + org.juv25d.util.BootInfo.currentRestrictedRealm() + "\"");
+        // Markera att nuvarande realm-version har blivit "challenged" (401 skickad)
+        org.juv25d.util.BootInfo.markCurrentRealmChallenged();
+        // Expose state for clients detecting login visibility without triggering browser prompts
+        res.setHeader("X-Auth-Active", "true");
+        res.setHeader("X-Authenticated", "false");
+        // Förhindra caching av 401-svar i mellanlager/browsers
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+        // Säkerställ korrekta variant-regler när Authorization varierar
+        res.setHeader("Vary", "Authorization");
         byte[] body = "Unauthorized".getBytes(StandardCharsets.UTF_8);
         res.setHeader("Content-Type", "text/plain; charset=UTF-8");
         res.setHeader("Content-Length", String.valueOf(body.length));

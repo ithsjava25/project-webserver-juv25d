@@ -10,6 +10,8 @@ import org.juv25d.proxy.ProxyPlugin;
 import org.juv25d.proxy.ProxyRoute;
 import org.juv25d.util.ConfigLoader;
 import org.juv25d.plugin.SlowPlugin;
+import org.juv25d.plugin.LogoutPlugin;
+import org.juv25d.plugin.AuthStatusPlugin;
 public class RouterConfig {
 
     @Inject
@@ -25,6 +27,10 @@ public class RouterConfig {
         router.registerPlugin("/slow", new SlowPlugin());
         // Login endpoint: Enforce BasicAuth, then show a small page and redirect to "/" after 1s
         router.registerPlugin("/login", new LoginPlugin());
+        // Logout endpoint: Forces browser to drop Basic Auth creds via 401 + new realm
+        router.registerPlugin("/logout", new LogoutPlugin());
+        // Auth status endpoint: report auth state without 401 to avoid browser prompt on homepage
+        router.registerPlugin("/auth/status", new AuthStatusPlugin());
         router.registerPlugin("/", new StaticFilesPlugin());
         router.registerPlugin("/*", new StaticFilesPlugin());
         router.registerPlugin("/notfound", new NotFoundPlugin());

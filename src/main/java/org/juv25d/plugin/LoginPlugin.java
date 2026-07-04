@@ -54,6 +54,19 @@ public class LoginPlugin implements Plugin {
             <script>
               // Fallback redirect (in case meta refresh is blocked)
               setTimeout(function(){ window.location.replace('/'); }, 2100);
+              // Markera inloggning i sessionStorage per server-boot för att kunna visa "Logga ut" utan 401-prompt.
+              (function(){
+                try {
+                  fetch('/auth/status', { method: 'GET', cache: 'no-store', redirect: 'manual' })
+                    .then(function(res){
+                      var bootId = res.headers.get('X-Boot-Id');
+                      if (bootId) {
+                        sessionStorage.setItem('auth:' + bootId, '1');
+                      }
+                    })
+                    .catch(function(){});
+                } catch(e) { /* ignore */ }
+              })();
             </script>
           </body>
           </html>
@@ -64,6 +77,10 @@ public class LoginPlugin implements Plugin {
         res.setStatusText("OK");
         res.setHeader("Content-Type", "text/html; charset=UTF-8");
         res.setHeader("Content-Length", String.valueOf(body.length));
+        // Förhindra att inloggningssidan cache:as (t.ex. bfcache/mellanlager)
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         res.setBody(body);
     }
 }

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Loggar ut…</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding: 2rem; }
+    .card { max-width: 520px; margin: 10vh auto; padding: 1.5rem 2rem; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+    h1 { margin: 0 0 0.5rem; font-size: 1.4rem; }
+    p { margin: 0.5rem 0; color: #374151; }
+    .muted { color: #6b7280; font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Loggar ut…</h1>
+    <p class="muted">Ett ögonblick – städar upp inloggning och skickar dig till startsidan.</p>
+  </div>
+  <script>
+    (function(){
+      // 1) Rensa klientsidiga markörer direkt
+      try {
+        for (var i = sessionStorage.length - 1; i >= 0; i--) {
+          var k = sessionStorage.key(i);
+          if (k && k.indexOf('auth:') === 0) sessionStorage.removeItem(k);
+        }
+      } catch(e) { /* ignore */ }
+
+      // 2) Bumpa realm tyst (ingen popup). Vi UNDviker alla icke-silent anrop här,
+      //    eftersom vissa motorer kan visa en inloggnings-popup om ett 401-svar
+      //    tas emot medan sidan renderas (även som subresource).
+      try {
+        if (navigator.sendBeacon) {
+          var data = new Blob([], { type: 'text/plain' });
+          navigator.sendBeacon('/logout?silent=1', data);
+        }
+      } catch(e) { /* ignore */ }
+      // Redundant tyst bump via fetch (no-cors + omit) – kör två gånger för robusthet
+      try {
+        fetch('/logout?silent=1&ts=' + Date.now(), {
+          method: 'GET', cache: 'no-store', redirect: 'manual', credentials: 'omit', mode: 'no-cors', keepalive: true
+        }).catch(function(){});
+        setTimeout(function(){
+          try {
+            fetch('/logout?silent=1&ts=' + (Date.now()+1), {
+              method: 'GET', cache: 'no-store', redirect: 'manual', credentials: 'omit', mode: 'no-cors', keepalive: true
+            }).catch(function(){});
+          } catch(e) { /* ignore */ }
+        }, 150);
+      } catch(e) { /* ignore */ }
+
+      // 3) Leverera 401 med NYTT realm till nätverksstacken utan popup (no-cors + omit creds)
+      //    Detta instruerar webbläsaren att släppa ev. cachad Authorization för föregående realm.
+      try {
+        fetch('/logout?ts=' + (Date.now()+2), {
+          method: 'GET', cache: 'no-store', redirect: 'manual', credentials: 'omit', mode: 'no-cors', keepalive: true
+        }).catch(function(){});
+      } catch(e) { /* ignore */ }
+
+      // 4) Vänta lite längre så att signalerna hinner skickas, sedan till "/"
+      setTimeout(function(){
+        try { window.location.replace('/'); } catch(e) { window.location.href = '/'; }
+      }, 700);
+    })();
+  </script>
+</body>
+</html>

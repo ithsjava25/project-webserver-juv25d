@@ -11,7 +11,7 @@ import org.juv25d.proxy.ProxyRoute;
 import org.juv25d.util.ConfigLoader;
 import org.juv25d.plugin.SlowPlugin;
 import org.juv25d.plugin.LogoutPlugin;
-import org.juv25d.plugin.AuthStatusPlugin;
+import org.juv25d.plugin.SessionStatusPlugin;
 public class RouterConfig {
 
     @Inject
@@ -25,12 +25,12 @@ public class RouterConfig {
         router.registerPlugin("/metric", new MetricPlugin());
         router.registerPlugin("/health", new HealthCheckPlugin());
         router.registerPlugin("/slow", new SlowPlugin());
-        // Login endpoint: Enforce BasicAuth, then show a small page and redirect to "/" after 1s
+        // Login endpoint: Form-baserad inloggning som skapar serversession
         router.registerPlugin("/login", new LoginPlugin());
-        // Logout endpoint: Forces browser to drop Basic Auth creds via 401 + new realm
+        // Logout endpoint: Ogiltigförklarar serversession och rensar cookie
         router.registerPlugin("/logout", new LogoutPlugin());
-        // Auth status endpoint: report auth state without 401 to avoid browser prompt on homepage
-        router.registerPlugin("/auth/status", new AuthStatusPlugin());
+        // Sessionsstatus (klient kan kolla om inloggad utan 401/redirect)
+        router.registerPlugin("/session/status", new SessionStatusPlugin());
         router.registerPlugin("/", new StaticFilesPlugin());
         router.registerPlugin("/*", new StaticFilesPlugin());
         router.registerPlugin("/notfound", new NotFoundPlugin());

@@ -10,22 +10,23 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.Map;
-
-import org.jspecify.annotations.Nullable;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class LoginPluginTest {
 
-    private @Nullable Path tempUsersFile = null;
+    private @org.jspecify.annotations.Nullable Path tempUsersFile;
 
     @BeforeEach
-    void setup() {
+    void setup() throws IOException {
         System.clearProperty("users.file");
         System.clearProperty("users.dir");
         System.clearProperty("users.filename");
+        // skapa standard Users-fil för de flesta tester
+        tempUsersFile = Files.createTempFile("users", ".txt");
+        Files.writeString(tempUsersFile, "axel:axem\n", StandardCharsets.UTF_8);
+        System.setProperty("users.file", tempUsersFile.toString());
     }
 
     @AfterEach
@@ -40,13 +41,7 @@ class LoginPluginTest {
     }
 
     @Test
-    void rendersHtml_whenAuthNotActive() throws IOException {
-        // Ensure BasicAuth is not active by pointing to a non-existing users file
-        Path missing = Files.createTempFile("users-missing", ".txt");
-        Files.deleteIfExists(missing);
-        System.setProperty("users.file", missing.toString());
-
-        // No users file -> BasicAuth should be pass-through
+    void getLogin_returnsFormHtml() throws IOException {
         LoginPlugin plugin = new LoginPlugin();
         HttpRequest req = new HttpRequest("GET", "/login", null, "HTTP/1.1", Map.of(), new byte[0], "TEST");
         HttpResponse res = new HttpResponse();
@@ -56,46 +51,52 @@ class LoginPluginTest {
         assertEquals(200, res.statusCode());
         assertEquals("text/html; charset=UTF-8", res.getHeader("Content-Type"));
         String body = new String(res.body(), StandardCharsets.UTF_8);
-        assertTrue(body.contains("You are logged in"));
-        assertTrue(body.contains("<meta http-equiv=\"refresh\""));
+        assertTrue(body.contains("<form method=\"post\" action=\"/login\">"));
+        assertTrue(body.contains("name=\"username\""));
+        assertTrue(body.contains("name=\"password\""));
     }
 
     @Test
-    void returns401_whenMissingAuth_andUsersExist() throws IOException {
-        tempUsersFile = Files.createTempFile("users", ".txt");
-        Files.writeString(tempUsersFile, "axel:axem\n", StandardCharsets.UTF_8);
-        System.setProperty("users.file", tempUsersFile.toString());
-
+    void postLogin_withValidCredentials_setsSidCookie_and302() throws IOException {
         LoginPlugin plugin = new LoginPlugin();
-        HttpRequest req = new HttpRequest("GET", "/login", null, "HTTP/1.1", Map.of(), new byte[0], "TEST");
-        HttpResponse res = new HttpResponse();
-
-        plugin.handle(req, res);
-
-        assertEquals(401, res.statusCode());
-        assertNotNull(res.getHeader("WWW-Authenticate"));
-    }
-
-    @Test
-    void rendersHtml_whenCorrectCredentials() throws IOException {
-        tempUsersFile = Files.createTempFile("users", ".txt");
-        Files.writeString(tempUsersFile, "axel:axem\n", StandardCharsets.UTF_8);
-        System.setProperty("users.file", tempUsersFile.toString());
-
-        LoginPlugin plugin = new LoginPlugin();
-        String goodCred = Base64.getEncoder().encodeToString("axel:axem".getBytes(StandardCharsets.UTF_8));
+        String form = "username=axel&password=axem";
         HttpRequest req = new HttpRequest(
-                "GET", "/login", null, "HTTP/1.1",
-                Map.of("Authorization", "Basic " + goodCred),
-                new byte[0], "TEST");
+                "POST", "/login", null, "HTTP/1.1",
+                Map.of("Content-Type", "application/x-www-form-urlencoded"),
+                form.getBytes(StandardCharsets.UTF_8),
+                "TEST");
+        HttpResponse res = new HttpResponse();
+
+        plugin.handle(req, res);
+
+        assertEquals(302, res.statusCode());
+        assertEquals("/", res.getHeader("Location"));
+        String setCookie = res.getHeader("Set-Cookie");
+        assertNotNull(setCookie);
+        assertTrue(setCookie.startsWith("SID="));
+        assertTrue(setCookie.contains("HttpOnly"));
+        assertTrue(setCookie.contains("SameSite=Lax"));
+        assertTrue(setCookie.contains("Secure"));
+        assertTrue(setCookie.contains("Path=/"));
+        assertTrue(setCookie.contains("Max-Age=1800")); // 30 min default
+    }
+
+    @Test
+    void postLogin_withInvalidCredentials_rendersFormWithError() throws IOException {
+        LoginPlugin plugin = new LoginPlugin();
+        String form = "username=axel&password=fel";
+        HttpRequest req = new HttpRequest(
+                "POST", "/login", null, "HTTP/1.1",
+                Map.of("Content-Type", "application/x-www-form-urlencoded"),
+                form.getBytes(StandardCharsets.UTF_8),
+                "TEST");
         HttpResponse res = new HttpResponse();
 
         plugin.handle(req, res);
 
         assertEquals(200, res.statusCode());
-        assertEquals("text/html; charset=UTF-8", res.getHeader("Content-Type"));
         String body = new String(res.body(), StandardCharsets.UTF_8);
-        assertTrue(body.contains("You are logged in"));
-        assertTrue(body.contains("<meta http-equiv=\"refresh\""));
+        assertTrue(body.contains("Logga in"));
+        assertTrue(body.toLowerCase().contains("invalid credentials"));
     }
 }

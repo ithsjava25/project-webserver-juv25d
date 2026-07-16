@@ -4,6 +4,7 @@ import org.juv25d.auth.Session;
 import org.juv25d.auth.SessionStore;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
+import org.juv25d.util.CookieUtils;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -20,7 +21,7 @@ public class SessionStatusPlugin implements Plugin {
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
-        String sid = readCookie(req, "SID");
+        String sid = CookieUtils.readCookie(req, "SID");
         Session session = (sid != null) ? SessionStore.getInstance().get(sid) : null;
         boolean authenticated = session != null;
         String user = null;
@@ -55,29 +56,4 @@ public class SessionStatusPlugin implements Plugin {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
-    private @org.jspecify.annotations.Nullable String readCookie(HttpRequest req, String name) {
-        if (req == null || name == null) return null;
-        String cookieHeader = null;
-        for (var e : req.headers().entrySet()) {
-            if (e.getKey() != null && e.getKey().equalsIgnoreCase("Cookie")) {
-                cookieHeader = e.getValue();
-                break;
-            }
-        }
-        if (cookieHeader == null || cookieHeader.isBlank()) return null;
-        String[] parts = cookieHeader.split(";\\s*");
-        for (String part : parts) {
-            int i = part.indexOf('=');
-            if (i <= 0) continue;
-            String k = part.substring(0, i).trim();
-            if (!k.equals(name)) continue;
-            String v = part.substring(i + 1).trim();
-            try {
-                return URLDecoder.decode(v, StandardCharsets.UTF_8);
-            } catch (Exception ignored) {
-                return v;
-            }
-        }
-        return null;
-    }
 }

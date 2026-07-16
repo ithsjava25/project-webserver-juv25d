@@ -4,6 +4,7 @@ import org.juv25d.auth.Session;
 import org.juv25d.auth.SessionStore;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
+import org.juv25d.util.CookieUtils;
 
 import java.io.*;
 import java.net.URLDecoder;
@@ -60,7 +61,7 @@ public class LoginPlugin implements Plugin {
         Map<String, String> form = parseForm(req);
 
         // CSRF validation
-        String cookieCsrf = readCookie(req, "CSRF-TOKEN");
+        String cookieCsrf = CookieUtils.readCookie(req, "CSRF-TOKEN");
         String formCsrf = form.get("_csrf");
         if (cookieCsrf == null || formCsrf == null || !cookieCsrf.equals(formCsrf)) {
             res.setStatusCode(403);
@@ -76,7 +77,7 @@ public class LoginPlugin implements Plugin {
         String password = form.getOrDefault("password", "").trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            String csrfToken = readCookie(req, "CSRF-TOKEN");
+            String csrfToken = CookieUtils.readCookie(req, "CSRF-TOKEN");
             if (csrfToken == null) {
                 csrfToken = generateCsrfToken();
                 res.setHeader("Set-Cookie", "CSRF-TOKEN=" + csrfToken + "; Path=/; HttpOnly; SameSite=Lax; Secure");
@@ -88,7 +89,7 @@ public class LoginPlugin implements Plugin {
         Map<String, String> users = loadUsers(resolveUsersFilePath());
         String expectedHash = users.get(username);
         if (expectedHash == null || !verifyPassword(password, expectedHash)) {
-            String csrfToken = readCookie(req, "CSRF-TOKEN");
+            String csrfToken = CookieUtils.readCookie(req, "CSRF-TOKEN");
             if (csrfToken == null) {
                 csrfToken = generateCsrfToken();
                 res.setHeader("Set-Cookie", "CSRF-TOKEN=" + csrfToken + "; Path=/; HttpOnly; SameSite=Lax; Secure");
@@ -232,20 +233,6 @@ public class LoginPlugin implements Plugin {
         return true;
     }
 
-    private @org.jspecify.annotations.Nullable String readCookie(HttpRequest req, String name) {
-        String cookieHeader = header(req, "Cookie");
-        if (cookieHeader == null || cookieHeader.isBlank()) return null;
-        String[] parts = cookieHeader.split(";\\s*");
-        for (String part : parts) {
-            int i = part.indexOf('=');
-            if (i <= 0) continue;
-            String k = part.substring(0, i).trim();
-            if (!k.equals(name)) continue;
-            String v = part.substring(i + 1).trim();
-            return urlDecode(v);
-        }
-        return null;
-    }
 
     private File resolveUsersFilePath() {
         String explicitFile = System.getProperty("users.file");

@@ -5,6 +5,7 @@ import org.juv25d.auth.SessionStore;
 import org.juv25d.filter.annotation.Global;
 import org.juv25d.http.HttpRequest;
 import org.juv25d.http.HttpResponse;
+import org.juv25d.util.CookieUtils;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -34,7 +35,7 @@ public class SessionAuthFilter implements Filter {
             return;
         }
 
-        String sid = readCookie(req, COOKIE_NAME);
+        String sid = CookieUtils.readCookie(req, COOKIE_NAME);
         Session session = sid != null ? SessionStore.getInstance().get(sid) : null;
         if (session == null) {
             // Unauthenticated
@@ -70,29 +71,4 @@ public class SessionAuthFilter implements Filter {
         return path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/images/") || "/favicon.ico".equals(path) || path.startsWith("/static/");
     }
 
-    private @org.jspecify.annotations.Nullable String readCookie(HttpRequest req, String name) {
-        if (req == null || name == null) return null;
-        String cookieHeader = null;
-        for (var e : req.headers().entrySet()) {
-            if (e.getKey() != null && e.getKey().equalsIgnoreCase("Cookie")) {
-                cookieHeader = e.getValue();
-                break;
-            }
-        }
-        if (cookieHeader == null || cookieHeader.isBlank()) return null;
-        String[] parts = cookieHeader.split(";\\s*");
-        for (String part : parts) {
-            int i = part.indexOf('=');
-            if (i <= 0) continue;
-            String k = part.substring(0, i).trim();
-            if (!k.equals(name)) continue;
-            String v = part.substring(i + 1).trim();
-            try {
-                return URLDecoder.decode(v, StandardCharsets.UTF_8);
-            } catch (Exception ignored) {
-                return v;
-            }
-        }
-        return null;
-    }
 }

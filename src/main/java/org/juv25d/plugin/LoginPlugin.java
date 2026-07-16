@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Form-baserad inloggning som skapar en serversession och sätter en säker cookie (SID).
+ * Form baserad inloggning som skapar en serversession och sätter en säker cookie (SID).
  * Validerar användare mot samma Users-fil som tidigare BasicAuth-lösning.
  */
 public class LoginPlugin implements Plugin {

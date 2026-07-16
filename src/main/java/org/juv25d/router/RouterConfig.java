@@ -14,9 +14,14 @@ import org.juv25d.plugin.LogoutPlugin;
 import org.juv25d.plugin.SessionStatusPlugin;
 public class RouterConfig {
 
+    private final SimpleRouter router;
+
     @Inject
     public RouterConfig(SimpleRouter router) {
+        this.router = router;
+    }
 
+    public void configure() {
         for (ProxyRoute proxyRoute : ConfigLoader.getInstance().getProxyRoutes()) {
             router.registerPlugin(proxyRoute.getBaseRoute(), new ProxyPlugin(proxyRoute));
             router.registerPlugin(proxyRoute.getBaseRoute() + "/*", new ProxyPlugin(proxyRoute));

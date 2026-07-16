@@ -8,6 +8,8 @@ import org.juv25d.http.HttpResponse;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,10 +20,14 @@ import java.util.Objects;
  */
 public class LoginPlugin implements Plugin {
 
+    private final SecureRandom secureRandom = new SecureRandom();
+
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
         if ("GET".equalsIgnoreCase(req.method())) {
-            renderLoginForm(res, null);
+            String csrfToken = generateCsrfToken();
+            res.setHeader("Set-Cookie", "CSRF-TOKEN=" + csrfToken + "; Path=/; HttpOnly; SameSite=Lax; Secure");
+            renderLoginForm(res, null, csrfToken);
             return;
         }
         if (!"POST".equalsIgnoreCase(req.method())) {
@@ -34,19 +40,54 @@ public class LoginPlugin implements Plugin {
             return;
         }
 
+        // Same-origin safeguard
+        if (!isSameOrigin(req)) {
+            res.setStatusCode(403);
+            res.setStatusText("Forbidden");
+            byte[] body = "Forbidden: Same-origin check failed".getBytes(StandardCharsets.UTF_8);
+            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            res.setHeader("Content-Length", String.valueOf(body.length));
+            res.setBody(body);
+            return;
+        }
+
         Map<String, String> form = parseForm(req);
+
+        // CSRF validation
+        String cookieCsrf = readCookie(req, "CSRF-TOKEN");
+        String formCsrf = form.get("_csrf");
+        if (cookieCsrf == null || formCsrf == null || !cookieCsrf.equals(formCsrf)) {
+            res.setStatusCode(403);
+            res.setStatusText("Forbidden");
+            byte[] body = "Forbidden: CSRF validation failed".getBytes(StandardCharsets.UTF_8);
+            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            res.setHeader("Content-Length", String.valueOf(body.length));
+            res.setBody(body);
+            return;
+        }
+
         String username = form.getOrDefault("username", "").trim();
         String password = form.getOrDefault("password", "").trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            renderLoginForm(res, "Missing username or password");
+            String csrfToken = readCookie(req, "CSRF-TOKEN");
+            if (csrfToken == null) {
+                csrfToken = generateCsrfToken();
+                res.setHeader("Set-Cookie", "CSRF-TOKEN=" + csrfToken + "; Path=/; HttpOnly; SameSite=Lax; Secure");
+            }
+            renderLoginForm(res, "Missing username or password", csrfToken);
             return;
         }
 
         Map<String, String> users = loadUsers(resolveUsersFilePath());
         String expected = users.get(username);
         if (expected == null || !Objects.equals(expected, password)) {
-            renderLoginForm(res, "Invalid credentials");
+            String csrfToken = readCookie(req, "CSRF-TOKEN");
+            if (csrfToken == null) {
+                csrfToken = generateCsrfToken();
+                res.setHeader("Set-Cookie", "CSRF-TOKEN=" + csrfToken + "; Path=/; HttpOnly; SameSite=Lax; Secure");
+            }
+            renderLoginForm(res, "Invalid credentials", csrfToken);
             return;
         }
 
@@ -63,15 +104,15 @@ public class LoginPlugin implements Plugin {
         res.setBody(new byte[0]);
     }
 
-    private void renderLoginForm(HttpResponse res, @org.jspecify.annotations.Nullable String error) {
+    private void renderLoginForm(HttpResponse res, @org.jspecify.annotations.Nullable String error, String csrfToken) {
         String err = (error == null) ? "" : ("<p style=\"color:#b91c1c\">" + escape(error) + "</p>");
         String html = """
             <!doctype html>
-            <html lang=\"sv\">
+            <html lang="sv">
             <head>
-              <meta charset=\"utf-8\">
+              <meta charset="utf-8">
               <title>Logga in</title>
-              <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
               <style>
                 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding: 2rem; }
                 .card { max-width: 520px; margin: 10vh auto; padding: 1.5rem 2rem; border: 1px solid #e5e7eb; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
@@ -82,20 +123,21 @@ public class LoginPlugin implements Plugin {
               </style>
             </head>
             <body>
-              <div class=\"card\">
+              <div class="card">
                 <h1>Logga in</h1>
                 %ERROR%
-                <form method=\"post\" action=\"/login\">
-                  <label for=\"username\">Användarnamn</label>
-                  <input id=\"username\" name=\"username\" autocomplete=\"username\" required>
-                  <label for=\"password\">Lösenord</label>
-                  <input id=\"password\" type=\"password\" name=\"password\" autocomplete=\"current-password\" required>
-                  <button type=\"submit\">Logga in</button>
+                <form method="post" action="/login">
+                  <input type="hidden" name="_csrf" value="%CSRF%">
+                  <label for="username">Användarnamn</label>
+                  <input id="username" name="username" autocomplete="username" required>
+                  <label for="password">Lösenord</label>
+                  <input id="password" type="password" name="password" autocomplete="current-password" required>
+                  <button type="submit">Logga in</button>
                 </form>
               </div>
             </body>
             </html>
-            """.replace("%ERROR%", err);
+            """.replace("%ERROR%", err).replace("%CSRF%", escape(csrfToken));
 
         byte[] body = html.getBytes(StandardCharsets.UTF_8);
         res.setStatusCode(200);
@@ -156,6 +198,45 @@ public class LoginPlugin implements Plugin {
     private @org.jspecify.annotations.Nullable String header(HttpRequest req, String name) {
         for (var e : req.headers().entrySet()) {
             if (e.getKey() != null && e.getKey().equalsIgnoreCase(name)) return e.getValue();
+        }
+        return null;
+    }
+
+    private String generateCsrfToken() {
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private boolean isSameOrigin(HttpRequest req) {
+        String origin = header(req, "Origin");
+        String referer = header(req, "Referer");
+        String host = header(req, "Host");
+
+        if (origin != null) {
+            // Very basic check: origin should contain host if we don't have full URL info
+            return origin.contains(host != null ? host : "");
+        }
+        if (referer != null) {
+            return referer.contains(host != null ? host : "");
+        }
+        // If neither is present, we might allow it depending on strictness,
+        // but for login POST, at least one is usually present in browsers.
+        // Let's be a bit lenient if neither is present but token is valid.
+        return true;
+    }
+
+    private @org.jspecify.annotations.Nullable String readCookie(HttpRequest req, String name) {
+        String cookieHeader = header(req, "Cookie");
+        if (cookieHeader == null || cookieHeader.isBlank()) return null;
+        String[] parts = cookieHeader.split(";\\s*");
+        for (String part : parts) {
+            int i = part.indexOf('=');
+            if (i <= 0) continue;
+            String k = part.substring(0, i).trim();
+            if (!k.equals(name)) continue;
+            String v = part.substring(i + 1).trim();
+            return urlDecode(v);
         }
         return null;
     }

@@ -50,8 +50,13 @@ class LoginPluginTest {
 
         assertEquals(200, res.statusCode());
         assertEquals("text/html; charset=UTF-8", res.getHeader("Content-Type"));
+        String setCookie = res.getHeader("Set-Cookie");
+        assertNotNull(setCookie);
+        assertTrue(setCookie.contains("CSRF-TOKEN="));
+
         String body = new String(res.body(), StandardCharsets.UTF_8);
         assertTrue(body.contains("<form method=\"post\" action=\"/login\">"));
+        assertTrue(body.contains("name=\"_csrf\""));
         assertTrue(body.contains("name=\"username\""));
         assertTrue(body.contains("name=\"password\""));
     }
@@ -59,10 +64,12 @@ class LoginPluginTest {
     @Test
     void postLogin_withValidCredentials_setsSidCookie_and302() throws IOException {
         LoginPlugin plugin = new LoginPlugin();
-        String form = "username=axel&password=axem";
+        String token = "test-token";
+        String form = "username=axel&password=axem&_csrf=" + token;
         HttpRequest req = new HttpRequest(
                 "POST", "/login", null, "HTTP/1.1",
-                Map.of("Content-Type", "application/x-www-form-urlencoded"),
+                Map.of("Content-Type", "application/x-www-form-urlencoded",
+                       "Cookie", "CSRF-TOKEN=" + token),
                 form.getBytes(StandardCharsets.UTF_8),
                 "TEST");
         HttpResponse res = new HttpResponse();
@@ -84,10 +91,12 @@ class LoginPluginTest {
     @Test
     void postLogin_withInvalidCredentials_rendersFormWithError() throws IOException {
         LoginPlugin plugin = new LoginPlugin();
-        String form = "username=axel&password=fel";
+        String token = "test-token";
+        String form = "username=axel&password=fel&_csrf=" + token;
         HttpRequest req = new HttpRequest(
                 "POST", "/login", null, "HTTP/1.1",
-                Map.of("Content-Type", "application/x-www-form-urlencoded"),
+                Map.of("Content-Type", "application/x-www-form-urlencoded",
+                       "Cookie", "CSRF-TOKEN=" + token),
                 form.getBytes(StandardCharsets.UTF_8),
                 "TEST");
         HttpResponse res = new HttpResponse();
@@ -98,5 +107,6 @@ class LoginPluginTest {
         String body = new String(res.body(), StandardCharsets.UTF_8);
         assertTrue(body.contains("Logga in"));
         assertTrue(body.toLowerCase().contains("invalid credentials"));
+        assertTrue(body.contains("name=\"_csrf\""));
     }
 }

@@ -59,7 +59,7 @@ class SessionAuthFilterTest {
     }
 
     @Test
-    void authenticatedRequest_passesThrough_andSetsHeaders() throws IOException {
+    void authenticatedRequest_passesThrough_withoutIdentityHeaders() throws IOException {
         // Create a session and include it in Cookie
         Session s = SessionStore.getInstance().create("axel");
         String cookie = "SID=" + java.net.URLEncoder.encode(s.getId(), StandardCharsets.UTF_8);
@@ -74,7 +74,7 @@ class SessionAuthFilterTest {
         filter.doFilter(req, res, chain);
 
         verify(chain, times(1)).doFilter(req, res);
-        assertEquals("true", res.getHeader("X-Authenticated"));
-        assertEquals("axel", res.getHeader("X-User"));
+        assertNull(res.getHeader("X-Authenticated"));
+        assertNull(res.getHeader("X-User"));
     }
 }

@@ -57,9 +57,7 @@ public class SessionAuthFilter implements Filter {
             return;
         }
 
-        // Authenticated: expose helper headers and proceed
-        res.setHeader("X-Authenticated", "true");
-        res.setHeader("X-User", session.getUser());
+        // Authenticated: proceed
         chain.doFilter(req, res);
     }
 

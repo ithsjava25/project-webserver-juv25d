@@ -23,11 +23,15 @@ class LoginPluginTest {
         System.clearProperty("users.file");
         System.clearProperty("users.dir");
         System.clearProperty("users.filename");
-        // skapa standard Users-fil för de flesta tester
+        // skapa standard Users-fil för de flesta tester med hashade lösenord
         tempUsersFile = Files.createTempFile("users", ".txt");
-        Files.writeString(tempUsersFile, "axel:axem\n", StandardCharsets.UTF_8);
+        LoginPlugin plugin = new LoginPlugin();
+        String axelHash = plugin.hashPassword("axem");
+        Files.writeString(tempUsersFile, "axel:" + axelHash + "\n", StandardCharsets.UTF_8);
         System.setProperty("users.file", tempUsersFile.toString());
     }
+
+    // Removed hashInTest as it is now replaced by plugin.hashPassword
 
     @AfterEach
     void cleanup() throws IOException {

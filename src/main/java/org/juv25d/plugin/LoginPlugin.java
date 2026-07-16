@@ -8,7 +8,13 @@ import org.juv25d.http.HttpResponse;
 import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -80,8 +86,8 @@ public class LoginPlugin implements Plugin {
         }
 
         Map<String, String> users = loadUsers(resolveUsersFilePath());
-        String expected = users.get(username);
-        if (expected == null || !Objects.equals(expected, password)) {
+        String expectedHash = users.get(username);
+        if (expectedHash == null || !verifyPassword(password, expectedHash)) {
             String csrfToken = readCookie(req, "CSRF-TOKEN");
             if (csrfToken == null) {
                 csrfToken = generateCsrfToken();
@@ -257,6 +263,43 @@ public class LoginPlugin implements Plugin {
         if (fileName == null || fileName.isBlank()) fileName = "Users";
         if (dir != null && !dir.isBlank()) return new File(new File(dir.trim()), fileName);
         return new File("config" + File.separator + "Users");
+    }
+
+    private boolean verifyPassword(String password, String hashed) {
+        if (hashed == null || !hashed.startsWith("pbkdf2:")) return false;
+        try {
+            String[] parts = hashed.split(":");
+            if (parts.length != 4) return false;
+            int iterations = Integer.parseInt(parts[1]);
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] hash = Base64.getDecoder().decode(parts[3]);
+
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, hash.length * 8);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] testHash = factory.generateSecret(spec).getEncoded();
+
+            return MessageDigest.isEqual(hash, testHash);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Utility method to generate a password hash.
+     * Can be used by administrators to generate hashes for the Users file.
+     */
+    public String hashPassword(String password) {
+        try {
+            int iterations = 10000;
+            byte[] salt = new byte[16];
+            secureRandom.nextBytes(salt);
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hash = factory.generateSecret(spec).getEncoded();
+            return "pbkdf2:" + iterations + ":" + Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Map<String, String> loadUsers(File f) throws IOException {

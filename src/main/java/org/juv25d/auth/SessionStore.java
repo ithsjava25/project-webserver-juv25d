@@ -13,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SessionStore {
     private static final SessionStore INSTANCE = new SessionStore();
 
+    private SessionStore() {}
+
     // 30 min idle timeout by default (seconds)
     private volatile long idleTimeoutSeconds = 30L * 60L;
 

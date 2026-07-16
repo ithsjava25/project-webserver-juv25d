@@ -29,7 +29,7 @@ class LogoutPluginTest {
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Cookie", cookieHeader);
-        HttpRequest req = new HttpRequest("GET", "/logout", null, "HTTP/1.1", headers, new byte[0], "TEST");
+        HttpRequest req = new HttpRequest("POST", "/logout", null, "HTTP/1.1", headers, new byte[0], "TEST");
         HttpResponse res = new HttpResponse();
 
         LogoutPlugin plugin = new LogoutPlugin();

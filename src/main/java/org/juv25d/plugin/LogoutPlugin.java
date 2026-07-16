@@ -16,6 +16,16 @@ public class LogoutPlugin implements Plugin {
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
+        if (!"POST".equalsIgnoreCase(req.method())) {
+            res.setStatusCode(405);
+            res.setStatusText("Method Not Allowed");
+            byte[] body = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
+            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            res.setHeader("Content-Length", String.valueOf(body.length));
+            res.setBody(body);
+            return;
+        }
+
         String sid = readCookie(req, "SID");
         if (sid != null && !sid.isBlank()) {
             SessionStore.getInstance().invalidate(sid);

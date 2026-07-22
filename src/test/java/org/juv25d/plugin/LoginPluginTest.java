@@ -72,8 +72,12 @@ class LoginPluginTest {
         String form = "username=axel&password=axem&_csrf=" + token;
         HttpRequest req = new HttpRequest(
                 "POST", "/login", null, "HTTP/1.1",
-                Map.of("Content-Type", "application/x-www-form-urlencoded",
-                       "Cookie", "CSRF-TOKEN=" + token),
+                Map.of(
+                        "Content-Type", "application/x-www-form-urlencoded",
+                        "Cookie", "CSRF-TOKEN=" + token,
+                        "Host", "localhost",
+                        "Origin", "http://localhost"
+                ),
                 form.getBytes(StandardCharsets.UTF_8),
                 "TEST");
         HttpResponse res = new HttpResponse();
@@ -99,8 +103,12 @@ class LoginPluginTest {
         String form = "username=axel&password=fel&_csrf=" + token;
         HttpRequest req = new HttpRequest(
                 "POST", "/login", null, "HTTP/1.1",
-                Map.of("Content-Type", "application/x-www-form-urlencoded",
-                       "Cookie", "CSRF-TOKEN=" + token),
+                Map.of(
+                        "Content-Type", "application/x-www-form-urlencoded",
+                        "Cookie", "CSRF-TOKEN=" + token,
+                        "Host", "localhost",
+                        "Origin", "http://localhost"
+                ),
                 form.getBytes(StandardCharsets.UTF_8),
                 "TEST");
         HttpResponse res = new HttpResponse();

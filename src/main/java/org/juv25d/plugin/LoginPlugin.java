@@ -219,19 +219,98 @@ public class LoginPlugin implements Plugin {
     private boolean isSameOrigin(HttpRequest req) {
         String origin = header(req, "Origin");
         String referer = header(req, "Referer");
-        String host = header(req, "Host");
+        String hostHeader = header(req, "Host");
 
-        if (origin != null) {
-            // Very basic check: origin should contain host if we don't have full URL info
-            return origin.contains(host != null ? host : "");
+        // Fail closed if Host is missing
+        if (hostHeader == null || hostHeader.isBlank()) {
+            return false;
         }
-        if (referer != null) {
-            return referer.contains(host != null ? host : "");
+
+        // If Origin is provided, it must match strictly; otherwise, fall back to Referer.
+        if (origin != null && !origin.isBlank()) {
+            return sameAuthority(hostHeader, origin);
         }
-        // If neither is present, we might allow it depending on strictness,
-        // but for login POST, at least one is usually present in browsers.
-        // Let's be a bit lenient if neither is present but token is valid.
-        return true;
+        if (referer != null && !referer.isBlank()) {
+            return sameAuthority(hostHeader, referer);
+        }
+
+        // Neither Origin nor Referer present: fail closed
+        return false;
+    }
+
+    private boolean sameAuthority(String hostHeader, String uriString) {
+        java.net.URI uri;
+        try {
+            uri = new java.net.URI(uriString);
+        } catch (java.net.URISyntaxException e) {
+            // Invalid URI: fail closed
+            return false;
+        }
+
+        String scheme = uri.getScheme();
+        String uriHost = uri.getHost();
+        int uriPort = uri.getPort();
+
+        if (scheme == null || uriHost == null) {
+            return false; // Must be an absolute URI with host
+        }
+
+        int uriNormPort = normalizePort(scheme, uriPort);
+
+        HostPort req = parseHostHeader(hostHeader);
+        if (req == null) return false;
+
+        // If request Host header omitted port, assume scheme's default from the URI being checked
+        int reqNormPort = (req.port >= 0) ? req.port : normalizePort(scheme, -1);
+
+        return uriHost.equalsIgnoreCase(req.host) && uriNormPort == reqNormPort;
+    }
+
+    private int normalizePort(String scheme, int port) {
+        if (port >= 0) return port;
+        if (scheme.equalsIgnoreCase("http")) return 80;
+        if (scheme.equalsIgnoreCase("https")) return 443;
+        return -1; // Unknown scheme, can't infer
+    }
+
+    private static final class HostPort {
+        final String host;
+        final int port; // -1 if not specified
+        HostPort(String host, int port) { this.host = host; this.port = port; }
+    }
+
+    private @org.jspecify.annotations.Nullable HostPort parseHostHeader(String hostHeader) {
+        String h = hostHeader.trim();
+        if (h.isEmpty()) return null;
+
+        // Handle IPv6 [::1]:port per RFC 7230
+        if (h.startsWith("[") ) {
+            int end = h.indexOf(']');
+            if (end <= 0) return null;
+            String host = h.substring(1, end);
+            int port = -1;
+            if (end + 1 < h.length() && h.charAt(end + 1) == ':') {
+                String p = h.substring(end + 2);
+                try { port = Integer.parseInt(p); } catch (NumberFormatException e) { return null; }
+            }
+            return new HostPort(host, port);
+        }
+
+        int idx = h.lastIndexOf(':');
+        if (idx > 0 && h.indexOf(':') == idx) {
+            // Single colon -> host:port
+            String host = h.substring(0, idx);
+            String p = h.substring(idx + 1);
+            try {
+                int port = Integer.parseInt(p);
+                return new HostPort(host, port);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        // No port specified (or multiple colons like IPv6 without brackets, treat as invalid)
+        if (h.indexOf(':') >= 0) return null; // likely malformed
+        return new HostPort(h, -1);
     }
 
 

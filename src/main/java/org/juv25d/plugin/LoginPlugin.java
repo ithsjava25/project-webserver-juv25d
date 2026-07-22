@@ -74,7 +74,8 @@ public class LoginPlugin implements Plugin {
         }
 
         String username = form.getOrDefault("username", "").trim();
-        String password = form.getOrDefault("password", "").trim();
+        // Preserve the exact password as submitted (no trimming), but keep empty default
+        String password = form.getOrDefault("password", "");
 
         if (username.isEmpty() || password.isEmpty()) {
             String csrfToken = CookieUtils.readCookie(req, "CSRF-TOKEN");

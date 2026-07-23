@@ -27,6 +27,21 @@ import java.util.Map;
  */
 public class LoginPlugin implements Plugin {
 
+    /**
+     * Precomputed constant PBKDF2 hash used to equalize timing when a username does not exist.
+     * Format: pbkdf2:v2:<iterations>:<saltB64>:<hashB64>
+     *
+     * Iterations: 210_000
+     * Salt: 16 zero bytes (Base64: AAAAAAAAAAAAAAAAAAAAAA==)
+     * Hash: 32 zero bytes (Base64: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=)
+     *
+     * Using a fixed value ensures the same PBKDF2 work is performed even when the user is unknown,
+     * reducing information leakage via timing differences. The actual bytes do not need to match any
+     * real password; they just need to be well-formed for the verifier to execute PBKDF2.
+     */
+    private static final String DUMMY_HASH =
+        "pbkdf2:v2:210000:AAAAAAAAAAAAAAAAAAAAAA==:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+
     private final SecureRandom secureRandom = new SecureRandom();
 
     @Override
@@ -93,7 +108,8 @@ public class LoginPlugin implements Plugin {
                 }
             }
         }
-        if (expectedHash == null || !verifyPassword(password, expectedHash)) {
+        boolean valid = verifyPassword(password, expectedHash != null ? expectedHash : DUMMY_HASH);
+        if (expectedHash == null || !valid) {
             String csrfToken = CookieUtils.readCookie(req, "CSRF-TOKEN");
             if (csrfToken == null) {
                 csrfToken = generateCsrfToken();

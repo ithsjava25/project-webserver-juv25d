@@ -16,8 +16,8 @@ public class LogoutPlugin implements Plugin {
 
     @Override
     public void handle(HttpRequest req, HttpResponse res) throws IOException {
-        // Tillåt både GET och POST för att förenkla utloggning via länk eller formulär
-        if (!("POST".equalsIgnoreCase(req.method()) || "GET".equalsIgnoreCase(req.method()))) {
+        // Tillåt endast POST för /logout. Alla andra metoder (inklusive GET) -> 405
+        if (!"POST".equalsIgnoreCase(req.method())) {
             res.setStatusCode(405);
             res.setStatusText("Method Not Allowed");
             byte[] body = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);

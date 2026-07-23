@@ -19,7 +19,6 @@ import javax.crypto.spec.PBEKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-// removed unused import: Objects
 
 /**
  * Form baserad inloggning som skapar en serversession och sätter en säker cookie (SID).
@@ -62,8 +61,6 @@ public class LoginPlugin implements Plugin {
             return;
         }
 
-        // Same-origin kontroll borttagen – ej längre använd.
-
         Map<String, String> form = parseForm(req);
 
         String csrfCookie = CookieUtils.readCookie(req, "CSRF-TOKEN");
@@ -82,7 +79,6 @@ public class LoginPlugin implements Plugin {
         }
 
         String username = form.getOrDefault("username", "").trim();
-        // Preserve the exact password as submitted (no trimming), but keep empty default
         String password = form.getOrDefault("password", "");
 
         if (username.isEmpty() || password.isEmpty()) {
@@ -103,7 +99,7 @@ public class LoginPlugin implements Plugin {
             for (Map.Entry<String, String> e : users.entrySet()) {
                 if (e.getKey().equalsIgnoreCase(username)) {
                     expectedHash = e.getValue();
-                    canonicalUser = e.getKey(); // behåll originalcasing från Users-filen för sessionen
+                    canonicalUser = e.getKey();
                     break;
                 }
             }

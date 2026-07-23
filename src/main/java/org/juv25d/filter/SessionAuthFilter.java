@@ -13,10 +13,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * Global filter that enforces server-side session authentication.
  *
- * Public (unauthenticated) paths: /login, /logout, /health, /metric and static assets (/css, /js, /images, /favicon.ico, /, /index.html, /readme.html).
+ * Public (unauthenticated) paths: /login, /logout, /session/status, /health, /metric and static assets (/css, /js, /images, /favicon.ico, /, /index.html, /readme.html).
  * For protected paths:
  *   - If no valid session cookie (SID) is present: redirect GET to /login, return 401 for non-GET.
- *   - If valid session exists: continue the chain and expose X-Authenticated and X-User headers.
+ *   - If valid session exists: continue the chain.
  */
 @Global(order = 6)
 public class SessionAuthFilter implements Filter {

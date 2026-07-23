@@ -228,7 +228,7 @@ public class LoginPlugin implements Plugin {
 
     private boolean verifyPassword(String password, String hashed) {
         if (hashed == null) return false;
-        // Backwards compatibility: allow plain-text password entries (user:password)
+        // Backwards compatibility: allow plain-text password entries  (user:password)
         if (!hashed.startsWith("pbkdf2:")) {
             byte[] a = password.getBytes(StandardCharsets.UTF_8);
             byte[] b = hashed.getBytes(StandardCharsets.UTF_8);

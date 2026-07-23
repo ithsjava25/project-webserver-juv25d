@@ -19,7 +19,7 @@ import javax.crypto.spec.PBEKeySpec;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+// removed unused import: Objects
 
 /**
  * Form baserad inloggning som skapar en serversession och sätter en säker cookie (SID).
@@ -47,23 +47,11 @@ public class LoginPlugin implements Plugin {
             return;
         }
 
-        // Same-origin safeguard
-        if (!isSameOrigin(req)) {
-            res.setStatusCode(403);
-            res.setStatusText("Forbidden");
-            byte[] body = "Forbidden: Same-origin check failed".getBytes(StandardCharsets.UTF_8);
-            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-            res.setHeader("Content-Length", String.valueOf(body.length));
-            res.setBody(body);
-            return;
-        }
+        // Same-origin kontroll borttagen – ej längre använd.
 
         Map<String, String> form = parseForm(req);
 
-        // CSRF validation inaktiverad på begäran för att undvika lokala 403-problem.
-        // Vi läser fortfarande värdena för framtida bruk, men nekar inte på mismatch.
-        String cookieCsrf = CookieUtils.readCookie(req, "CSRF-TOKEN");
-        String formCsrf = form.get("_csrf");
+        // CSRF-validering är inaktiverad – värden används inte här.
 
         String username = form.getOrDefault("username", "").trim();
         // Preserve the exact password as submitted (no trimming), but keep empty default
@@ -217,86 +205,6 @@ public class LoginPlugin implements Plugin {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    private boolean isSameOrigin(HttpRequest req) {
-        // Same-origin kontroll inaktiverad på begäran.
-        return true;
-    }
-
-    private boolean sameAuthority(String hostHeader, String uriString) {
-        java.net.URI uri;
-        try {
-            uri = new java.net.URI(uriString);
-        } catch (java.net.URISyntaxException e) {
-            // Invalid URI: fail closed
-            return false;
-        }
-
-        String scheme = uri.getScheme();
-        String uriHost = uri.getHost();
-        int uriPort = uri.getPort();
-
-        if (scheme == null || uriHost == null) {
-            return false; // Must be an absolute URI with host
-        }
-
-        int uriNormPort = normalizePort(scheme, uriPort);
-
-        HostPort req = parseHostHeader(hostHeader);
-        if (req == null) return false;
-
-        // If request Host header omitted port, assume scheme's default from the URI being checked
-        int reqNormPort = (req.port >= 0) ? req.port : normalizePort(scheme, -1);
-
-        return uriHost.equalsIgnoreCase(req.host) && uriNormPort == reqNormPort;
-    }
-
-    private int normalizePort(String scheme, int port) {
-        if (port >= 0) return port;
-        if (scheme.equalsIgnoreCase("http")) return 80;
-        if (scheme.equalsIgnoreCase("https")) return 443;
-        return -1; // Unknown scheme, can't infer
-    }
-
-    private static final class HostPort {
-        final String host;
-        final int port; // -1 if not specified
-        HostPort(String host, int port) { this.host = host; this.port = port; }
-    }
-
-    private @org.jspecify.annotations.Nullable HostPort parseHostHeader(String hostHeader) {
-        String h = hostHeader.trim();
-        if (h.isEmpty()) return null;
-
-        // Handle IPv6 [::1]:port per RFC 7230
-        if (h.startsWith("[") ) {
-            int end = h.indexOf(']');
-            if (end <= 0) return null;
-            String host = h.substring(1, end);
-            int port = -1;
-            if (end + 1 < h.length() && h.charAt(end + 1) == ':') {
-                String p = h.substring(end + 2);
-                try { port = Integer.parseInt(p); } catch (NumberFormatException e) { return null; }
-            }
-            return new HostPort(host, port);
-        }
-
-        int idx = h.lastIndexOf(':');
-        if (idx > 0 && h.indexOf(':') == idx) {
-            // Single colon -> host:port
-            String host = h.substring(0, idx);
-            String p = h.substring(idx + 1);
-            try {
-                int port = Integer.parseInt(p);
-                return new HostPort(host, port);
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        // No port specified (or multiple colons like IPv6 without brackets, treat as invalid)
-        if (h.indexOf(':') >= 0) return null; // likely malformed
-        return new HostPort(h, -1);
     }
 
 

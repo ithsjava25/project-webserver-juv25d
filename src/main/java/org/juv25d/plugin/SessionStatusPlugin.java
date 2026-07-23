@@ -7,7 +7,6 @@ import org.juv25d.http.HttpResponse;
 import org.juv25d.util.CookieUtils;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
 /**

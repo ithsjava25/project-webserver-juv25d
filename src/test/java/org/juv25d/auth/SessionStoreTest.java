@@ -4,7 +4,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import java.lang.reflect.Field;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class SessionStoreTest {
 
@@ -30,10 +35,31 @@ class SessionStoreTest {
         Session s = store.create("alice");
         String id = s.getId();
 
-        // Sleep longer than idle timeout plus one scheduler period (idle/2) to allow cleanup to run
-        Thread.sleep(4000);
+        // Verify scheduled eviction without triggering lazy eviction via get(id):
+        // Poll the internal sessions map membership directly until a deadline.
+        Map<String, ?> sessions = accessSessionsMap(store);
+        long idle = store.getIdleTimeoutSeconds();
+        long period = Math.max(1, idle / 2);
+        Instant deadline = Instant.now().plus(Duration.ofSeconds(idle + period + 1)); // bounded timeout tied to config
+        boolean removedByScheduler = false;
+        while (Instant.now().isBefore(deadline)) {
+            if (!sessions.containsKey(id)) {
+                removedByScheduler = true;
+                break;
+            }
+            Thread.sleep(40); // short polling interval
+        }
 
-        // Now a single verification access should return null because cleanup already removed it
+        assertTrue(removedByScheduler, "Expected background scheduler to evict expired session within timeout");
+
+        // Optional: confirm public API also reflects removal without causing lazy eviction
         assertNull(store.get(id), "Expected session to be expired and removed by background cleanup");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, ?> accessSessionsMap(SessionStore store) throws Exception {
+        Field f = SessionStore.class.getDeclaredField("sessions");
+        f.setAccessible(true);
+        return (Map<String, ?>) f.get(store);
     }
 }

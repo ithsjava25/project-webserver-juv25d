@@ -30,6 +30,21 @@ body {
     font-weight: bold;
     font-family: system-ui;
 }
+/* Make the logout <button> look like the nav links */
+.nav-menu .btn-logout {
+    display: block;
+    padding: 0.25rem 1rem 0.5rem 1rem;
+    color: var(--base-color-white);
+    font-weight: bold;
+    font-family: system-ui;
+    font-size: inherit;
+    line-height: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    appearance: none;
+}
 /* Health box */
 
 #health-box {
@@ -172,8 +187,8 @@ body {
         background-attachment: fixed;
         background-size: cover;
     }
-    &:has(a:hover)::before,
-    &:has(a:hover)::after {
+    &:has(a:hover, button.btn-logout:hover)::before,
+    &:has(a:hover, button.btn-logout:hover)::after {
         top: anchor(top);
         left: anchor(left);
         right: anchor(right);

@@ -52,14 +52,13 @@ public final class SessionStore {
 
     public @org.jspecify.annotations.Nullable Session get(String id) {
         if (id == null || id.isBlank()) return null;
-        Session s = sessions.get(id);
-        if (s == null) return null;
-        if (isExpired(s)) {
-            sessions.remove(id);
-            return null;
-        }
-        s.touch();
-        return s;
+        // Perform expiry check and touch atomically per session ID
+        return sessions.compute(id, (k, s) -> {
+            if (s == null) return null; // missing
+            if (isExpired(s)) return null; // expired -> remove mapping
+            s.touch();
+            return s; // non-expired -> touched and kept
+        });
     }
 
     public void invalidate(String id) {
@@ -68,13 +67,13 @@ public final class SessionStore {
     }
 
     public void cleanupExpired() {
-        long now = Instant.now().getEpochSecond();
-        long idle = idleTimeoutSeconds;
-        for (Map.Entry<String, Session> e : sessions.entrySet()) {
-            Session s = e.getValue();
-            if ((now - s.getLastSeenEpochSeconds()) > idle) {
-                sessions.remove(e.getKey());
-            }
+        // Remove expired sessions using per-key atomic operation to serialize
+        // the expiry validation and potential removal with concurrent access.
+        for (String key : sessions.keySet()) {
+            sessions.compute(key, (k, s) -> {
+                if (s == null) return null; // already removed
+                return isExpired(s) ? null : s; // remove if expired, keep otherwise
+            });
         }
     }
 

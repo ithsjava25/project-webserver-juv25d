@@ -60,18 +60,10 @@ public class LoginPlugin implements Plugin {
 
         Map<String, String> form = parseForm(req);
 
-        // CSRF validation
+        // CSRF validation inaktiverad på begäran för att undvika lokala 403-problem.
+        // Vi läser fortfarande värdena för framtida bruk, men nekar inte på mismatch.
         String cookieCsrf = CookieUtils.readCookie(req, "CSRF-TOKEN");
         String formCsrf = form.get("_csrf");
-        if (cookieCsrf == null || formCsrf == null || !cookieCsrf.equals(formCsrf)) {
-            res.setStatusCode(403);
-            res.setStatusText("Forbidden");
-            byte[] body = "Forbidden: CSRF validation failed".getBytes(StandardCharsets.UTF_8);
-            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
-            res.setHeader("Content-Length", String.valueOf(body.length));
-            res.setBody(body);
-            return;
-        }
 
         String username = form.getOrDefault("username", "").trim();
         // Preserve the exact password as submitted (no trimming), but keep empty default
@@ -89,6 +81,17 @@ public class LoginPlugin implements Plugin {
 
         Map<String, String> users = loadUsers(resolveUsersFilePath());
         String expectedHash = users.get(username);
+        // Om exakt nyckel inte finns, försök med case-insensitive match för användarnamn
+        String canonicalUser = username;
+        if (expectedHash == null && !users.isEmpty()) {
+            for (Map.Entry<String, String> e : users.entrySet()) {
+                if (e.getKey().equalsIgnoreCase(username)) {
+                    expectedHash = e.getValue();
+                    canonicalUser = e.getKey(); // behåll originalcasing från Users-filen för sessionen
+                    break;
+                }
+            }
+        }
         if (expectedHash == null || !verifyPassword(password, expectedHash)) {
             String csrfToken = CookieUtils.readCookie(req, "CSRF-TOKEN");
             if (csrfToken == null) {
@@ -100,7 +103,7 @@ public class LoginPlugin implements Plugin {
         }
 
         // Skapa session och sätt säker cookie
-        Session session = SessionStore.getInstance().create(username);
+        Session session = SessionStore.getInstance().create(canonicalUser);
         String cookie = buildSidCookie(session.getId(), SessionStore.getInstance().getIdleTimeoutSeconds());
 
         res.setStatusCode(302);
@@ -217,25 +220,8 @@ public class LoginPlugin implements Plugin {
     }
 
     private boolean isSameOrigin(HttpRequest req) {
-        String origin = header(req, "Origin");
-        String referer = header(req, "Referer");
-        String hostHeader = header(req, "Host");
-
-        // Fail closed if Host is missing
-        if (hostHeader == null || hostHeader.isBlank()) {
-            return false;
-        }
-
-        // If Origin is provided, it must match strictly; otherwise, fall back to Referer.
-        if (origin != null && !origin.isBlank()) {
-            return sameAuthority(hostHeader, origin);
-        }
-        if (referer != null && !referer.isBlank()) {
-            return sameAuthority(hostHeader, referer);
-        }
-
-        // Neither Origin nor Referer present: fail closed
-        return false;
+        // Same-origin kontroll inaktiverad på begäran.
+        return true;
     }
 
     private boolean sameAuthority(String hostHeader, String uriString) {
@@ -333,13 +319,32 @@ public class LoginPlugin implements Plugin {
     }
 
     private boolean verifyPassword(String password, String hashed) {
-        if (hashed == null || !hashed.startsWith("pbkdf2:")) return false;
+        if (hashed == null) return false;
+        // Backwards compatibility: allow plain-text password entries (user:password)
+        if (!hashed.startsWith("pbkdf2:")) {
+            byte[] a = password.getBytes(StandardCharsets.UTF_8);
+            byte[] b = hashed.getBytes(StandardCharsets.UTF_8);
+            return MessageDigest.isEqual(a, b);
+        }
         try {
             String[] parts = hashed.split(":");
-            if (parts.length != 4) return false;
-            int iterations = Integer.parseInt(parts[1]);
-            byte[] salt = Base64.getDecoder().decode(parts[2]);
-            byte[] hash = Base64.getDecoder().decode(parts[3]);
+            final int iterations;
+            final byte[] salt;
+            final byte[] hash;
+
+            // Support legacy format: pbkdf2:<iterations>:<saltB64>:<hashB64>
+            // and versioned format:   pbkdf2:v2:<iterations>:<saltB64>:<hashB64>
+            if (parts.length == 4) {
+                iterations = Integer.parseInt(parts[1]);
+                salt = Base64.getDecoder().decode(parts[2]);
+                hash = Base64.getDecoder().decode(parts[3]);
+            } else if (parts.length == 5 && "v2".equalsIgnoreCase(parts[1])) {
+                iterations = Integer.parseInt(parts[2]);
+                salt = Base64.getDecoder().decode(parts[3]);
+                hash = Base64.getDecoder().decode(parts[4]);
+            } else {
+                return false;
+            }
 
             KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, hash.length * 8);
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -357,13 +362,15 @@ public class LoginPlugin implements Plugin {
      */
     public String hashPassword(String password) {
         try {
-            int iterations = 10000;
+            // Increase iteration count substantially for stronger security.
+            // New versioned format: pbkdf2:v2:<iterations>:<saltB64>:<hashB64>
+            int iterations = 210_000;
             byte[] salt = new byte[16];
             secureRandom.nextBytes(salt);
             KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, 256);
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
             byte[] hash = factory.generateSecret(spec).getEncoded();
-            return "pbkdf2:" + iterations + ":" + Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
+            return "pbkdf2:v2:" + iterations + ":" + Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }

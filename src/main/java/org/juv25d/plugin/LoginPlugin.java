@@ -51,7 +51,20 @@ public class LoginPlugin implements Plugin {
 
         Map<String, String> form = parseForm(req);
 
-        // CSRF-validering är inaktiverad – värden används inte här.
+        String csrfCookie = CookieUtils.readCookie(req, "CSRF-TOKEN");
+        String csrfForm = form.getOrDefault("_csrf", "");
+        if (csrfCookie == null || csrfForm.isEmpty()
+            || !MessageDigest.isEqual(
+            csrfCookie.getBytes(StandardCharsets.UTF_8),
+            csrfForm.getBytes(StandardCharsets.UTF_8))) {
+            res.setStatusCode(403);
+            res.setStatusText("Forbidden");
+            byte[] body = "Invalid CSRF token".getBytes(StandardCharsets.UTF_8);
+            res.setHeader("Content-Type", "text/plain; charset=UTF-8");
+            res.setHeader("Content-Length", String.valueOf(body.length));
+            res.setBody(body);
+            return;
+        }
 
         String username = form.getOrDefault("username", "").trim();
         // Preserve the exact password as submitted (no trimming), but keep empty default
@@ -154,7 +167,7 @@ public class LoginPlugin implements Plugin {
         // Max-Age sätts till idle-timeout för enkelhet (ej absolut TTL här)
         StringBuilder sb = new StringBuilder();
         sb.append("SID=").append(urlEncode(sid))
-          .append("; Path=/; HttpOnly; SameSite=Lax");
+            .append("; Path=/; HttpOnly; SameSite=Lax");
         // Secure bör alltid vara på i produktion. Sätt den alltid här.
         sb.append("; Secure");
         if (idleSeconds > 0) {
@@ -186,12 +199,17 @@ public class LoginPlugin implements Plugin {
     private String urlEncode(String s) {
         try {
             return java.net.URLEncoder.encode(s, StandardCharsets.UTF_8);
-        } catch (Exception e) { return s; }
+        } catch (Exception e) {
+            return s;
+        }
     }
+
     private String urlDecode(String s) {
         try {
             return URLDecoder.decode(s, StandardCharsets.UTF_8);
-        } catch (Exception e) { return s; }
+        } catch (Exception e) {
+            return s;
+        }
     }
 
     private @org.jspecify.annotations.Nullable String header(HttpRequest req, String name) {

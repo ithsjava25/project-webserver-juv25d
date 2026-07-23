@@ -20,6 +20,7 @@ public class LogoutPlugin implements Plugin {
         if (!"POST".equalsIgnoreCase(req.method())) {
             res.setStatusCode(405);
             res.setStatusText("Method Not Allowed");
+            res.setHeader("Allow", "POST");
             byte[] body = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
             res.setHeader("Content-Type", "text/plain; charset=UTF-8");
             res.setHeader("Content-Length", String.valueOf(body.length));

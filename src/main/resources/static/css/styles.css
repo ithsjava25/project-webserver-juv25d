@@ -37,6 +37,8 @@ body {
     color: var(--base-color-white);
     font-weight: bold;
     font-family: system-ui;
+    font-size: inherit;
+    line-height: inherit;
     text-decoration: none;
     cursor: pointer;
     background: none;

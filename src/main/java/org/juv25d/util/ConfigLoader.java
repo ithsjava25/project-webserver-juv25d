@@ -10,12 +10,14 @@ import java.util.*;
 public class ConfigLoader {
     @Nullable private static ConfigLoader instance;
     private int port;
+    private int minCompressSize;
     private String logLevel = "INFO";
     private String rootDirectory = "static";
     private long requestsPerMinute;
     private long burstCapacity;
     private long maxBodySizeMb;
     private boolean rateLimitingEnabled;
+    private boolean compressionEnabled;
     private boolean requestBodySizeEnabled;
     private List<String> trustedProxies;
     private List<ProxyRoute> proxyRoutes = new ArrayList<>();
@@ -56,6 +58,8 @@ public class ConfigLoader {
             this.rootDirectory = "static";
             this.logLevel = "INFO";
             this.trustedProxies = List.of();
+            this.compressionEnabled = false;
+            this.minCompressSize = 1024;
             this.allowedOrigins = List.of();
             this.allowedMethods = List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS");
 
@@ -118,6 +122,17 @@ public class ConfigLoader {
 
                 this.burstCapacity =
                     Long.parseLong(String.valueOf(rateLimitingConfig.getOrDefault("burst-capacity", 100L)));
+            }
+
+            Object compressionObj = config.get("compression");
+            if (compressionObj != null) {
+                Map<String, Object> compressionConfig = asStringObjectMap(compressionObj);
+                this.compressionEnabled =
+                    Boolean.parseBoolean(String.valueOf(compressionConfig.getOrDefault("enabled", false)));
+
+                int parsedMinCompressSize =
+                    Integer.parseInt(String.valueOf(compressionConfig.getOrDefault("min-compress-size", 1024)));
+                this.minCompressSize = Math.max(100, parsedMinCompressSize);
             }
 
             //Cors
@@ -223,6 +238,13 @@ public class ConfigLoader {
         return Collections.unmodifiableList(proxyRoutes);
     }
 
+    public boolean isCompressionEnabled() {
+        return compressionEnabled;
+    }
+
+    public int getMinCompressSize() {
+        return minCompressSize;
+    }
     public List<String> getAllowedOrigins() {
         return allowedOrigins;
     }

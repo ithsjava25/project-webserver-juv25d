@@ -25,6 +25,11 @@
         <ul>
             <li><a href="/index.html">Home</a></li>
             <li><a href="/readme.html">Read Me</a></li>
+            <li id="nav-logout" style="margin-left:auto; display:none">
+                <form method="post" action="/logout" style="display:inline">
+                    <button type="submit" class="btn-logout" title="Log out">Log out</button>
+                </form>
+            </li>
         </ul>
     </nav>
     <header>
@@ -60,5 +65,23 @@
 <script src="js/purify.min.js"></script>
 <script src="/js/app.js"></script>
 <script src="/js/metric.js"></script>
+<script>
+  (function(){
+    // Visa knappen endast när användaren är inloggad.
+    var el = document.getElementById('nav-logout');
+    if (!el) return;
+    try {
+      fetch('/session/status?ts=' + Date.now(), {
+        method: 'GET',
+        cache: 'no-store',
+        redirect: 'manual',
+        credentials: 'same-origin'
+      })
+      .then(function(res){ return res.json().catch(function(){ return { authenticated:false }; }); })
+      .then(function(data){ if (data && data.authenticated) { el.style.display = ''; } else { el.style.display = 'none'; } })
+      .catch(function(){ el.style.display = 'none'; });
+    } catch(e) { el.style.display = 'none'; }
+  })();
+  </script>
 </body>
 </html>

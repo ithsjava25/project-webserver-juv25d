@@ -30,10 +30,14 @@ public class Bootstrap {
             .map(fr -> fr.filter().getClass().getSimpleName())
             .toList());
 
-        Router router = container.get(Router.class);
-        container.get(org.juv25d.router.RouterConfig.class);
+        // Resolve base router and configure routes explicitly
+        Router baseRouter = container.get(Router.class);
+        org.juv25d.router.RouterConfig config = container.get(org.juv25d.router.RouterConfig.class);
+        config.configure();
 
-        return new Pipeline(new FilterMatcher(registry), router);
+        // Use the base router directly. BasicAuthPlugin is now activated like other plugins
+        // via RouterConfig (e.g., on specific paths such as "/login").
+        return new Pipeline(new FilterMatcher(registry), baseRouter);
     }
 }
 

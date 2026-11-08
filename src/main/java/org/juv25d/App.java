@@ -6,6 +6,7 @@ import org.juv25d.logging.ServerLogging;
 import org.juv25d.http.HttpParser;
 import org.juv25d.router.SimpleRouter;
 import org.juv25d.util.ConfigLoader;
+import org.juv25d.auth.SessionStore;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,6 +24,9 @@ public class App {
 
         Pipeline pipeline = Bootstrap.init(container, "org.juv25d");
 
+        // Start background cleanup for sessions as part of application lifecycle
+        SessionStore.getInstance().startCleanupScheduler();
+
         DefaultConnectionHandlerFactory handlerFactory =
             new DefaultConnectionHandlerFactory(httpParser, logger, pipeline);
 
@@ -36,6 +40,8 @@ public class App {
             logger.info("Shutting down...");
             try {
                 pipeline.stop();
+                // Stop session cleanup scheduler cleanly
+                SessionStore.getInstance().stopCleanupScheduler();
                 logger.info("Shutdown successful");
             }catch (Exception ex){
                 logger.log(Level.SEVERE, "Error stopping server", ex);

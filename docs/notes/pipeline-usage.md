@@ -46,7 +46,7 @@
 
         // Authentication & Authorization
         // pipeline.addRouteFilter(new JwtAuthFilter(), 100, "/api/*");
-        // pipeline.addRouteFilter(new BasicAuthFilter(), 100, "/admin/*");
+        // OBS: BasicAuth hanteras globalt via BasicAuthPlugin + GatewayRouter i stället för filter.
         // pipeline.addRouteFilter(new ApiKeyFilter(), 100, "/partner/*");
 
         // Request Validation
